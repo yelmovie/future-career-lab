@@ -1,0 +1,10 @@
+[
+  { "id": "job_drone_visual_storyteller", "name": "드론 영상 촬영가", "fields": ["content_media", "tech_making"] },
+  { "id": "job_drone_facility_inspector", "name": "드론 시설 점검원", "fields": ["tech_making", "science_research"] },
+  { "id": "job_ecology_field_researcher", "name": "생태 현장 연구원", "fields": ["animal_life", "science_research"] },
+  { "id": "job_parrot_keeper", "name": "동물 돌봄 전문가", "fields": ["animal_life", "social_service"] },
+  { "id": "job_health_support", "name": "보건 지원 전문가", "fields": ["social_service"] },
+  { "id": "job_data_researcher", "name": "데이터 연구원", "fields": ["science_research"] },
+  { "id": "job_facility_engineer", "name": "스마트 시설 기술자", "fields": ["tech_making"] },
+  { "id": "job_network_coordinator", "name": "통신·안내 조정가", "fields": ["social_service", "tech_making"] }
+]

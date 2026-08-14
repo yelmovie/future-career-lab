@@ -1,0 +1,8 @@
+{
+  "stage4": ["evt_water_low", "evt_visitor_question", "evt_behavior_note_due", "evt_feed_schedule", "evt_loose_toy", "evt_expert_window"],
+  "stage5": {
+    "강바람 축제 날": ["habitat_access", "wind_safety", "power_system", "comm_loss", "people_support"],
+    "소나기 뒤 도시": ["monitoring_gap", "route_block", "comm_loss", "power_system", "people_support"],
+    "센서가 복잡한 날": ["habitat_access", "comm_loss", "monitoring_gap", "equipment_access", "people_support"]
+  }
+}

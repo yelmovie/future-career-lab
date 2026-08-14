@@ -1,0 +1,8 @@
+{
+  "minimumLogCount": 12,
+  "minimumDistinctPages": 4,
+  "minimumCompletedStages": 3,
+  "traits": ["exploration", "analysis", "creation", "care", "execution", "collaboration"],
+  "fields": ["animal_life", "science_research", "tech_making", "content_media", "social_service"],
+  "disallowedCopy": ["상위", "당신은 탐구형", "가장 적합", "등급"]
+}

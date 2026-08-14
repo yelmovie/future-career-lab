@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.vercel/
+*.log
+.DS_Store
+Thumbs.db
+
+# Supplied source packs are preserved locally. Optimized runtime derivatives
+# under public/ are the deployable, versioned assets.
+/assets/
+/background/
+/samplepages/
+/3d assets/
+/sound/
+/data/
+/og.png

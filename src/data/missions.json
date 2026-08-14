@@ -1,0 +1,6 @@
+[
+  { "id": "daily-1", "title": "관찰 기록 찾기", "targetStage": 2, "rule": "collect_evidence", "target": 3 },
+  { "id": "daily-2", "title": "안전 먼저 생각하기", "targetStage": 4, "rule": "safety_priority", "target": 2 },
+  { "id": "daily-3", "title": "두 직업 연결하기", "targetStage": 5, "rule": "valid_synergy", "target": 1 },
+  { "id": "river_evening_story_01", "title": "강변의 저녁 이야기", "timeLimitSec": 45, "waypointMin": 2, "waypointMax": 4 }
+]
