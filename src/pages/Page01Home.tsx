@@ -3,19 +3,12 @@ import { GameShell, Panel } from '../components/GameShell';
 import { ArrowIcon, CheckIcon, LockIcon, SparkIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { homeAsset, pageAsset } from '../shared/assets';
-import type { PageNumber, StageNumber } from '../shared/types';
+import { STAGE_META } from '../shared/constants';
+import type { PageNumber } from '../shared/types';
 import { audioService } from '../services/audioService';
 import { useGame } from '../state/GameContext';
 
-const STAGES: Array<{ id: StageNumber; label: string; subtitle: string; goal: string; image: string; page: PageNumber }> = [
-  { id: 1, label: '나의 방식', subtitle: '8번 고르기', goal: '마음이 가는 방법을 8번 골라요.', image: pageAsset(2, 10), page: 2 },
-  { id: 2, label: '직업 찾기', subtitle: '찾고 찍기', goal: '단서를 찾고 드론으로 찍어요.', image: pageAsset(3, 10), page: 3 },
-  { id: 3, label: '앵무새 돌봄', subtitle: '살피고 고치기', goal: '앵무새를 살피고 집을 고쳐요.', image: pageAsset(5, 3), page: 5 },
-  { id: 4, label: '일의 순서', subtitle: '3개 해내기', goal: '중요한 일부터 세 가지를 해요.', image: pageAsset(7, 10), page: 7 },
-  { id: 5, label: '도시 협력', subtitle: '4곳 돕기', goal: '직업의 힘으로 도시 네 곳을 도와요.', image: pageAsset(8, 10), page: 8 },
-];
-
-const JOB_CARDS = ['드론 영상 촬영가', '앵무새 돌봄 전문가', '동물 생활 공간 설계가', '생태 현장 운영 조정가', '미래도시 협력 해결사'];
+const JOB_CARDS = STAGE_META.map((stage) => stage.jobTitle);
 
 export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
   const { save, startNew, setPlayerName, loadIssue, saveFailed } = useGame();
@@ -27,12 +20,13 @@ export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumb
     save.jobCards.length && `직업 카드 ${save.jobCards.length}장`,
     completedCount && `완료한 스테이지 ${completedCount}개`,
   ].filter(Boolean).join(', ');
-  const currentStage = useMemo(() => STAGES.find((stage) => !save.stageProgress.completed[stage.id]) ?? STAGES[4]!, [save.stageProgress.completed]);
-  const allComplete = completedCount === STAGES.length;
+  const currentStage = useMemo(() => STAGE_META.find((stage) => !save.stageProgress.completed[stage.id]) ?? STAGE_META[4]!, [save.stageProgress.completed]);
+  const allComplete = completedCount === STAGE_META.length;
+  const nextLocked = STAGE_META.find((stage) => !save.stageProgress.completed[stage.id]);
 
   const begin = () => {
     audioService.playSfx('tap');
-    if (hasProgress) onNavigate(save.lastPage === 1 ? currentStage!.page : save.lastPage);
+    if (hasProgress) onNavigate(save.lastPage === 1 ? currentStage.page : save.lastPage);
     else {
       startNew();
       onNavigate(2);
@@ -54,21 +48,22 @@ export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumb
         <section className="home-hero" aria-labelledby="home-title">
           <img className="home-logo" src={homeAsset('logo')} alt="" />
           <h2 id="home-title" className="sr-only">미래 직업실</h2>
-          <p className="home-tagline">해 보고 고르며, 나에게 맞는 일하는 방법을 찾아봐.</p>
+          <p className="home-tagline">숲의 앵무새가 사라졌어. 네 직업의 힘으로 원인을 찾고 되돌려 놓자.</p>
           <img className="home-keyart" src={homeAsset('keyart')} alt="학생과 진로 멘토, 두 앵무새와 드론이 미래 직업실에 모여 있는 모습" />
           <button className="button button--primary button--large home-cta" onClick={begin}>
-            {hasProgress ? '이어하기' : '새로 시작하기'} <ArrowIcon />
+            {hasProgress ? '이어하기' : '사건 접수하러 가기'} <ArrowIcon />
           </button>
           {hasProgress && <button className="text-button" onClick={() => setModal('reset')}>처음부터 새 탐험</button>}
         </section>
 
         <div className="stack">
           <Panel title={allComplete ? '탐험 결과가 준비됐어' : '지금 할 일'} className="daily-panel">
-            <img src={allComplete ? pageAsset(9, 1) : currentStage.image} alt="지금 할 일을 보여 주는 그림" />
-            <span className="status-chip status-chip--info">{allComplete ? '모두 완료' : `스테이지 ${currentStage.id}`}</span>
-            <h3>{allComplete ? '나의 일하기 지도 보기' : currentStage.label}</h3>
-            <p>{allComplete ? '내가 실제로 한 선택과 행동을 한곳에서 돌아봐.' : currentStage.goal}</p>
-            <button className="button button--teal button--block" onClick={() => onNavigate(allComplete ? 9 : currentStage.page)}>{allComplete ? '결과 보기' : '이어서 하기'}</button>
+            <img src={allComplete ? pageAsset(9, 1) : currentStage.badge} alt="" />
+            <span className="status-chip status-chip--info">{allComplete ? '모두 완료' : `스테이지 ${currentStage.id} · ${currentStage.jobTitle}`}</span>
+            <h3>{allComplete ? '예측과 실제 비교하기' : currentStage.label}</h3>
+            <p>{allComplete ? '처음 예측한 직업과 실제로 한 행동을 비교하고 수료증을 받아.' : currentStage.goal}</p>
+            <p className="daily-reward"><b>끝내면</b> {allComplete ? '수료증 인쇄' : currentStage.reward}</p>
+            <button className="button button--teal button--block" onClick={() => onNavigate(allComplete ? 10 : currentStage.page)}>{allComplete ? '결과 보기' : '이어서 하기'}</button>
           </Panel>
           <div className="home-side-actions">
             <button className="home-mini-card" onClick={() => setModal('atlas')}><img src={homeAsset('parrot-pair')} alt="" /><span><strong>직업도감</strong>{save.jobCards.length}장 발견</span></button>
@@ -78,14 +73,19 @@ export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumb
       </div>
 
       <nav className="stage-map" aria-label="스테이지 선택">
-        {STAGES.map((stage, index) => {
+        {STAGE_META.map((stage, index) => {
           const complete = save.stageProgress.completed[stage.id];
-          const available = index === 0 || STAGES.slice(0, index).every((item) => save.stageProgress.completed[item.id]);
-          return <button key={stage.id} className={`stage-node${complete ? ' is-complete' : ''}${available ? '' : ' is-locked'}`} disabled={!available} onClick={() => onNavigate(stage.page)}>
-            <span className="stage-node__art"><img src={stage.image} alt="" /><span className="stage-node__number">{complete ? <CheckIcon /> : available ? stage.id : <LockIcon />}</span></span>
-            <span><strong>{stage.label}</strong><em>{stage.subtitle}</em></span>
+          const available = index === 0 || STAGE_META.slice(0, index).every((item) => save.stageProgress.completed[item.id]);
+          const lockReason = !available && nextLocked ? `${nextLocked.label}를 끝내면 열려` : '';
+          return <button key={stage.id} className={`stage-node${complete ? ' is-complete' : ''}${available ? '' : ' is-locked'}`} disabled={!available} title={lockReason} onClick={() => onNavigate(stage.page)}>
+            <span className="stage-node__art"><img src={stage.badge} alt="" /><span className="stage-node__number">{complete ? <CheckIcon /> : available ? stage.id : <LockIcon />}</span></span>
+            <span><strong>{stage.label}</strong><em>{available ? stage.subtitle : lockReason}</em></span>
           </button>;
         })}
+        <button className={`stage-node stage-node--final${allComplete ? ' is-complete' : ' is-locked'}`} disabled={!allComplete} title={allComplete ? '' : '다섯 단계를 모두 끝내면 열려'} onClick={() => onNavigate(10)}>
+          <span className="stage-node__art"><img src={pageAsset(10, 6)} alt="" /><span className="stage-node__number">{allComplete ? <CheckIcon /> : <LockIcon />}</span></span>
+          <span><strong>돌아보기·수료증</strong><em>{allComplete ? '예측과 실제 비교' : '다섯 단계 완료 후'}</em></span>
+        </button>
       </nav>
 
       {modal === 'reset' && <Modal title="처음부터 새 탐험" onClose={() => setModal(null)} actions={<>

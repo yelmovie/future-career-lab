@@ -134,7 +134,7 @@ function traitsForApproach(approach: string): Partial<Record<TraitKey, number>> 
   return { care: 1, execution: 1 };
 }
 
-export default function Page07LiveWork({ onNavigate }: PageProps) {
+export default function Page08Broadcast({ onNavigate }: PageProps) {
   const { completePage, logEvent, setPageData, addBadge, addJobCard, grantReward } = useGame();
   const [phase, setPhase] = useState<RunPhase>('briefing');
   const [durationMs, setDurationMs] = useState(90_000);
@@ -203,7 +203,7 @@ export default function Page07LiveWork({ onNavigate }: PageProps) {
     setSelectedId(null);
     audioService.playSfx(event.status === 'recovery' ? 'tap' : 'drop');
     logEvent({
-      page: 7,
+      page: 8,
       type: event.status === 'recovery' ? 'work-recovery' : 'work-priority',
       summary: `${event.title}: ${action.evidence}`,
       tags: [event.title, action.approach, `행동력 ${action.cost}`],
@@ -221,7 +221,7 @@ export default function Page07LiveWork({ onNavigate }: PageProps) {
     setResult(outcome);
     setPhase('result');
     if (success) {
-      completePage(7);
+      completePage(8);
       addJobCard('생태 현장 운영 조정가');
       grantReward('stage4-live-work-record');
       if (outcome.handled.length >= 3) addBadge('중요한 일을 고른 현장가');
@@ -237,7 +237,7 @@ export default function Page07LiveWork({ onNavigate }: PageProps) {
     });
     if (completedTasks > 0) {
       logEvent({
-        page: 7,
+        page: 8,
         type: 'work-result',
         summary: `한꺼번에 들어온 일 중 ${outcome.handled.length}개를 바로 하고 ${outcome.recovered.length}개를 다시 이어 했어.`,
         tags: ['우선순위', '시간 관리', '다시 하기'],
@@ -267,12 +267,12 @@ export default function Page07LiveWork({ onNavigate }: PageProps) {
 
   return (
     <GameShell
-      page={7}
+      page={8}
       eyebrow="STAGE 4 · PRIORITY LAB"
       onNavigate={onNavigate}
       className="page07"
       footer={phase === 'result' && resultPassed
-        ? <StageComplete title="중요한 일 세 가지를 해냈어" message={resultMessage} nextLabel="도시 문제 풀기로" onNext={() => onNavigate(8)} />
+        ? <StageComplete title="중요한 일 세 가지를 해냈어" message={resultMessage} nextLabel="도시 문제 풀기로" onNext={() => onNavigate(9)} />
         : undefined}
     >
       <div className="game-grid game-grid--wide-center p07-layout">
@@ -363,7 +363,7 @@ export default function Page07LiveWork({ onNavigate }: PageProps) {
           title={resultPassed ? '중요한 일을 골라 해냈어' : '한 번 더 하면 해낼 수 있어'}
           actions={<>
             <button className={resultPassed ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다시 해 보기</button>
-            {resultPassed && <button className="button button--primary" onClick={() => onNavigate(8)}>다음 단계로</button>}
+            {resultPassed && <button className="button button--primary" onClick={() => onNavigate(9)}>다음 단계로</button>}
           </>}
         >
           <p>{resultMessage} {resultPassed ? '완료 조건인 세 가지를 채웠어.' : '완료하려면 바로 하거나 다시 이어 한 일이 모두 세 가지 이상이어야 해.'}</p>

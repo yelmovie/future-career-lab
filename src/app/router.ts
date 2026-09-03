@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PageNumber } from '../shared/types';
 
+const LAST_PAGE = 11;
+
 function parseHash(): PageNumber {
   const match = window.location.hash.match(/^#\/page\/(\d+)$/);
   const page = Number(match?.[1] ?? 1);
-  return page >= 1 && page <= 10 ? page as PageNumber : 1;
+  return page >= 1 && page <= LAST_PAGE ? page as PageNumber : 1;
 }
 
 export function useHashRouter() {

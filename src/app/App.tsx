@@ -5,17 +5,22 @@ import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
 import { useHashRouter } from './router';
 
+/**
+ * 게임 순서(페이지 번호) → 화면 컴포넌트.
+ * 파일 이름의 숫자는 v1 시절 에셋 폴더 번호라 게임 순서와 다르다. 순서는 이 표와 PAGE_META 가 결정한다.
+ */
 const pages: Record<PageNumber, LazyExoticComponent<ComponentType<{ onNavigate: (page: PageNumber) => void }>>> = {
   1: lazy(() => import('../pages/Page01Home')),
-  2: lazy(() => import('../pages/Page02WorkStyle')),
-  3: lazy(() => import('../pages/Page03Mystery')),
-  4: lazy(() => import('../pages/Page04Drone')),
-  5: lazy(() => import('../pages/Page05ParrotCheck')),
-  6: lazy(() => import('../pages/Page06Habitat')),
-  7: lazy(() => import('../pages/Page07LiveWork')),
-  8: lazy(() => import('../pages/Page08Crisis')),
-  9: lazy(() => import('../pages/Page09DNA')),
-  10: lazy(() => import('../pages/Page10Certificate')),
+  2: lazy(() => import('../pages/Page02Briefing')),
+  3: lazy(() => import('../pages/Page04Drone')),        // S1-a 드론 정찰
+  4: lazy(() => import('../pages/Page03Mystery')),      // S1-b 증거판
+  5: lazy(() => import('../pages/Page05ParrotCheck')),  // S2-a 건강 점검
+  6: lazy(() => import('../pages/Page06Habitat')),      // S2-b 회복 공간
+  7: lazy(() => import('../pages/Page07Ecology')),      // S3 생태 조사
+  8: lazy(() => import('../pages/Page08Broadcast')),    // S4 생방송
+  9: lazy(() => import('../pages/Page08Crisis')),       // S5 연합 작전
+  10: lazy(() => import('../pages/Page09DNA')),         // 돌아보기
+  11: lazy(() => import('../pages/Page10Certificate')), // 수료증
 };
 
 export function App() {

@@ -399,10 +399,10 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
     setPageData('p4LastReview', result);
     if (result.passed) {
       setCompleted(true);
-      completePage(4);
+      completePage(3);
       addBadge('안전 비행 촬영가');
       logEvent({
-        page: 4, type: 'drone-mission', contextRef: 'p4-passed-flight',
+        page: 3, type: 'drone-mission', contextRef: 'p4-passed-flight',
         summary: `${result.coveredTargets.length}개 촬영 목표를 안전 계획과 함께 완수했어.`,
         tags: ['드론', '촬영', '안전', '현장'], traits: { execution: 2, creation: 1, analysis: 1 },
       });
@@ -460,15 +460,15 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
 
   return (
     <GameShell
-      page={4}
+      page={3}
       eyebrow="STAGE 2 · 현장 체험"
       onNavigate={onNavigate}
       footer={completed ? (
         <StageComplete
           title="드론 촬영 미션을 완수했어"
           message="좋은 장면은 안전한 계획, 팀의 목적, 현장 판단이 함께 만들었어."
-          nextLabel="앵무새 돌봄 탐험으로"
-          onNext={() => onNavigate(5)}
+          nextLabel="증거판으로 가기"
+          onNext={() => onNavigate(4)}
         />
       ) : undefined}
     >

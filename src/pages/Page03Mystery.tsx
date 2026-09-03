@@ -139,7 +139,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
     setClueIds(next);
     setPageData('p3Clues', next);
     logEvent({
-      page: 3, type: 'evidence-found', contextRef: `clue-${id}`,
+      page: 4, type: 'evidence-found', contextRef: `clue-${id}`,
       summary: `${clue.type} 근거 “${clue.title}”을 찾았어.`,
       tags: ['근거', clue.type, id], traits: { exploration: 1, analysis: 1 },
     });
@@ -204,11 +204,11 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       return;
     }
     setCompleted(true);
-    completePage(3);
+    completePage(4);
     addJobCard('드론 영상 촬영가');
     setPageData('p3Candidate', candidate);
     logEvent({
-      page: 3, type: 'career-hypothesis', contextRef: 'p3-final-hypothesis',
+      page: 4, type: 'career-hypothesis', contextRef: 'p3-final-hypothesis',
       summary: '여러 종류의 근거와 업무 흐름을 연결해 드론 영상 촬영가를 찾아냈어.',
       tags: ['드론 영상 촬영가', '목적', '결과물', '안전'], traits: { analysis: 2, collaboration: 1 },
     });
@@ -230,7 +230,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
 
   return (
     <GameShell
-      page={3}
+      page={4}
       eyebrow="STAGE 2 · 단서 조사"
       onNavigate={onNavigate}
       footer={completed ? (
@@ -238,7 +238,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
           title="숨은 직업을 찾았어"
           message="도구만 보지 않고 일의 목적·결과·안전까지 연결했어."
           nextLabel="드론 촬영 현장으로"
-          onNext={() => onNavigate(4)}
+          onNext={() => onNavigate(5)}
         />
       ) : undefined}
     >

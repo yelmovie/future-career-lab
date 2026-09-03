@@ -216,7 +216,7 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
 
         <section className="settings-block">
           <h3>기록 관리</h3>
-          {save.certificateUnlocked && <button className="settings-toggle" onClick={() => { onClose(); onNavigate(10); }}>수료증 보기·인쇄</button>}
+          {save.certificateUnlocked && <button className="settings-toggle" onClick={() => { onClose(); onNavigate(11); }}>수료증 보기·인쇄</button>}
           {!confirmReset ? (
             <button className="button button--danger button--block" onClick={() => setConfirmReset(true)}>내 기록 처음부터 다시 하기</button>
           ) : (

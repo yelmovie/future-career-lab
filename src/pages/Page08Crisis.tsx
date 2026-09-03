@@ -216,7 +216,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     setResult(outcome);
     setPhase('result');
     if (outcome.success) {
-      completePage(8);
+      completePage(9);
       addJobCard('미래도시 협력 해결사');
       addBadge('직업 연합 전략가');
       grantReward('stage5-alliance-strategist');
@@ -231,7 +231,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       duration: durationMs,
     });
     outcome.restored.forEach((region) => logEvent({
-      page: 8,
+      page: 9,
       type: 'crisis-region-restored',
       summary: `${region.label}: ${region.contributors.map((jobId) => snapshot.jobs[jobId].label).join(' + ')}의 관점을 이어 ${region.incident.title}에 대응했어.`,
       tags: [region.label, '직업 협업', ...region.contributors],
@@ -240,7 +240,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     }));
     if (outcome.restored.length > 0) {
       logEvent({
-        page: 8,
+        page: 9,
         type: outcome.success ? 'crisis-success' : 'crisis-partial',
         summary: `${outcome.restored.length}개 지역을 회복하고 도시 회복 점수 ${Math.round(snapshot.stability)}를 만들었어.`,
         tags: ['함께 해결', `협력 효과 ${outcome.synergyCount}`, outcome.success ? '목표 도달' : '다시 도전'],
@@ -268,12 +268,12 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
 
   return (
     <GameShell
-      page={8}
+      page={9}
       eyebrow="STAGE 5 · ALLIANCE CITY"
       onNavigate={onNavigate}
       className="page08"
       footer={phase === 'result' && result?.success
-        ? <StageComplete title="도시 네 곳을 도왔어" message={resultMessage} nextLabel="나의 일하기 지도 보기" onNext={() => onNavigate(9)} />
+        ? <StageComplete title="도시 네 곳을 도왔어" message={resultMessage} nextLabel="나의 일하기 지도 보기" onNext={() => onNavigate(10)} />
         : undefined}
     >
       <div className="p08-layout">
@@ -381,7 +381,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       )}
 
       {phase === 'result' && result && (
-        <Modal title={result.success ? '직업의 힘을 연결했어' : '한 번 더 연결해 보자'} actions={<><button className={result.success ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다른 연결로 다시 하기</button>{result.success && <button className="button button--primary" onClick={() => onNavigate(9)}>나의 일하기 지도 보기</button>}</>}>
+        <Modal title={result.success ? '직업의 힘을 연결했어' : '한 번 더 연결해 보자'} actions={<><button className={result.success ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다른 연결로 다시 하기</button>{result.success && <button className="button button--primary" onClick={() => onNavigate(10)}>나의 일하기 지도 보기</button>}</>}>
           <p>{resultMessage}</p>
           <ul className="p08-result-list">
             {result.restored.map((region) => (

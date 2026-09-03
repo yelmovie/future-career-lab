@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { backgroundFor, pageAsset } from '../shared/assets';
-import { PAGE_META } from '../shared/constants';
+import { backgroundFor } from '../shared/assets';
+import { PAGE_META, STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
@@ -8,13 +8,7 @@ import { HelpIcon, HomeIcon, MutedIcon, SoundIcon } from './Icons';
 import { Modal } from './Modal';
 import { SettingsModal } from './SettingsModal';
 
-const GAME_FLOW = [
-  { stage: 1, short: '나', title: '나의 방식 찾기', goal: '마음이 가는 방법을 골라.', image: pageAsset(2, 10) },
-  { stage: 2, short: '찾기', title: '단서로 직업 찾기', goal: '단서를 찾고 드론으로 찍어.', image: pageAsset(3, 10) },
-  { stage: 3, short: '돌봄', title: '살피고 다시 만들기', goal: '앵무새를 살피고 집을 고쳐.', image: pageAsset(5, 3) },
-  { stage: 4, short: '순서', title: '중요한 일 먼저 하기', goal: '중요한 일 세 가지를 골라.', image: pageAsset(7, 10) },
-  { stage: 5, short: '함께', title: '도시 문제 함께 풀기', goal: '직업의 힘으로 네 곳을 도와.', image: pageAsset(8, 10) },
-] as const;
+const GAME_FLOW = STAGE_META.map((stage) => ({ stage: stage.id, short: stage.subtitle, title: `${stage.label} · ${stage.subtitle}`, goal: stage.goal, image: stage.badge }));
 
 function GearIcon() {
   return (
@@ -39,7 +33,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const meta = PAGE_META[page];
-  const sectionLabel = meta.stage ? `스테이지 ${meta.stage}` : page === 9 ? '탐험 정리' : page === 10 ? '탐험 완료' : '게임 시작';
+  const sectionLabel = meta.stage ? `스테이지 ${meta.stage}` : page === 2 ? '사건 접수' : page === 10 ? '탐험 정리' : page === 11 ? '탐험 완료' : '게임 시작';
   const activeStage = meta.stage ?? GAME_FLOW.find((item) => !save.stageProgress.completed[item.stage])?.stage;
   const toggleMuted = () => {
     audioService.unlock();
@@ -74,7 +68,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
       {footer && <footer className="game-footer">{footer}</footer>}
       {helpOpen && (
         <Modal title="게임은 이렇게 이어져" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
-          <p className="flow-goal"><strong>목표</strong> 여러 일을 직접 해 보고, 내가 자주 쓰는 일하는 방법을 발견하는 게임이야.</p>
+          <p className="flow-goal"><strong>목표</strong> 숲에서 사라진 앵무새의 원인을 네 직업의 힘으로 찾고, 마지막에 넷을 한 팀으로 묶어 숲을 되돌리는 게임이야.</p>
           <ol className="flow-steps">
             {GAME_FLOW.map((item) => (
               <li key={item.stage} className={meta.stage === item.stage ? 'is-current' : ''}>
@@ -82,7 +76,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
               </li>
             ))}
           </ol>
-          <p className="flow-result">마지막에는 실제로 한 선택과 행동을 모아 <strong>나의 일하기 지도</strong>와 수료증을 보여 줘.</p>
+          <p className="flow-result">앞 미션에서 얻은 사진·기록·그래프·방송 클립이 다음 미션의 재료가 돼. 끝나면 <strong>처음 예측과 실제 플레이</strong>를 비교하고 수료증을 인쇄해.</p>
         </Modal>
       )}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onNavigate={onNavigate} />}

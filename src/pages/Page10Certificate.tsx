@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { GameShell, Panel } from '../components/GameShell';
 import { CheckIcon, LockIcon, PrintIcon, SparkIcon } from '../components/Icons';
 import { pageAsset } from '../shared/assets';
-import { STAGE_PAGES } from '../shared/constants';
+import { STAGE_META, STAGE_PAGES } from '../shared/constants';
 import type { PageNumber, StageNumber } from '../shared/types';
 import { audioService } from '../services/audioService';
 import { useGame } from '../state/GameContext';
 
 const CERTIFICATE_TITLE = '미래 직업실 탐험 수료증';
-const STAGE_LABELS: Record<StageNumber, string> = { 1: '나의 방식', 2: '현장 탐색', 3: '생명 돌봄', 4: '일의 순서', 5: '도시 협력' };
+const STAGE_LABELS: Record<StageNumber, string> = Object.fromEntries(STAGE_META.map((stage) => [stage.id, stage.label])) as Record<StageNumber, string>;
 
 export default function Page10Certificate({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
   const { save, setPlayerName, grantReward } = useGame();
@@ -41,7 +41,7 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
   };
 
   if (!save.certificateUnlocked) {
-    return <GameShell page={10} eyebrow="FINAL REWARD" onNavigate={onNavigate} className="certificate-page">
+    return <GameShell page={11} eyebrow="FINAL REWARD" onNavigate={onNavigate} className="certificate-page">
       <div className="locked-certificate">
         <Panel className="panel--cream">
           <span className="locked-icon"><LockIcon /></span>
@@ -55,7 +55,7 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
   }
 
   return (
-    <GameShell page={10} eyebrow="MISSION COMPLETE" onNavigate={onNavigate} className="certificate-page">
+    <GameShell page={11} eyebrow="MISSION COMPLETE" onNavigate={onNavigate} className="certificate-page">
       {celebrating && <div className="celebration no-print" aria-live="polite"><span className="celebration-ring" /><SparkIcon /><strong>다섯 스테이지 탐험 완료!</strong><p>관찰하고 선택하고 협업한 모든 장면이 모였어.</p></div>}
       <div className="certificate-layout">
         <Panel kicker="YOUR RECORD" title="수료 정보" className="certificate-form no-print">
@@ -71,8 +71,9 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
           <div className="certificate-border">
             <header><img src={pageAsset(10, 2)} alt="" /><span>FUTURE CAREER LAB</span><h2>{CERTIFICATE_TITLE}</h2><p>Certificate of Career Exploration</p></header>
             <div className="certificate-name"><strong>{save.playerName || '　　　　　　　　　'}</strong><span>탐험가</span></div>
-            <p className="certificate-copy">위 학생은 「미래 직업실」에서 다섯 가지 직업 탐험을 완주하며<br />관찰·비교·계획·실행·수정·협업의 과정을 성실히 경험했기에 이 증서를 수여합니다.</p>
-            <div className="certificate-badges">{([1, 2, 3, 4, 5] as StageNumber[]).map((stage, index) => <div key={stage}><span><img src={pageAsset(10, (index % 5) + 3)} alt="" /></span><b>{STAGE_LABELS[stage]}</b></div>)}</div>
+            <p className="certificate-copy">위 학생은 「미래 직업실」에서 드론 현장가·동물돌봄 전문가·생태연구가·방송기술자의 일을 직접 해 보고<br />네 직업을 한 팀으로 묶어 숲의 위기를 해결했기에 이 증서를 수여합니다.</p>
+            <div className="certificate-badges">{STAGE_META.map((stage) => <div key={stage.id}><span><img src={stage.badge} alt="" /></span><b>{stage.label}</b></div>)}</div>
+            {save.abilityStatements.length > 0 && <ul className="certificate-abilities">{save.abilityStatements.map((statement) => <li key={statement}>나는 이제 {statement}</li>)}</ul>}
             <div className="certificate-info">
               <span>학교 <b>{school || '　　　　　　　　　'}</b></span>
               <span>학년 <b>{grade || '　　'}</b></span><span>반 <b>{classroom || '　　'}</b></span><span>번호 <b>{number || '　　'}</b></span>

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2026.08",
+  "contentVersion": "2026.09",
   "modelSlots": [
     {
       "id": "model.parrotHabitat",
@@ -1307,6 +1307,190 @@
       "width": 1254,
       "height": 1254,
       "hasAlpha": true
+    },
+    {
+      "id": "v2.photo.logging",
+      "page": 0,
+      "src": "/assets/v2/photo-logging.webp",
+      "kind": "image",
+      "display": "hero",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false
+    },
+    {
+      "id": "v2.photo.stream",
+      "page": 0,
+      "src": "/assets/v2/photo-stream.webp",
+      "kind": "image",
+      "display": "hero",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false
+    },
+    {
+      "id": "v2.photo.construction",
+      "page": 0,
+      "src": "/assets/v2/photo-construction.webp",
+      "kind": "image",
+      "display": "hero",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false
+    },
+    {
+      "id": "v2.badge.ecology",
+      "page": 0,
+      "src": "/assets/v2/badge-ecology.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 460,
+      "height": 474,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.badge.broadcast",
+      "page": 0,
+      "src": "/assets/v2/badge-broadcast.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 493,
+      "height": 498,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.scene.incident",
+      "page": 0,
+      "src": "/assets/v2/scene-incident.webp",
+      "kind": "image",
+      "display": "hero",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false
+    },
+    {
+      "id": "v2.scene.restored",
+      "page": 0,
+      "src": "/assets/v2/scene-restored.webp",
+      "kind": "image",
+      "display": "hero",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false
+    },
+    {
+      "id": "v2.parrot.sick.green",
+      "page": 0,
+      "src": "/assets/v2/parrot-sick-green.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 468,
+      "height": 793,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.parrot.sick.red",
+      "page": 0,
+      "src": "/assets/v2/parrot-sick-red.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 507,
+      "height": 778,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.trace.footprint.cat",
+      "page": 0,
+      "src": "/assets/v2/trace-footprint-cat.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 461,
+      "height": 472,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.trace.footprint.boot",
+      "page": 0,
+      "src": "/assets/v2/trace-footprint-boot.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 463,
+      "height": 472,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.trace.stump",
+      "page": 0,
+      "src": "/assets/v2/trace-stump.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 481,
+      "height": 391,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.trace.fruit",
+      "page": 0,
+      "src": "/assets/v2/trace-fruit.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 482,
+      "height": 404,
+      "hasAlpha": true
+    },
+    {
+      "id": "v2.reporter",
+      "page": 0,
+      "src": "/assets/v2/reporter.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "v2 Imagen (2026-09-04)",
+      "width": 318,
+      "height": 861,
+      "hasAlpha": true
+    }
+  ],
+  "pending": [
+    {
+      "id": "v2.sfx.parrot-call",
+      "src": "/audio/v2/parrot-call.mp3",
+      "kind": "audio",
+      "available": false,
+      "fallback": null
+    },
+    {
+      "id": "v2.sfx.parrot-alarm",
+      "src": "/audio/v2/parrot-alarm.mp3",
+      "kind": "audio",
+      "available": false,
+      "fallback": null
+    },
+    {
+      "id": "v2.sfx.chainsaw",
+      "src": "/audio/v2/chainsaw-far.mp3",
+      "kind": "audio",
+      "available": false,
+      "fallback": "sfx.warning"
+    },
+    {
+      "id": "v2.sfx.drone-loop",
+      "src": "/audio/v2/drone-loop.mp3",
+      "kind": "audio",
+      "available": false,
+      "fallback": null
     }
   ]
 }

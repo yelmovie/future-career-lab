@@ -45,7 +45,7 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
   }, []);
 
   return (
-    <GameShell page={9} eyebrow="PLAY REFLECTION" onNavigate={onNavigate} className="dna-page" footer={<button className="button button--primary button--large" onClick={() => onNavigate(10)}>수료증 확인하기 <ArrowIcon /></button>}>
+    <GameShell page={10} eyebrow="PLAY REFLECTION" onNavigate={onNavigate} className="dna-page" footer={<button className="button button--primary button--large" onClick={() => onNavigate(11)}>수료증 확인하기 <ArrowIcon /></button>}>
       <div className="result-disclaimer"><SparkIcon /><p>{RESULT_DISCLAIMER}</p></div>
       {insufficient && <div className="toast toast--warning" role="status">아직 돌아볼 장면이 조금 부족해. 한두 미션을 더 체험하면 이번 플레이의 흐름을 더 잘 보여 줄게.</div>}
       <div className="dna-grid">

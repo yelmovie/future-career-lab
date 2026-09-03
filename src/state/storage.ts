@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, SAVE_KEY, SAVE_SCHEMA_VERSION } from '../shared/constants';
 import type { GameSave } from '../shared/types';
-import { createDefaultSave } from './defaultSave';
+import { createDefaultArtifacts, createDefaultSave } from './defaultSave';
 import { isCertificateUnlocked } from './progress';
 
 export interface LoadResult {
@@ -38,6 +38,9 @@ export function loadSave(): LoadResult {
       stageProgress,
       certificateUnlocked: isCertificateUnlocked(stageProgress.completedPages),
       audio: { ...base.audio, ...parsed.audio },
+      artifacts: { ...createDefaultArtifacts(), ...(parsed.artifacts ?? {}) },
+      prediction: parsed.prediction ?? null,
+      abilityStatements: Array.isArray(parsed.abilityStatements) ? parsed.abilityStatements : [],
     };
     return { save, issue: migrated ? 'migrated' : 'none', hadSave: true };
   } catch {

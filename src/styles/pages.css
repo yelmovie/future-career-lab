@@ -25,7 +25,7 @@
 .home-mini-card img { width: 100%; height: 66px; object-fit: contain; }
 .home-mini-card span { display: block; color: rgb(var(--cream-rgb) / 65%); font-size: var(--fs-cap); }
 .home-mini-card strong { display: block; color: var(--cream); font-size: var(--fs-body); line-height: 1.25; }
-.stage-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-8); width: 100%; padding: var(--space-8); border: 1px solid rgb(241 207 131 / 42%); border-radius: 22px; background: rgb(5 21 38 / 92%); box-shadow: var(--shadow-lg); }
+.stage-map { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-8); width: 100%; padding: var(--space-8); border: 1px solid rgb(241 207 131 / 42%); border-radius: 22px; background: rgb(5 21 38 / 92%); box-shadow: var(--shadow-lg); }
 .stage-node { position: relative; min-height: 112px; display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 10px; align-items: center; padding: var(--space-8); text-align: left; border: 1px solid rgb(241 207 131 / 28%); border-radius: 15px; background: linear-gradient(135deg, rgb(19 61 91 / 94%), rgb(8 28 49 / 94%)); cursor: pointer; }
 .stage-node:not(:disabled):hover { border-color: var(--gold-pale); transform: translateY(-2px); }
 .stage-node.is-complete { border-color: rgb(58 183 107 / 65%); background: linear-gradient(135deg, rgb(16 76 54 / 96%), rgb(6 37 37 / 96%)); }
@@ -191,3 +191,6 @@
   .certificate-info, .certificate-border footer, .certificate-badges b { font-size: 9pt; }
   .certificate-badges span { width: 16mm; height: 16mm; }
 }
+
+.certificate-abilities { display: grid; gap: 4px; margin: 10px auto 0; padding: 0; max-width: 620px; list-style: none; font-size: 17px; font-weight: 700; color: #213b50; text-align: center; }
+.certificate-abilities li::before { content: '✓ '; color: #238a55; }

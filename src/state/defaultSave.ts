@@ -1,6 +1,6 @@
 import { CONTENT_VERSION, SAVE_SCHEMA_VERSION } from '../shared/constants';
 import { hashString, seedForSession } from '../shared/rng';
-import type { GameSave, TraitScores } from '../shared/types';
+import type { Artifacts, GameSave, TraitScores } from '../shared/types';
 
 const EMPTY_TRAITS: TraitScores = {
   exploration: 0,
@@ -10,6 +10,19 @@ const EMPTY_TRAITS: TraitScores = {
   execution: 0,
   collaboration: 0,
 };
+
+export function createDefaultArtifacts(): Artifacts {
+  return {
+    photos: [],
+    hypothesis: null,
+    careLog: [],
+    habitatStars: 0,
+    traces: [],
+    graphs: [],
+    clip: null,
+    allianceTurns: null,
+  };
+}
 
 export function createDefaultSave(): GameSave {
   const today = new Date().toISOString().slice(0, 10);
@@ -32,6 +45,9 @@ export function createDefaultSave(): GameSave {
     certificateUnlocked: false,
     rewardGranted: [],
     audio: { bgmVolume: 0.28, sfxVolume: 0.7, muted: false },
+    artifacts: createDefaultArtifacts(),
+    prediction: null,
+    abilityStatements: [],
     updatedAt: new Date().toISOString(),
   };
 }

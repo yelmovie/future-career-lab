@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { TRAIT_KEYS } from '../shared/constants';
-import type { AudioSettings, GameSave, LogInput, PageNumber } from '../shared/types';
+import type { Artifacts, AudioSettings, GameSave, JobId, LogInput, PageNumber } from '../shared/types';
 import { createDefaultSave } from './defaultSave';
 import { loadSave, persistSave, type LoadResult } from './storage';
 import { deriveStageCompletion } from './progress';
@@ -20,6 +20,9 @@ interface GameContextValue {
   addJobCard: (card: string) => void;
   grantReward: (reward: string) => void;
   setAudio: (settings: Partial<AudioSettings>) => void;
+  setArtifacts: (patch: Partial<Artifacts>) => void;
+  setPrediction: (job: JobId | null) => void;
+  setAbilityStatements: (statements: string[]) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -97,6 +100,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     audio: { ...current.audio, ...audio },
   })), [update]);
 
+  const setArtifacts = useCallback((patch: Partial<Artifacts>) => update((current) => ({
+    ...current,
+    artifacts: { ...current.artifacts, ...patch },
+  })), [update]);
+  const setPrediction = useCallback((prediction: JobId | null) => update((current) => ({ ...current, prediction })), [update]);
+  const setAbilityStatements = useCallback((abilityStatements: string[]) => update((current) => ({ ...current, abilityStatements })), [update]);
+
   const value = useMemo<GameContextValue>(() => ({
     save,
     hadSave,
@@ -112,7 +122,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addJobCard: (card) => addUnique('jobCards', card),
     grantReward: (reward) => addUnique('rewardGranted', reward),
     setAudio,
-  }), [addUnique, completePage, hadSave, initial.issue, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew]);
+    setArtifacts,
+    setPrediction,
+    setAbilityStatements,
+  }), [addUnique, setArtifacts, setPrediction, setAbilityStatements, completePage, hadSave, initial.issue, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
