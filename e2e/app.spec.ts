@@ -10,6 +10,19 @@ test('home loads and a corrupt save recovers safely', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('안전하게 새 탐험판');
 });
 
+test('a choice is saved and 이어하기 returns to the same stage', async ({ page }) => {
+  await page.goto('/#/page/2');
+  await page.locator('.choice-card').first().click();
+  await expect(page.getByRole('progressbar', { name: '선택 1 / 8' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('progressbar', { name: '선택 1 / 8' })).toBeVisible();
+
+  await page.goto('/#/page/1');
+  await page.getByRole('button', { name: /이어하기/ }).first().click();
+  await expect(page.getByRole('heading', { level: 1, name: '내가 좋아하는 일 방식' })).toBeVisible();
+});
+
 test('certificate stays locked until five real stage flags are complete', async ({ page }) => {
   await page.goto('/#/page/10');
   await page.reload();

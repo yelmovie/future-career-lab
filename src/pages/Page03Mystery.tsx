@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
+import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
@@ -19,9 +20,9 @@ import {
 import './stage1-2.css';
 
 const CAMERA_LABELS: Record<CameraId, string> = {
-  'cam-a': 'CAM A · 출입 구역',
-  'cam-b': 'CAM B · 준비 구역',
-  'cam-c': 'CAM C · 작업 구역',
+  'cam-a': 'A · 들어가는 곳',
+  'cam-b': 'B · 준비하는 곳',
+  'cam-c': 'C · 찍는 곳',
 };
 
 function stringList(value: unknown): string[] {
@@ -83,11 +84,11 @@ class MysteryCameraScene extends Phaser.Scene {
     for (let y = 0; y < height; y += 64) frame.lineBetween(0, y, width, y);
 
     this.add.text(28, 25, CAMERA_LABELS[this.activeCamera], {
-      fontFamily: 'Pretendard, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#f7e9c9',
+      fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.body, fontStyle: 'bold', color: '#f7e9c9',
       backgroundColor: '#061426cc', padding: { x: 10, y: 7 },
     });
-    this.add.text(width - 28, 31, 'LIVE  ·  근거 탐색', {
-      fontFamily: 'Pretendard, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#8af2e8',
+    this.add.text(width - 28, 31, '지금 보기 · 단서 찾기', {
+      fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#8af2e8',
     }).setOrigin(1, 0);
 
     MYSTERY_CLUES.filter((clue) => clue.camera === this.activeCamera).forEach((clue, index) => {
@@ -97,7 +98,7 @@ class MysteryCameraScene extends Phaser.Scene {
       const ring = this.add.circle(x, y, found ? 25 : 31, found ? 0x3ab76b : 0xe4a63c, found ? .82 : .25)
         .setStrokeStyle(found ? 3 : 4, found ? 0xa9f2c1 : 0xffd37b, 1);
       this.add.text(x, y, found ? '확인' : `${index + 1}`, {
-        fontFamily: 'Pretendard, sans-serif', fontSize: found ? '12px' : '18px', fontStyle: 'bold',
+        fontFamily: 'Pretendard, sans-serif', fontSize: found ? CANVAS_FONT.cap : CANVAS_FONT.body, fontStyle: 'bold',
         color: found ? '#061426' : '#fff5dd',
       }).setOrigin(.5);
       if (!found) {
@@ -120,7 +121,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
   const [gates, setGates] = useState<string[]>(() => stringList(save.pageData.p3Gates));
   const [firstLink, setFirstLink] = useState('');
   const [secondLink, setSecondLink] = useState('');
-  const [hint, setHint] = useState('카메라를 바꾸며 서로 다른 종류의 근거를 모아 봐.');
+  const [hint, setHint] = useState('화면을 바꾸며 서로 다른 종류의 단서를 모아 봐.');
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(3));
   const clueRef = useRef<(id: string) => void>(() => undefined);
   const scene = useMemo(() => new MysteryCameraScene((id) => clueRef.current(id)), []);
@@ -142,7 +143,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       summary: `${clue.type} 근거 “${clue.title}”을 찾았어.`,
       tags: ['근거', clue.type, id], traits: { exploration: 1, analysis: 1 },
     });
-    setHint(`${clue.type} 근거를 기록했어. 다른 카메라의 단서와 이어 볼 수 있을까?`);
+    setHint(`${clue.type} 단서를 기록했어. 다른 화면의 단서와 이어 볼 수 있을까?`);
   };
   clueRef.current = findClue;
 
@@ -151,13 +152,13 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
 
   const addLink = () => {
     if (!firstLink || !secondLink || firstLink === secondLink) {
-      setHint('서로 다른 근거 두 개를 골라 연결해 봐.');
+      setHint('서로 다른 단서 두 개를 골라 이어 봐.');
       return;
     }
     const key = normalizedPair(firstLink, secondLink);
     if (!validMysteryLinkKeys.has(key)) {
       audioService.playSfx('warning');
-      setHint('두 근거가 같은 업무 흐름을 설명하는지 다시 살펴봐. 다른 조합도 시험해 봐.');
+      setHint('두 단서가 같은 일의 흐름을 보여 주는지 다시 살펴봐.');
       return;
     }
     if (links.includes(key)) {
@@ -182,7 +183,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
 
   const testHypothesis = () => {
     if (clueIds.length < 4 || typeCount < 3) {
-      setHint('한 카메라에 머물지 말고 영상·소리·도구처럼 다른 종류의 근거를 더 찾아봐.');
+      setHint('한 화면에 머물지 말고 영상·소리·도구처럼 다른 종류의 단서를 더 찾아봐.');
       return;
     }
     if (links.length < 2 || coreLinkCount < 1) {
@@ -190,7 +191,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       return;
     }
     if (!candidate) {
-      setHint('세 직업 중 지금까지의 근거를 가장 많이 설명하는 가설을 골라 봐.');
+      setHint('세 직업 중 지금까지 찾은 단서와 가장 잘 맞는 직업을 골라 봐.');
       return;
     }
     if (gates.length < 3) {
@@ -212,7 +213,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       tags: ['드론 영상 촬영가', '목적', '결과물', '안전'], traits: { analysis: 2, collaboration: 1 },
     });
     audioService.playSfx('success');
-    setHint('근거가 가설을 튼튼하게 설명해. 직업 미스터리를 해결했어.');
+    setHint('단서가 네 생각을 잘 뒷받침해. 숨은 직업을 찾았어.');
   };
 
   const selectCandidate = (id: string) => {
@@ -234,19 +235,21 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       onNavigate={onNavigate}
       footer={completed ? (
         <StageComplete
-          title="직업 미스터리를 해결했어"
-          message="도구만 보지 않고 목적·결과물·안전까지 연결한 멋진 조사였어."
+          title="숨은 직업을 찾았어"
+          message="도구만 보지 않고 일의 목적·결과·안전까지 연결했어."
           nextLabel="드론 촬영 현장으로"
           onNext={() => onNavigate(4)}
         />
       ) : undefined}
     >
       <div className="game-grid game-grid--wide-center mystery-layout">
-        <Panel title="카메라 전환" kicker="SECURITY CAM">
-          <div className="mission-card">
-            <strong>숨은 직업을 찾아라</strong>
-            <p>6개 단서 중 4개 이상, 서로 다른 종류 3개 이상을 조사해.</p>
-          </div>
+        <Panel title="이번에 할 일" kicker="SECURITY CAM">
+          <MissionGuide
+            image={pageAsset(3, 10)}
+            imageAlt="단서를 모으는 탐정 가방"
+            action="단서를 모아 직업을 찾아요"
+            goals={['단서 4개 찾기', '두 쌍 이어 보기', '직업 고르기']}
+          />
           <div className="camera-tabs" role="tablist" aria-label="조사 카메라">
             {(Object.keys(CAMERA_LABELS) as CameraId[]).map((id) => (
               <button
@@ -258,27 +261,27 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
               >{CAMERA_LABELS[id]}</button>
             ))}
           </div>
-          <ProgressBar value={(clueIds.length / 6) * 100} label={`근거 ${clueIds.length} / 6 · 종류 ${typeCount} / 3`} />
-          <div className="keyboard-hotspots" aria-label="현재 카메라의 단서 위치">
-            <strong>키보드 조사</strong>
+          <ProgressBar value={(clueIds.length / 6) * 100} label={`단서 ${clueIds.length} / 6 · 종류 ${typeCount} / 3`} />
+          <details className="keyboard-hotspots" aria-label="현재 화면의 단서 위치">
+            <summary>표시를 못 찾겠어요</summary>
             {MYSTERY_CLUES.filter((clue) => clue.camera === camera).map((clue, index) => (
               <button key={clue.id} className="button button--ghost" disabled={clueIds.includes(clue.id)} onClick={() => findClue(clue.id)}>
-                {clueIds.includes(clue.id) ? `${clue.title} 확인됨` : `단서 위치 ${index + 1} 조사`}
+                {clueIds.includes(clue.id) ? `${clue.title} 찾음` : `${index + 1}번 표시 누르기`}
               </button>
             ))}
-          </div>
+          </details>
         </Panel>
 
         <div className="mystery-center stack">
           <div className="scene-card mystery-scene">
-            <PhaserStage scene={scene} ariaLabel="세 카메라를 바꾸며 조사할 수 있는 현장 화면. 반짝이는 원을 누르면 근거를 찾을 수 있어." />
+            <PhaserStage scene={scene} ariaLabel="세 화면을 바꾸며 조사하는 현장. 반짝이는 원을 누르면 단서를 찾을 수 있어." />
           </div>
-          <Panel className="evidence-tray" title="수집한 근거" kicker="EVIDENCE BOARD">
-            {collectedClues.length === 0 ? <p className="empty-copy">카메라 화면의 표시를 눌러 첫 근거를 찾아 봐.</p> : (
+          <Panel className="evidence-tray" title="찾은 단서" kicker="EVIDENCE BOARD">
+            {collectedClues.length === 0 ? <p className="empty-copy">화면의 반짝이는 표시를 눌러 첫 단서를 찾아 봐.</p> : (
               <div className="evidence-chip-grid">
                 {collectedClues.map((clue) => (
                   <article key={clue.id} className="evidence-chip">
-                    <span>{clue.type}</span><strong>{clue.title}</strong><p>{clue.note}</p>
+                    <span>{clue.type}</span><strong>{clue.title}</strong>
                   </article>
                 ))}
               </div>
@@ -286,47 +289,57 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
           </Panel>
         </div>
 
-        <Panel title="가설 보드" kicker="CONNECT & CHECK">
-          <div className="hypothesis-section">
-            <strong>1. 근거 연결</strong>
-            <select aria-label="첫 번째 근거" value={firstLink} onChange={(event) => setFirstLink(event.target.value)}>
-              <option value="">첫 근거 선택</option>
-              {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
-            </select>
-            <select aria-label="두 번째 근거" value={secondLink} onChange={(event) => setSecondLink(event.target.value)}>
-              <option value="">둘째 근거 선택</option>
-              {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
-            </select>
-            <button className="button button--teal button--block" onClick={addLink}>두 근거 연결하기</button>
-            <ul className="evidence-links">
-              {links.map((link) => <li key={link}>{linkName(link)}<span>{coreMysteryLinkKeys.has(link) ? '핵심 흐름' : '준비 흐름'}</span></li>)}
-            </ul>
-          </div>
-
-          <div className="hypothesis-section">
-            <strong>2. 직업 가설</strong>
-            <div className="candidate-list" role="radiogroup" aria-label="직업 가설">
-              {MYSTERY_CANDIDATES.map((item) => (
-                <button key={item.id} role="radio" aria-checked={candidate === item.id} className={candidate === item.id ? 'is-selected' : ''} onClick={() => selectCandidate(item.id)}>
-                  <strong>{item.name}</strong><small>{item.description}</small>
-                </button>
-              ))}
+        <Panel title="내 생각 확인" kicker="CONNECT & CHECK">
+          {clueIds.length < 4 || typeCount < 3 ? (
+            <div className="mystery-next-step" role="status"><b>1</b><strong>먼저 단서 4개를 찾아 줘</strong><span>서로 다른 색의 단서를 찾아 봐.</span></div>
+          ) : (
+            <div className={`hypothesis-section${links.length >= 2 ? ' is-done' : ''}`}>
+              <strong><b>{links.length >= 2 ? '✓' : '1'}</b> 단서 두 쌍 잇기</strong>
+              {links.length < 2 && <>
+                <select aria-label="첫 번째 단서" value={firstLink} onChange={(event) => setFirstLink(event.target.value)}>
+                  <option value="">첫 단서 고르기</option>
+                  {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
+                </select>
+                <select aria-label="두 번째 단서" value={secondLink} onChange={(event) => setSecondLink(event.target.value)}>
+                  <option value="">둘째 단서 고르기</option>
+                  {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
+                </select>
+                <button className="button button--teal button--block" onClick={addLink}>두 단서 잇기</button>
+              </>}
+              <ul className="evidence-links">
+                {links.map((link) => <li key={link}>{linkName(link)}<span>{coreMysteryLinkKeys.has(link) ? '중요한 연결' : '준비 연결'}</span></li>)}
+              </ul>
             </div>
-          </div>
+          )}
 
-          <div className="hypothesis-section">
-            <strong>3. 설명 확인</strong>
-            <div className="gate-list">
-              {([
-                ['purpose', '일의 목적'], ['result', '남기는 결과물'], ['safety', '안전한 과정'],
-              ] as const).map(([id, label]) => (
-                <button key={id} aria-pressed={gates.includes(id)} className={gates.includes(id) ? 'is-checked' : ''} onClick={() => toggleGate(id)}>{label}</button>
-              ))}
+          {links.length >= 2 && (
+            <div className="hypothesis-section">
+              <strong><b>2</b> 직업 하나 고르기</strong>
+              <div className="candidate-list" role="radiogroup" aria-label="알맞은 직업">
+                {MYSTERY_CANDIDATES.map((item) => (
+                  <button key={item.id} role="radio" aria-checked={candidate === item.id} className={candidate === item.id ? 'is-selected' : ''} onClick={() => selectCandidate(item.id)}>
+                    <strong>{item.name}</strong>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {candidate && (
+            <div className="hypothesis-section">
+              <strong><b>3</b> 세 가지 모두 누르기</strong>
+              <div className="gate-list">
+                {([
+                  ['purpose', '누구를 돕지?'], ['result', '무엇을 만들지?'], ['safety', '어떻게 안전할까?'],
+                ] as const).map(([id, label]) => (
+                  <button key={id} aria-pressed={gates.includes(id)} className={gates.includes(id) ? 'is-checked' : ''} onClick={() => toggleGate(id)}>{label}</button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="toast" role="status">{hint}</div>
-          <button className="button button--primary button--large button--block" onClick={testHypothesis} disabled={completed}>가설 확인하기</button>
+          {candidate && <button className="button button--primary button--large button--block" onClick={testHypothesis} disabled={completed}>이 직업이 맞는지 보기</button>}
         </Panel>
       </div>
     </GameShell>

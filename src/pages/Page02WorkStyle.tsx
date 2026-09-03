@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
@@ -84,11 +84,13 @@ export default function Page02WorkStyle({ onNavigate }: { onNavigate: (page: Pag
       ) : undefined}
     >
       <div className="game-grid work-style-layout">
-        <Panel title="탐험 방법" kicker="MISSION">
-          <div className="mission-card">
-            <strong>8개의 순간을 골라 봐</strong>
-            <p>더 끌리는 방법을 왼쪽이나 오른쪽으로 밀거나 버튼으로 선택해.</p>
-          </div>
+        <Panel title="이번에 할 일" kicker="MISSION">
+          <MissionGuide
+            image={pageAsset(2, 10)}
+            imageAlt="어느 쪽으로 갈지 알려 주는 나침반"
+            action="마음이 가는 쪽을 골라요"
+            goals={['8번 고르기', '정답은 없어요']}
+          />
           <div className="stage12-spacer" />
           <ProgressBar value={(answers.length / scenarioOrder.length) * 100} label={`선택 ${answers.length} / ${scenarioOrder.length}`} />
           <ol className="work-style-dots" aria-label="선택 진행 단계">
@@ -133,25 +135,14 @@ export default function Page02WorkStyle({ onNavigate }: { onNavigate: (page: Pag
             <div className="work-style-options" aria-label="선택지">
               {scenario.options.map((option, index) => (
                 <button key={option.id} className="choice-card" onClick={() => choose(option)}>
-                  <span className="choice-card__badge">{index === 0 ? '왼쪽으로 밀기' : '오른쪽으로 밀기'}</span>
+                  <span className="choice-card__badge">{index + 1}</span>
                   <strong>{option.title}</strong>
                   <p>{option.description}</p>
                 </button>
               ))}
             </div>
           )}
-        </Panel>
-
-        <Panel title="선택 안내" kicker="NO WRONG ANSWER">
-          <div className="work-style-compass" aria-hidden="true">
-            <span>N</span><i /><span>S</span>
-          </div>
-          <div className="toast" role="status">{message}</div>
-          <ul className="stage12-tip-list">
-            <li>빠르게 골라도 괜찮아.</li>
-            <li>서로 다른 선택도 모두 탐험 기록이야.</li>
-            <li>키보드는 ← / → 키로 선택할 수 있어.</li>
-          </ul>
+          <div className="toast work-style-feedback" role="status">{message}</div>
         </Panel>
       </div>
     </GameShell>

@@ -3,6 +3,7 @@ import {
   WORK_EVENTS,
   advanceWorkEvents,
   createWorkEvents,
+  isWorkOutcomeComplete,
   resolveWorkEvent,
   workOutcome,
 } from './page07LiveWorkModel';
@@ -49,5 +50,14 @@ describe('page 7 live work model', () => {
     expect(outcome.handled.map((event) => event.id)).toContain(direct.id);
     expect(outcome.recovered.map((event) => event.id)).toContain(recovered.id);
     expect(outcome.evidenceScore).toBe(4);
+  });
+
+  it('finishes only after three tasks are handled or recovered', () => {
+    let events = createWorkEvents();
+    events = resolveWorkEvent(events, events[0]!.id, events[0]!.actions[0]!);
+    events = resolveWorkEvent(events, events[1]!.id, events[1]!.recovery);
+    expect(isWorkOutcomeComplete(workOutcome(events))).toBe(false);
+    events = resolveWorkEvent(events, events[2]!.id, events[2]!.actions[0]!);
+    expect(isWorkOutcomeComplete(workOutcome(events))).toBe(true);
   });
 });

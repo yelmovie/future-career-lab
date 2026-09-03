@@ -8,7 +8,7 @@ import { audioService } from '../services/audioService';
 import { useGame } from '../state/GameContext';
 
 const CERTIFICATE_TITLE = '미래 직업실 탐험 수료증';
-const STAGE_LABELS: Record<StageNumber, string> = { 1: '나의 방식', 2: '현장 탐색', 3: '생명 돌봄', 4: '실시간 업무', 5: '도시 연합' };
+const STAGE_LABELS: Record<StageNumber, string> = { 1: '나의 방식', 2: '현장 탐색', 3: '생명 돌봄', 4: '일의 순서', 5: '도시 협력' };
 
 export default function Page10Certificate({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
   const { save, setPlayerName, grantReward } = useGame();
@@ -59,7 +59,7 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
       {celebrating && <div className="celebration no-print" aria-live="polite"><span className="celebration-ring" /><SparkIcon /><strong>다섯 스테이지 탐험 완료!</strong><p>관찰하고 선택하고 협업한 모든 장면이 모였어.</p></div>}
       <div className="certificate-layout">
         <Panel kicker="YOUR RECORD" title="수료 정보" className="certificate-form no-print">
-          <p>입력한 내용은 이 기기에만 저장되고, 인쇄할 때 증서에 표시돼.</p>
+          <p>입력한 내용은 서버로 보내지 않고, 이 화면과 인쇄에만 사용돼.</p>
           <label>학교<input value={school} onChange={(event) => setSchool(event.target.value)} placeholder="학교 이름" /></label>
           <div className="form-row"><label>학년<input value={grade} onChange={(event) => setGrade(event.target.value)} inputMode="numeric" /></label><label>반<input value={classroom} onChange={(event) => setClassroom(event.target.value)} inputMode="numeric" /></label><label>번호<input value={number} onChange={(event) => setNumber(event.target.value)} inputMode="numeric" /></label></div>
           <label>이름<input value={save.playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="탐험가 이름" /></label>

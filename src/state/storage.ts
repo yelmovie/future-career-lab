@@ -16,9 +16,9 @@ function isGameSave(value: unknown): value is GameSave {
 }
 
 export function loadSave(): LoadResult {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return { save: createDefaultSave(), issue: 'none', hadSave: false };
   try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return { save: createDefaultSave(), issue: 'none', hadSave: false };
     const parsed: unknown = JSON.parse(raw);
     if (!isGameSave(parsed)) throw new Error('Invalid save shape');
     if (parsed.schemaVersion > SAVE_SCHEMA_VERSION) throw new Error('Unsupported future schema');
@@ -41,11 +41,19 @@ export function loadSave(): LoadResult {
     };
     return { save, issue: migrated ? 'migrated' : 'none', hadSave: true };
   } catch {
-    localStorage.removeItem(SAVE_KEY);
+    try {
+      localStorage.removeItem(SAVE_KEY);
+    } catch { /* storage unavailable — nothing to clean up */ }
     return { save: createDefaultSave(), issue: 'corrupt', hadSave: false };
   }
 }
 
-export function persistSave(save: GameSave): void {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({ ...save, updatedAt: new Date().toISOString() }));
+/** Returns false when the browser refused the write (private mode, quota exceeded). */
+export function persistSave(save: GameSave): boolean {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...save, updatedAt: new Date().toISOString() }));
+    return true;
+  } catch {
+    return false;
+  }
 }

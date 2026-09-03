@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { sample3d } from '../shared/assets';
+import { CANVAS_FONT } from '../shared/constants';
 import {
   evaluateHabitat,
   evaluateSimulation,
@@ -51,7 +52,7 @@ export class HabitatScene extends Phaser.Scene {
     this.selectionGraphics = this.add.graphics();
     this.entranceLabel = this.add.text(0, 0, '출입 안전선', {
       fontFamily: 'Pretendard, Noto Sans KR, sans-serif',
-      fontSize: '14px',
+      fontSize: CANVAS_FONT.cap,
       fontStyle: 'bold',
       color: '#f7e9c9',
       backgroundColor: '#6f322dcc',

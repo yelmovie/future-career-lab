@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, GripIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
+import { pageAsset } from '../shared/assets';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { HabitatScene } from './HabitatScene';
@@ -116,7 +117,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
 
   const finishMission = () => {
     if (!canFinish || !simulation) return;
-    const revisionChoice = redesigned ? '시뮬레이션 뒤 배치를 실제로 다시 조정했어.' : `배치를 유지한 근거: ${keepReason}`;
+    const revisionChoice = redesigned ? '시험해 본 뒤 배치를 실제로 다시 조정했어.' : `배치를 그대로 둔 까닭: ${keepReason}`;
     setPageData('page06Design', {
       placements,
       evaluation,
@@ -136,7 +137,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       page: 6,
       type: 'habitat-simulation',
       summary: `동선 ${simulation.route}, 편안함 ${simulation.comfort}, 안전 ${simulation.safety}. ${simulation.summary}`,
-      tags: ['시뮬레이션', '근거 확인'],
+      tags: ['시험해 보기', '근거 확인'],
       traits: { analysis: 2, care: 1 },
       contextRef: 'first-environment-simulation',
     });
@@ -149,54 +150,59 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       contextRef: redesigned ? `redesign-${currentSignature}` : 'keep-with-evidence',
     });
     completePage(6);
-    addBadge('서식지 동선 설계자');
-    addJobCard('동물 서식지 설계가');
+    addBadge('안전한 생활 공간 설계자');
+    addJobCard('동물 생활 공간 설계가');
     setCompleted(true);
     audioService.playSfx('reward');
   };
 
   const footer = completed ? (
     <StageComplete
-      title="STAGE 3 돌봄·설계 완료"
-      message="관찰 근거를 공간 설계와 재검토까지 연결했어."
-      nextLabel="실시간 업무 도전"
+      title="앵무새 생활 공간을 완성했어"
+      message="앞에서 살핀 기록을 공간 만들기와 다시 확인하기까지 이어 갔어."
+      nextLabel="중요한 일 먼저 하기"
       onNext={() => onNavigate(7)}
     />
   ) : (
     <div className="p6-footer" aria-live="polite">
-      <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '설계 규칙 충족' : '설계 규칙을 확인해'}</span>
-      <span className={simulation ? 'is-ready' : ''}>{simulation ? '시뮬레이션 관찰 완료' : '시뮬레이션 필요'}</span>
-      <span className={redesigned || keepReason ? 'is-ready' : ''}>{redesigned ? '재설계 확인' : keepReason ? '유지 근거 확인' : '재설계 또는 유지 근거 필요'}</span>
+      <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '집 만들기 ✓' : '집 만들기'}</span>
+      <span className={simulation ? 'is-ready' : ''}>{simulation ? '길 보기 ✓' : '길 보기'}</span>
+      <span className={redesigned || keepReason ? 'is-ready' : ''}>{redesigned || keepReason ? '다시 생각하기 ✓' : '다시 생각하기'}</span>
       <button className="button button--primary button--large" type="button" disabled={!canFinish} onClick={finishMission}>
-        최종 설계 확정
+        생활 공간 완성
         <CheckIcon />
       </button>
     </div>
   );
 
   const ruleRows = [
-    { label: '3개 이상, 최대 4개', ready: evaluation.enoughElements && evaluation.withinCount },
-    { label: '예산 8 안쪽', ready: evaluation.withinBudget },
-    { label: '물·휴식·활동 모두 포함', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
-    { label: '출입 안전선 비우기', ready: evaluation.entranceClear },
-    { label: '물체가 겹치지 않기', ready: evaluation.noCollisions },
-    { label: '모든 지점 동선 연결', ready: evaluation.connected },
+    { label: '물건 3~4개 놓기', ready: evaluation.enoughElements && evaluation.withinCount },
+    { label: '쓴 힘이 8을 넘지 않기', ready: evaluation.withinBudget },
+    { label: '물·쉼·놀이 모두 놓기', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
+    { label: '빨간 문 앞 비우기', ready: evaluation.entranceClear },
+    { label: '물건 겹치지 않기', ready: evaluation.noCollisions },
+    { label: '모든 곳을 오가는 길 만들기', ready: evaluation.connected },
   ];
 
   return (
     <GameShell page={6} eyebrow="STAGE 3 · HABITAT DESIGN" onNavigate={onNavigate} footer={footer} className="p6-shell">
       <div className="p6-layout">
-        <Panel title="설계 도구" kicker="BUILD KIT" className="p6-palette-panel">
+        <Panel title="이번에 할 일" kicker="BUILD KIT" className="p6-palette-panel">
+          <MissionGuide
+            image={pageAsset(6, 1)}
+            imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
+            action="앵무새 집을 다시 만들어요"
+            goals={['물건 3~4개 놓기', '앵무새 길 보기', '고치거나 까닭 고르기']}
+          />
           <div className="p6-budget" aria-label={`예산 ${evaluation.budget} / 8, 물체 ${evaluation.count} / 4`}>
-            <div><span>사용 예산</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
-            <div><span>배치 수</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
+            <div><span>쓴 힘</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
+            <div><span>놓은 물건</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
           </div>
 
           {recommendations.length > 0 && (
             <div className="p6-handoff">
-              <strong>P5 관찰 기록에서 온 제안</strong>
+              <strong>앞에서 찾은 필요한 물건</strong>
               <p>{recommendations.map((id) => HABITAT_ITEMS[id].shortName).join(' · ')}</p>
-              <small>추천은 힌트일 뿐, 여러 설계가 가능해.</small>
             </div>
           )}
 
@@ -208,7 +214,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
               return (
                 <button key={itemId} type="button" disabled={unavailable} onClick={() => addItem(itemId)} aria-label={`${item.name}, 비용 ${item.cost}${alreadyPlaced ? ', 이미 배치됨' : ''}`}>
                   <img src={item.image} alt="" />
-                  <span><strong>{item.shortName}</strong><small>비용 {item.cost}</small></span>
+                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}</small></span>
                   <b>{alreadyPlaced ? '배치됨' : '추가'}</b>
                 </button>
               );
@@ -218,15 +224,15 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
 
         <section className="p6-workbench" aria-labelledby="p6-board-title">
           <header className="p6-workbench__header">
-            <div><span>100 × 70 CARE BOARD</span><h2 id="p6-board-title">안전한 서식지 동선 설계</h2></div>
+            <h2 id="p6-board-title">물건을 골라 집에 놓아 봐</h2>
             <button className="button button--ghost" type="button" disabled={placements.length === 0} onClick={() => scene.clearLayout()}>모두 치우기</button>
           </header>
           <div className="p6-board scene-card">
-            <PhaserStage scene={scene} ariaLabel="물체를 드래그해 배치하는 100 곱하기 70 서식지 설계 보드. 왼쪽 붉은 영역은 비워야 하는 출입 안전선이야." />
-            <div className="p6-board-hint">5칸 격자에 자동 맞춤 · 물체를 눌러 선택</div>
+            <PhaserStage scene={scene} ariaLabel="물건을 끌어 놓아 생활 공간을 만드는 화면. 왼쪽 붉은 곳은 비워야 하는 출입 안전선이야." />
+            <div className="p6-board-hint">물건을 끌어 놓거나 눌러서 선택해.</div>
           </div>
-          <div className="p6-strategies" aria-label="서로 다른 설계 시작점">
-            <span>설계 시작점</span>
+          <div className="p6-strategies" aria-label="빠르게 시작할 수 있는 예시">
+            <span>빠른 시작</span>
             {HABITAT_STRATEGIES.map((strategy) => (
               <button key={strategy.id} type="button" onClick={() => loadStrategy(strategy.id)} title={strategy.description}>{strategy.name}</button>
             ))}
@@ -250,7 +256,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             <div className="p6-placed-list" aria-label="배치된 물체 목록">
               {placements.map((placement) => (
                 <button key={placement.instanceId} type="button" className={selectedId === placement.instanceId ? 'is-selected' : ''} onClick={() => scene.selectInstance(placement.instanceId)}>
-                  {HABITAT_ITEMS[placement.itemId].shortName}<small>{Math.round(placement.x)}, {Math.round(placement.y)} · {placement.rotation}°</small>
+                  {HABITAT_ITEMS[placement.itemId].shortName}
                 </button>
               ))}
             </div>
@@ -258,7 +264,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
         </section>
 
         <div className="p6-review-column">
-          <Panel title="설계 규칙" kicker="LIVE CHECK" className="p6-rules-panel">
+          <Panel title="다 됐나 보기" kicker="LIVE CHECK" className="p6-rules-panel">
             <ul className="p6-rule-list">
               {ruleRows.map((rule) => (
                 <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
@@ -268,38 +274,38 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             </ul>
             {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
             <div className="p6-strategy-result">
-              <span>현재 설계 방식</span><strong>{evaluation.strategyName}</strong><small>물체를 많이 놓는 것보다 필요한 선택지와 연결이 중요해.</small>
+              <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong><small>물건을 많이 놓기보다 필요한 물건을 잘 이어 주는 게 중요해.</small>
             </div>
           </Panel>
 
-          <Panel title="환경 시뮬레이션" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
+          <Panel title="앵무새 길 보기" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
             {!simulation ? (
               <>
-                <p>앵무새의 이동 경로를 돌려 본 뒤, 배치를 고치거나 그대로 둘 근거를 남겨.</p>
+                <p>앵무새가 오가는 모습을 본 뒤, 배치를 고치거나 그대로 둘 까닭을 골라.</p>
                 <button className="button button--teal button--large button--block" type="button" disabled={!evaluation.valid || simulating} onClick={startSimulation}>
-                  {simulating ? '이동 경로 관찰 중…' : '환경 시뮬레이션 시작'}
+                  {simulating ? '이동 경로를 보는 중…' : '생활 공간 시험하기'}
                 </button>
-                {!evaluation.valid && <small className="p6-sim-hint">왼쪽 설계 규칙을 모두 충족하면 실행할 수 있어.</small>}
+                {!evaluation.valid && <small className="p6-sim-hint">왼쪽 완료 조건을 모두 채우면 시험할 수 있어.</small>}
               </>
             ) : (
               <div className="p6-simulation-result" aria-live="polite">
                 <div className="p6-sim-metrics">
-                  <span>동선 <strong>{simulation.route}</strong></span>
+                  <span>오가는 길 <strong>{simulation.route}</strong></span>
                   <span>편안함 <strong>{simulation.comfort}</strong></span>
                   <span>안전 <strong>{simulation.safety}</strong></span>
                 </div>
                 <p>{simulation.summary}</p>
                 {redesigned ? (
-                  <div className="toast toast--success"><CheckIcon />시뮬레이션 뒤 실제 배치 변경을 확인했어.</div>
+                  <div className="toast toast--success"><CheckIcon />시험한 뒤 실제 배치를 바꾼 것을 확인했어.</div>
                 ) : (
                   <div className="p6-keep-reasons">
-                    <strong>그대로 유지한다면 근거를 골라</strong>
+                    <strong>그대로 둔다면 까닭을 골라</strong>
                     {KEEP_REASONS.map((reason) => (
                       <button key={reason} type="button" className={keepReason === reason ? 'is-selected' : ''} onClick={() => setKeepReason(reason)} aria-pressed={keepReason === reason}>{reason}</button>
                     ))}
                   </div>
                 )}
-                <button className="button button--ghost button--block" type="button" disabled={simulating || !evaluation.valid} onClick={startSimulation}>현재 배치 다시 시뮬레이션</button>
+                <button className="button button--ghost button--block" type="button" disabled={simulating || !evaluation.valid} onClick={startSimulation}>현재 배치 다시 시험하기</button>
               </div>
             )}
           </Panel>

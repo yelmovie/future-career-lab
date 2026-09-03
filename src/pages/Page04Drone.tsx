@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
 import { pageAsset, sample3d } from '../shared/assets';
+import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
@@ -255,7 +256,7 @@ class DroneFlightScene extends Phaser.Scene {
         .setStrokeStyle(2, 0x65ded8, .52);
       rectangle.setDepth(1);
       this.add.text((zone.x + .01) * width, (zone.y + .01) * height, `바람 · ${zone.name}`, {
-        fontFamily: 'Pretendard, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#8debe5',
+        fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#8debe5',
         backgroundColor: '#06263acc', padding: { x: 5, y: 3 },
       }).setDepth(2);
     });
@@ -263,7 +264,7 @@ class DroneFlightScene extends Phaser.Scene {
       this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, 0xb6362b, .2)
         .setStrokeStyle(2, 0xf7796d, .75).setDepth(3);
       this.add.text((zone.x + .01) * width, (zone.y + .01) * height, `비행 금지 · ${zone.name}`, {
-        fontFamily: 'Pretendard, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffd7d2',
+        fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#ffd7d2',
         backgroundColor: '#5b1815dd', padding: { x: 5, y: 3 },
       }).setDepth(4);
     });
@@ -272,7 +273,7 @@ class DroneFlightScene extends Phaser.Scene {
       this.add.circle(target.x * width, target.y * height, 25, covered ? 0x3ab76b : 0xe4a63c, .28)
         .setStrokeStyle(3, covered ? 0x74e49a : 0xffd37b, .95).setDepth(5);
       this.add.text(target.x * width, target.y * height + 32, target.name, {
-        fontFamily: 'Pretendard, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff1ca',
+        fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff1ca',
         backgroundColor: '#061426d8', padding: { x: 6, y: 4 },
       }).setOrigin(.5, 0).setDepth(6);
     });
@@ -286,13 +287,13 @@ class DroneFlightScene extends Phaser.Scene {
       this.waypoints.forEach((point, index) => {
         this.add.circle(point.x * width, point.y * height, 17, 0x0d9e9b, .94).setStrokeStyle(3, 0xb5fff6, 1).setDepth(8);
         this.add.text(point.x * width, point.y * height, String(index + 1), {
-          fontFamily: 'Pretendard, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#04101d',
+          fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#04101d',
         }).setOrigin(.5).setDepth(9);
       });
     }
 
-    this.add.text(18, height - 18, this.mode === 'plan' ? '지도를 눌러 경유지 추가' : this.mode === 'replay' ? '4초 비행 리플레이' : '비행 제어 중', {
-      fontFamily: 'Pretendard, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#f7e9c9',
+    this.add.text(18, height - 18, this.mode === 'plan' ? '지도를 눌러 지나갈 점 추가' : this.mode === 'replay' ? '4초 다시 보기' : '비행 조종 중', {
+      fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.label, fontStyle: 'bold', color: '#f7e9c9',
       backgroundColor: '#061426d8', padding: { x: 8, y: 6 },
     }).setOrigin(0, 1).setDepth(10);
     this.droneImage = this.add.image(this.dronePosition.x * width, this.dronePosition.y * height, 'drone-craft')
@@ -365,7 +366,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const [phase, setPhase] = useState<'plan' | 'flight' | 'review'>(save.stageProgress.completedPages.includes(4) ? 'review' : 'plan');
   const [telemetry, setTelemetry] = useState<DroneTelemetry>(initialTelemetry);
   const [review, setReview] = useState<DroneReview | null>(restoredReview);
-  const [notice, setNotice] = useState('지도에서 2~4개의 경유지를 정해. 촬영 목표를 지나도록 계획하면 좋아.');
+  const [notice, setNotice] = useState('지도에서 지나갈 점 2~4개를 정해. 세 촬영 장소를 지나가면 좋아.');
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(4));
   const addWaypointRef = useRef<(point: DronePoint) => void>(() => undefined);
   const telemetryRef = useRef<(value: DroneTelemetry) => void>(() => undefined);
@@ -379,14 +380,14 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const addWaypoint = (point: DronePoint) => {
     if (phase !== 'plan') return;
     if (waypoints.length >= 4) {
-      setNotice('경유지는 최대 4개야. 마지막 지점을 지우고 다시 골라 봐.');
+      setNotice('지나갈 점은 최대 4개야. 마지막 점을 지우고 다시 골라 봐.');
       audioService.playSfx('warning');
       return;
     }
     const next = [...waypoints, point];
     setWaypoints(next);
     setPageData('p4Waypoints', next);
-    setNotice(`${next.length}번 경유지를 넣었어. 금지 구역과 바람 구역을 확인해.`);
+    setNotice(`${next.length}번 점을 넣었어. 붉은 금지 구역과 바람 구역을 확인해.`);
     audioService.playSfx('drop');
   };
   addWaypointRef.current = addWaypoint;
@@ -426,14 +427,14 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
 
   const launch = () => {
     if (waypoints.length < 2 || waypoints.length > 4) {
-      setNotice('출발하려면 경유지 2~4개가 필요해.');
+      setNotice('출발하려면 지나갈 점 2~4개가 필요해.');
       audioService.playSfx('warning');
       return;
     }
     setPhase('flight');
     setReview(null);
     setTelemetry(initialTelemetry);
-    setNotice('비행 중이야. 목표 근처에서 REC를 켜고 화살표로 화면을 다듬어.');
+    setNotice('비행 중이야. 촬영 장소 근처에서 촬영을 켜고 화살표로 위치를 맞춰.');
     scene.launch();
     audioService.playSfx('record');
   };
@@ -442,7 +443,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
     const next = !telemetry.recording;
     scene.setRecording(next);
     setTelemetry((current) => ({ ...current, recording: next }));
-    setNotice(next ? 'REC가 켜졌어. 목표 원 안에서 화면을 잠시 안정적으로 유지해.' : 'REC를 멈췄어. 다음 촬영 지점을 준비해.');
+    setNotice(next ? '촬영을 켰어. 목표 원 안에서 잠시 안정적으로 머물러.' : '촬영을 멈췄어. 다음 장소를 준비해.');
     audioService.playSfx(next ? 'record' : 'tap');
   };
 
@@ -471,14 +472,16 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
         />
       ) : undefined}
     >
-      <div className="game-grid game-grid--wide-center drone-layout">
-        <Panel title="촬영 계획" kicker="MISSION BRIEF">
-          <div className="mission-card">
-            <strong>45초 안전 촬영</strong>
-            <p>강변의 저녁 분위기, 인터뷰 대상, 다리 전경을 안전하고 안정적으로 촬영해.</p>
-          </div>
-          <div className="drone-presets" aria-label="빠른 경유지 추가">
-            <strong>경유지 {waypoints.length} / 4</strong>
+      <div className={`game-grid game-grid--wide-center drone-layout${phase === 'plan' ? ' is-planning' : ''}`}>
+        <Panel title="이번에 할 일" kicker="MISSION BRIEF">
+          <MissionGuide
+            image={pageAsset(4, 1)}
+            imageAlt="조종기로 드론을 움직이는 어린이"
+            action="드론으로 두 곳을 찍어요"
+            goals={['지도에 점 2~4개', '70점 넘기기']}
+          />
+          <div className="drone-presets" aria-label="빠른 지나갈 점 추가">
+            <strong>지도에 놓은 점 {waypoints.length} / 4</strong>
             {DRONE_PRESETS.map((preset) => (
               <button key={preset.id} className="button button--ghost" disabled={phase !== 'plan' || waypoints.length >= 4} onClick={() => addPreset(preset)}>
                 {preset.name} 추가
@@ -493,18 +496,14 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
               setWaypoints([]); setPageData('p4Waypoints', []); audioService.playSfx('tap');
             }}>모두 지우기</button>
           </div>
-          <ul className="stage12-tip-list">
-            <li>붉은 구역은 사람과 장비가 있어 비행할 수 없어.</li>
-            <li>청록 구역에서는 바람 때문에 배터리가 더 빨리 줄어.</li>
-            <li>지도 누르기와 빠른 지점 버튼을 모두 사용할 수 있어.</li>
-          </ul>
+          <div className="drone-map-key" aria-label="지도 색 안내"><span className="is-danger">붉은 곳 피하기</span><span className="is-wind">바람 조심하기</span></div>
         </Panel>
 
         <div className="drone-center stack">
           <div className="scene-card drone-scene">
-            <PhaserStage scene={scene} ariaLabel="경유지를 정하고 드론을 실제로 비행시키는 강변 촬영 지도" />
+            <PhaserStage scene={scene} ariaLabel="지나갈 점을 정하고 드론을 실제로 비행시키는 강변 촬영 지도" />
             {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && (
-              <div className="replay-badge" role="status">REPLAY · {telemetry.replayRemaining.toFixed(1)}초</div>
+              <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>
             )}
           </div>
           <Panel className="drone-controls" title="비행 조종" kicker={phase === 'flight' ? 'LIVE CONTROL' : 'FLIGHT CONTROL'}>
@@ -518,12 +517,12 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
               {phase === 'plan' && <button className="button button--primary button--large" onClick={launch}>경로 확인 후 출발</button>}
               {phase === 'flight' && (
                 <button className={`record-button${telemetry.recording ? ' is-recording' : ''}`} aria-pressed={telemetry.recording} onClick={toggleRecording}>
-                  <span />{telemetry.recording ? 'REC 끄기' : 'REC 켜기'}
+                  <span />{telemetry.recording ? '촬영 끄기' : '촬영 켜기'}
                 </button>
               )}
               {phase === 'review' && (
                 <div className="row drone-review-actions">
-                  <button className="button button--teal" onClick={() => { scene.replay(); audioService.playSfx('tap'); }}>4초 리플레이</button>
+                  <button className="button button--teal" onClick={() => { scene.replay(); audioService.playSfx('tap'); }}>4초 다시 보기</button>
                   {!review?.passed && <button className="button button--primary" onClick={retry}>경로 고쳐 다시 촬영</button>}
                 </div>
               )}
@@ -531,13 +530,13 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
           </Panel>
         </div>
 
-        <Panel title={phase === 'review' ? '촬영 리뷰' : '비행 계기판'} kicker={phase === 'review' ? 'MISSION REVIEW' : 'TELEMETRY'}>
+        {phase !== 'plan' && <Panel title={phase === 'review' ? '촬영 결과' : '드론 상태'} kicker={phase === 'review' ? 'MISSION REVIEW' : 'TELEMETRY'}>
           {phase !== 'review' || !review ? (
             <div className="metric-grid">
               <div><span className="metric-label">남은 시간</span><div className={`timer${timeRemaining <= 10 ? ' is-urgent' : ''}`}>{timeRemaining.toFixed(1)}초</div></div>
               <ProgressBar value={telemetry.battery} label={`배터리 ${telemetry.battery}%`} />
               <div className="telemetry-pair"><span>바람</span><strong>{telemetry.wind}</strong></div>
-              <div className="telemetry-pair"><span>금지 구역 접촉</span><strong>{telemetry.violations}회</strong></div>
+              <div className="telemetry-pair"><span>붉은 곳에 닿음</span><strong>{telemetry.violations}회</strong></div>
               <div className="target-checks">
                 <strong>촬영 목표</strong>
                 {DRONE_TARGETS.map((target) => (
@@ -550,14 +549,14 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
           ) : (
             <div className="drone-review">
               <div className={`review-total ${review.passed ? 'is-pass' : 'is-partial'}`}>
-                <span>{review.passed ? '미션 완수' : '부분 성공 · 다시 설계 가능'}</span>
+                <span>{review.passed ? '미션 완수' : '아직 완료 전 · 다시 할 수 있어'}</span>
                 <strong>{review.total}<small>/100</small></strong>
               </div>
               <div className="review-bars">
-                <ProgressBar value={(review.purpose / 35) * 100} label={`목적 달성 ${review.purpose} / 35`} compact />
-                <ProgressBar value={(review.safety / 30) * 100} label={`안전 비행 ${review.safety} / 30`} compact />
-                <ProgressBar value={(review.framing / 20) * 100} label={`화면 안정 ${review.framing} / 20`} compact />
-                <ProgressBar value={(review.battery / 15) * 100} label={`배터리 운용 ${review.battery} / 15`} compact />
+                <ProgressBar value={(review.purpose / 35) * 100} label={`찍은 장면 ${review.purpose} / 35`} compact />
+                <ProgressBar value={(review.safety / 30) * 100} label={`안전 ${review.safety} / 30`} compact />
+                <ProgressBar value={(review.framing / 20) * 100} label={`덜 흔들림 ${review.framing} / 20`} compact />
+                <ProgressBar value={(review.battery / 15) * 100} label={`남은 힘 ${review.battery} / 15`} compact />
               </div>
               <div className="review-facts">
                 <span>담은 장면</span>
@@ -567,7 +566,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             </div>
           )}
           <div className={`toast${phase === 'review' && !review?.passed ? ' toast--warning' : ''}`} role="status">{notice}</div>
-        </Panel>
+        </Panel>}
       </div>
     </GameShell>
   );

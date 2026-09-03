@@ -9,6 +9,7 @@ interface GameContextValue {
   save: GameSave;
   hadSave: boolean;
   loadIssue: LoadResult['issue'];
+  saveFailed: boolean;
   startNew: () => void;
   setPlayerName: (name: string) => void;
   setLastPage: (page: PageNumber) => void;
@@ -27,9 +28,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(loadSave);
   const [save, setSave] = useState<GameSave>(initial.save);
   const [hadSave, setHadSave] = useState(initial.hadSave);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   useEffect(() => {
-    persistSave(save);
+    setSaveFailed(!persistSave(save));
   }, [save]);
 
   const update = useCallback((recipe: (current: GameSave) => GameSave) => {
@@ -99,6 +101,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     save,
     hadSave,
     loadIssue: initial.issue,
+    saveFailed,
     startNew,
     setPlayerName,
     setLastPage,
@@ -109,7 +112,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addJobCard: (card) => addUnique('jobCards', card),
     grantReward: (reward) => addUnique('rewardGranted', reward),
     setAudio,
-  }), [addUnique, completePage, hadSave, initial.issue, logEvent, save, setAudio, setLastPage, setPageData, setPlayerName, startNew]);
+  }), [addUnique, completePage, hadSave, initial.issue, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

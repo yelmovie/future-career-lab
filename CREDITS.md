@@ -2,11 +2,11 @@
 
 ## Project artwork
 
-`assets`, `background`, `samplepages`, `3d assets`, `og.png`는 사용자 제공 프로젝트 자산이다. 원본을 보존하며 이 앱 안에서만 최적화 사본을 사용한다.
+`assets`, `background`, `samplepages`, `3d assets`, `og.png`는 이 프로젝트의 자체 제작 자산이며 **생성형 AI로 제작**했다. 저작권자는 옐쌤(ⓒ 2026 옐쌤)이다. 원본을 보존하며 이 앱 안에서만 최적화 사본을 사용한다. 무단 복제·재배포·상업적 이용을 금한다.
 
 ## Background music
 
-`sound/main.mp3`, `sound/stage1.mp3`~`stage5.mp3`는 사용자 제공 프로젝트 자산이다.
+`sound/main.mp3`, `sound/stage1.mp3`~`stage5.mp3`는 이 프로젝트의 자체 제작 자산이다. 저작권자는 옐쌤(ⓒ 2026 옐쌤)이며 무단 복제·재배포·상업적 이용을 금한다.
 
 ## Pixabay sound effects
 

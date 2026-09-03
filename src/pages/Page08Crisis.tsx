@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { Modal } from '../components/Modal';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
@@ -8,12 +8,12 @@ import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, ClockIcon, GripIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
+import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
   JOBS,
   REGIONS,
-  SYNERGIES,
   advanceCrisisRuntime,
   assignCrisisJob,
   createCrisisRuntime,
@@ -31,11 +31,11 @@ type RunPhase = 'briefing' | 'running' | 'result';
 type CrisisResult = ReturnType<typeof crisisOutcome>;
 
 const REGION_LABEL: Record<RegionState, string> = {
-  stable: '안정',
-  warning: '주의',
-  critical: '긴급',
-  responding: '대응 중',
-  restored: '회복',
+  stable: '좋음',
+  warning: '조심',
+  critical: '빨리!',
+  responding: '돕는 중',
+  restored: '도움 끝',
 };
 
 const REGION_COLOR: Record<RegionState, number> = {
@@ -47,10 +47,10 @@ const REGION_COLOR: Record<RegionState, number> = {
 };
 
 const JOB_STATUS_LABEL = {
-  ready: '배치 가능',
-  assigned: '이동 중',
-  resolving: '대응 중',
-  cooldown: '정리 중',
+  ready: '쓸 수 있어',
+  assigned: '가는 중',
+  resolving: '돕는 중',
+  cooldown: '쉬는 중',
 } as const;
 
 interface CrisisSceneSnapshot {
@@ -113,10 +113,10 @@ class CrisisCityScene extends Phaser.Scene {
         graphics.lineStyle(3, 0x7ce7df, 0.75).strokeCircle(point.px, point.py, 51);
       }
       this.add.text(point.px, point.py - 5, runtime.contributors.length ? String(runtime.contributors.length) : '0', {
-        color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: '22px', fontStyle: 'bold',
+        color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.head, fontStyle: 'bold',
       }).setOrigin(0.5);
       this.add.text(point.px, point.py + 19, '연결', {
-        color: '#9ac8c4', fontFamily: 'Pretendard, sans-serif', fontSize: '10px', fontStyle: 'bold',
+        color: '#9ac8c4', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
       }).setOrigin(0.5);
     });
   }
@@ -215,9 +215,9 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     const outcome = crisisOutcome(snapshot);
     setResult(outcome);
     setPhase('result');
-    completePage(8);
-    addJobCard('미래도시 연합 대응가');
     if (outcome.success) {
+      completePage(8);
+      addJobCard('미래도시 협력 해결사');
       addBadge('직업 연합 전략가');
       grantReward('stage5-alliance-strategist');
     }
@@ -238,14 +238,16 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       traits: { collaboration: 1, analysis: 1, execution: 1 },
       contextRef: `${incidentSet.id}:${region.id}`,
     }));
-    logEvent({
-      page: 8,
-      type: outcome.success ? 'crisis-success' : 'crisis-partial',
-      summary: `${outcome.restored.length}개 지역을 회복하고 도시 안정도 ${Math.round(snapshot.stability)}를 만들었어.`,
-      tags: ['연합 대응', `시너지 ${outcome.synergyCount}`, outcome.success ? '목표 도달' : '부분 회복'],
-      traits: { collaboration: 2, analysis: 1, creation: 1 },
-      contextRef: `${incidentSet.id}:${outcome.success ? 'success' : 'partial'}`,
-    });
+    if (outcome.restored.length > 0) {
+      logEvent({
+        page: 8,
+        type: outcome.success ? 'crisis-success' : 'crisis-partial',
+        summary: `${outcome.restored.length}개 지역을 회복하고 도시 회복 점수 ${Math.round(snapshot.stability)}를 만들었어.`,
+        tags: ['함께 해결', `협력 효과 ${outcome.synergyCount}`, outcome.success ? '목표 도달' : '다시 도전'],
+        traits: { collaboration: 1, analysis: 1, creation: 1 },
+        contextRef: `${incidentSet.id}:${outcome.success ? 'success' : 'partial'}`,
+      });
+    }
     audioService.playSfx(outcome.success ? 'reward' : 'success');
   }, [addBadge, addJobCard, completePage, durationMs, grantReward, incidentSet.id, logEvent, runId, setPageData]);
 
@@ -261,7 +263,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
   };
 
   const resultMessage = result
-    ? `${result.restored.length}개 지역을 회복했고, 도시 안정도는 ${Math.round(runtime.stability)}야. ${result.success ? '서로 다른 직업의 강점을 충분히 연결했어.' : '부분 회복도 중요한 기록이야. 다른 연결로 다시 시도할 수 있어.'}`
+    ? `${result.restored.length}곳을 도왔고, 도시 힘은 ${Math.round(runtime.stability)}야. ${result.success ? '서로 다른 직업의 힘을 잘 이었어.' : '네 곳을 돕고 도시 힘 55를 채워야 해.'}`
     : '';
 
   return (
@@ -270,20 +272,25 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       eyebrow="STAGE 5 · ALLIANCE CITY"
       onNavigate={onNavigate}
       className="page08"
-      footer={phase === 'result' && result
-        ? <StageComplete title={result.success ? '도시 연합 대응을 완성했어' : '부분 회복을 기록했어'} message={resultMessage} nextLabel="나의 직업 DNA 보기" onNext={() => onNavigate(9)} />
+      footer={phase === 'result' && result?.success
+        ? <StageComplete title="도시 네 곳을 도왔어" message={resultMessage} nextLabel="나의 일하기 지도 보기" onNext={() => onNavigate(9)} />
         : undefined}
     >
       <div className="p08-layout">
-        <Panel kicker="CITY BRIEFING" title={incidentSet.title} className="p08-brief-panel">
-          <div className="mission-card"><strong>지역 네 곳 이상을 회복해</strong><p>직업 카드를 지역에 배치하고 안정도 55 이상을 만들어 보자. 같은 문제에도 여러 연결 방법이 있어.</p></div>
+        <Panel kicker="CITY BRIEFING" title="이번에 할 일" className="p08-brief-panel">
+          <MissionGuide
+            image={pageAsset(8, 10)}
+            imageAlt="여러 직업이 함께 힘을 모으는 문장"
+            action="직업의 힘으로 4곳을 도와요"
+            goals={['네 곳 돕기', '도시 힘 55']}
+          />
           <div className="p08-stability">
-            <div className="row row--between"><span>도시 안정도</span><strong>{Math.round(runtime.stability)}</strong></div>
-            <ProgressBar value={runtime.stability} label="도시 안정도" compact />
+            <div className="row row--between"><span>도시 힘</span><strong>{Math.round(runtime.stability)}</strong></div>
+            <ProgressBar value={runtime.stability} label="도시 힘" compact />
           </div>
           <div className="p08-metrics">
-            <div><span>회복 지역</span><strong>{outcomeNow.restored.length}<small>/5</small></strong></div>
-            <div><span>연결 시너지</span><strong>{outcomeNow.synergyCount}</strong></div>
+            <div><span>도운 곳</span><strong>{outcomeNow.restored.length}<small>곳</small></strong></div>
+            <div><span>함께 맞춤</span><strong>{outcomeNow.synergyCount}<small>번</small></strong></div>
           </div>
           {runtime.feedback[0] && <div className="toast" role="status">{runtime.feedback[0]}</div>}
           {phase === 'running' && <button className="button button--ghost button--block" onClick={() => setPausedByUser(true)}><ClockIcon />전략 잠시 멈춤</button>}
@@ -293,9 +300,9 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
         </Panel>
 
         <section className="scene-card p08-scene" aria-labelledby="p08-map-title">
-          <h2 id="p08-map-title" className="sr-only">연합 위기 대응 도시 지도</h2>
+          <h2 id="p08-map-title" className="sr-only">함께 해결하는 도시 지도</h2>
           <div className={`p08-central-timer${remainingMs < durationMs * 0.2 ? ' is-urgent' : ''}`} role="timer">
-            <span>연합 대응 시간</span><strong>{formatTime(remainingMs)}</strong>{paused && <small>시간 멈춤</small>}
+            <span>함께 풀기 시간</span><strong>{formatTime(remainingMs)}</strong>{paused && <small>시간 멈춤</small>}
           </div>
           <PhaserStage scene={scene} ariaLabel={`다섯 지역 도시 지도. 회복 ${outcomeNow.restored.length}곳, 대응 중 ${REGIONS.filter((region) => runtime.regions[region.id].state === 'responding').length}곳`} />
           <div className="p08-region-layer" aria-label="직업을 배치할 지역">
@@ -322,22 +329,18 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
           <span className={`status-chip status-chip--${activeRegion.state === 'restored' ? 'success' : activeRegion.state === 'critical' ? 'danger' : 'warning'}`}>{REGION_LABEL[activeRegion.state]}</span>
           <h3>{activeRegion.incident.title}</h3>
           <p className="p08-symptom">{activeRegion.incident.symptom}</p>
-          <div className="p08-clue"><strong>연결 단서</strong><p>{activeRegion.incident.clue}</p></div>
+          <div className="p08-clue"><strong>어떤 힘이 필요할까?</strong><p>{activeRegion.incident.clue}</p></div>
           <div className="p08-contributors">
-            <strong>지금까지 이어진 관점</strong>
+            <strong>지금 돕는 직업</strong>
             {activeRegion.contributors.length
               ? <ul>{activeRegion.contributors.map((jobId) => <li key={jobId}>{runtime.jobs[jobId].label}</li>)}</ul>
-              : <p>아직 배치된 직업이 없어.</p>}
-          </div>
-          <div className="p08-synergy-guide">
-            <strong>발견할 수 있는 연결</strong>
-            {SYNERGIES.map((synergy) => <span key={synergy.id}>{synergy.label}</span>)}
+              : <p>아직 고른 직업이 없어.</p>}
           </div>
         </Panel>
       </div>
 
       <section className="p08-job-deck" aria-labelledby="p08-job-title">
-        <div className="p08-job-heading"><div><span>JOB ALLIANCE</span><h2 id="p08-job-title">직업 카드를 선택하거나 지역으로 끌어 놓아</h2></div>{selectedJob && <p role="status">{runtime.jobs[selectedJob].label} 선택됨 · 지도에서 지역을 골라 줘</p>}</div>
+        <div className="p08-job-heading"><div><span>1 직업 고르기 → 2 지도 누르기</span><h2 id="p08-job-title">어떤 직업이 도울 수 있을까?</h2></div>{selectedJob && <p role="status">{runtime.jobs[selectedJob].label} 선택 · 지도에서 한 곳을 눌러</p>}</div>
         <div className="p08-job-grid">
           {JOBS.map((job) => {
             const state = runtime.jobs[job.id];
@@ -351,10 +354,11 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
                 onDragStart={(event) => { event.dataTransfer.setData('text/future-job', job.id); setSelectedJob(job.id); }}
                 onClick={() => setSelectedJob((current) => current === job.id ? null : job.id)}
                 aria-pressed={selectedJob === job.id}
+                aria-label={`${job.label}. ${job.skill}. ${JOB_STATUS_LABEL[state.status]}`}
               >
                 <span className="p08-job-grip" aria-hidden="true"><GripIcon /></span>
                 <img src={pageAsset(8, job.slot)} alt="" />
-                <span className="p08-job-copy"><strong>{job.label}</strong><small>{job.skill}</small></span>
+                <span className="p08-job-copy"><strong>{job.label}</strong></span>
                 <span className="p08-job-state">{state.status === 'cooldown' ? `${JOB_STATUS_LABEL[state.status]} ${Math.ceil(cooldownLeft / 1000)}초` : JOB_STATUS_LABEL[state.status]}</span>
               </button>
             );
@@ -363,25 +367,25 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       </section>
 
       {phase === 'briefing' && (
-        <Modal title="연합 위기 대응 브리핑" actions={<><button className="button button--ghost" onClick={() => startRun(32_000)}>빠른 체험 32초</button><button className="button button--primary" onClick={() => startRun(80_000)}>표준 체험 80초</button></>}>
+        <Modal title="직업의 힘을 이어 보자" actions={<><button className="button button--ghost" onClick={() => startRun(32_000)}>32초로 해 보기</button><button className="button button--primary" onClick={() => startRun(80_000)}>80초로 시작</button></>}>
           <p>{incidentSet.briefing}</p>
-          <p><strong>마우스:</strong> 직업 카드를 지역으로 끌어 놓아. <strong>키보드:</strong> 직업 카드에서 Enter를 누른 뒤, 지역 버튼에서 Enter를 누르면 돼.</p>
-          <p className="modal-note">카드는 배치 가능 → 이동 중 → 대응 중 → 정리 중 → 배치 가능 순서로 돌아와. 같은 지역도 서로 다른 직업 조합으로 회복할 수 있어.</p>
+          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>직업 카드 고르기</span><i>→</i><b>2</b><span>지도에서 한 곳 누르기</span></div>
+          <p className="modal-note">한 곳에는 서로 다른 직업 두 명의 힘이 필요해.</p>
         </Modal>
       )}
 
       {pausedByUser && phase === 'running' && (
-        <Modal title="연합 대응 시간이 멈췄어" actions={<button className="button button--primary" onClick={() => { setPausedByUser(false); audioService.unlock(); }}>계속하기</button>}>
+        <Modal title="도시 문제 풀이가 멈췄어" actions={<button className="button button--primary" onClick={() => { setPausedByUser(false); audioService.unlock(); }}>계속하기</button>}>
           <p>지역 상태와 카드 대기 시간도 함께 멈춰 있어. 준비되면 이어서 해 보자.</p>
         </Modal>
       )}
 
       {phase === 'result' && result && (
-        <Modal title={result.success ? '직업의 강점을 연결했어' : '부분 회복에서 찾은 다음 전략'} actions={<><button className="button button--ghost" onClick={retry}>다른 연결로 다시 하기</button><button className="button button--primary" onClick={() => onNavigate(9)}>직업 DNA 보기</button></>}>
+        <Modal title={result.success ? '직업의 힘을 연결했어' : '한 번 더 연결해 보자'} actions={<><button className={result.success ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다른 연결로 다시 하기</button>{result.success && <button className="button button--primary" onClick={() => onNavigate(9)}>나의 일하기 지도 보기</button>}</>}>
           <p>{resultMessage}</p>
           <ul className="p08-result-list">
             {result.restored.map((region) => (
-              <li key={region.id}><span><CheckIcon /></span><div><strong>{region.label} · {region.incident.title}</strong><p>{region.resolvedBy?.map((jobId) => runtime.jobs[jobId].label).join(' + ')}의 관점을 연결했어.</p></div></li>
+              <li key={region.id}><span><CheckIcon /></span><div><strong>{region.label} · {region.incident.title}</strong><p>{region.resolvedBy?.map((jobId) => runtime.jobs[jobId].label).join(' + ')}의 힘을 연결했어.</p></div></li>
             ))}
             {result.unresolved.map((region) => <li key={region.id} className="is-pending"><span /><div><strong>{region.label} · 더 살펴볼 수 있어</strong><p>{region.incident.clue}</p></div></li>)}
           </ul>

@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, SearchIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { sample3d } from '../shared/assets';
+import { pageAsset, sample3d } from '../shared/assets';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
@@ -180,7 +180,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     }
     setPageData('page05Handoff', buildCareHandoff(recordIds));
     completePage(5);
-    addBadge('돌봄 근거 관찰자');
+    addBadge('꼼꼼한 돌봄 관찰자');
     addJobCard('앵무새 돌봄 전문가');
     setCompleted(true);
     audioService.playSfx('success');
@@ -189,15 +189,15 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   const footer = completed ? (
     <StageComplete
       title="앵무새 돌봄 관찰 완료"
-      message="관찰 근거와 개선 신호를 다음 서식지 설계실로 보냈어."
-      nextLabel="서식지 설계하기"
+      message="관찰 기록에서 찾은 문제를 다음 생활 공간 만들기로 보냈어."
+      nextLabel="생활 공간 다시 만들기"
       onNext={() => onNavigate(6)}
     />
   ) : (
     <div className="p5-footer-progress" aria-live="polite">
       <span className={mission.zonesVisited >= 4 ? 'is-done' : ''}>구역 {mission.zonesVisited}/4</span>
       <span className={mission.observationCount >= 7 ? 'is-done' : ''}>기록 {mission.observationCount}/7</span>
-      <span className={mission.concernCount >= 2 ? 'is-done' : ''}>추가 확인·보류 {mission.concernCount}/2</span>
+      <span className={mission.concernCount >= 2 ? 'is-done' : ''}>더 확인할 기록 {mission.concernCount}/2</span>
       <span className={mission.safetyReady ? 'is-done' : ''}>출입 안전</span>
       {mission.expertShareRequired && <span className={mission.expertReady ? 'is-done' : ''}>전문가 공유</span>}
       <button className="button button--primary button--large" type="button" disabled={!mission.ready} onClick={finishMission}>
@@ -210,11 +210,13 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   return (
     <GameShell page={5} eyebrow="STAGE 3 · CARE LAB" onNavigate={onNavigate} footer={footer} className="p5-shell">
       <div className="p5-layout">
-        <Panel title="오늘의 돌봄 미션" kicker="MISSION" className="p5-mission-panel">
-          <div className="mission-card">
-            <strong>보이는 근거로 돌봄 환경을 확인해</strong>
-            <p>4개 이상 구역에서 7개 이상 기록하고, 상태를 단정하지 않은 채 다음 설계에 필요한 신호를 남겨.</p>
-          </div>
+        <Panel title="이번에 할 일" kicker="MISSION" className="p5-mission-panel">
+          <MissionGuide
+            image={pageAsset(5, 3)}
+            imageAlt="횃대에 앉아 있는 초록 앵무새"
+            action="앵무새의 모습을 기록해요"
+            goals={['숫자 1~4 누르기', '모습 7개 담기', '안전 누르기']}
+          />
           <ol className="p5-zone-list" aria-label="돌봄 관찰 구역">
             {CARE_ZONES.map((zone) => {
               const count = zone.observations.filter((item) => recordIds.has(item.id)).length;
@@ -231,14 +233,13 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
           </ol>
           <button className={`p5-safety-action ${safetyChecked ? 'is-done' : ''}`} type="button" onClick={markSafety} aria-pressed={safetyChecked}>
             <span className="p5-check-box">{safetyChecked && <CheckIcon />}</span>
-            <span><strong>출입 전 안전 행동</strong><small>문 이중 잠금과 비상 동선 확인</small></span>
+            <span><strong>문과 나갈 길 안전 확인</strong></span>
           </button>
         </Panel>
 
         <section className="p5-viewer" aria-labelledby="p5-viewer-title">
           <header className="p5-viewer__header">
-            <div><span>2.5D CARE VIEW</span><h2 id="p5-viewer-title">앵무새 생활 공간 관찰</h2></div>
-            <div className="p5-camera-readout" aria-live="polite">회전 {Math.round(camera.yaw)}° · 확대 {Math.round(camera.zoom * 100)}%</div>
+            <h2 id="p5-viewer-title">숫자를 눌러 살펴봐</h2>
           </header>
           <div
             className="p5-viewport"
@@ -275,20 +276,17 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
                 </button>
               ))}
             </div>
-            <div className="p5-view-hint">드래그: 회전 · Shift+드래그: 이동 · 휠: 확대</div>
           </div>
           <div className="p5-camera-controls" aria-label="화면 보기 조절">
             <button type="button" onClick={() => updateCamera({ yaw: camera.yaw - 8 })}>왼쪽 회전</button>
             <button type="button" onClick={() => updateCamera({ yaw: camera.yaw + 8 })}>오른쪽 회전</button>
-            <button type="button" onClick={() => updateCamera({ panX: camera.panX - 4 })}>왼쪽 이동</button>
-            <button type="button" onClick={() => updateCamera({ panX: camera.panX + 4 })}>오른쪽 이동</button>
             <button type="button" onClick={() => updateCamera({ zoom: camera.zoom + 0.12 })}>확대</button>
             <button type="button" onClick={() => updateCamera({ zoom: camera.zoom - 0.12 })}>축소</button>
             <button type="button" onClick={() => setCamera({ yaw: -7, pitch: 4, zoom: 1, panX: 0, panY: 0 })}>보기 초기화</button>
           </div>
         </section>
 
-        <Panel title="관찰 저널" kicker={`ZONE ${selectedZone.number}`} className="p5-journal-panel">
+        <Panel title="관찰 기록" kicker={`ZONE ${selectedZone.number}`} className="p5-journal-panel">
           <div className="p5-zone-summary">
             <img src={selectedZone.image} alt="선택한 관찰 구역의 샘플 이미지" />
             <div><strong>{selectedZone.title}</strong><p>{selectedZone.prompt}</p></div>
@@ -301,11 +299,11 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
                   <div className="p5-observation__top">
                     <span>{STATUS_META[observation.status].label}</span>
                     <button type="button" onClick={() => toggleObservation(observation.id)} aria-pressed={selected}>
-                      {selected ? '기록 취소' : '저널에 기록'}
+                      {selected ? '빼기' : '담기'}
                     </button>
                   </div>
                   <h3>{observation.title}</h3>
-                  <p><SearchIcon /><span><b>관찰 근거</b>{observation.evidence}</span></p>
+                  {selected && <p><SearchIcon /><span><b>내가 본 모습</b>{observation.evidence}</span></p>}
                 </article>
               );
             })}
