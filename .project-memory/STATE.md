@@ -1,8 +1,10 @@
-# 프로젝트 상태 (2026-09-04 새벽, 자동 진행)
+# 프로젝트 상태 (2026-09-04)
 
-- v2 구현 완료 단계. 커밋 a3854b0까지: 11페이지, artifacts 스키마 v2, v2 에셋 14장+SFX 4(Mixkit), 셀프호스팅 서브셋 폰트, 서비스워커 오프라인, README v2.
-- 페이지 번호 ≠ 파일 번호. 매핑 src/app/App.tsx + PAGE_META. 에셋 폴더는 pageAsset(folder, slot).
-- 검수: 태블릿 감사(적용 완료) + quality-critic 24건 → 스테이지별 에이전트 5개로 수정 중(S1 드론 꼼수·바람 방향 / S2 정답 첫줄·프리셋 / S3 기준값 누적 오개념 / S4 정답 노출 / S5 손실 상태·돌아보기 결과 고정).
-- 픽사베이는 Cloudflare 봇검사로 자동 다운로드 불가 → Mixkit 사용. 사용자에게 알릴 것.
-- 남은 것: 에이전트 결과 통합 → verify+e2e → 스크린샷 재검수 → docs/reviews/FINAL-CHECK-20260904.md 성적표 → 커밋. **푸시는 사용자 요청 시.**
-- 알려진 미해결: Phaser 캔버스 글꼴 1920 비례 확대 없음(16px 고정), HTML5 DnD는 iOS에서 탭 대안이 주 경로.
+- **v2 초기 배포 가능 완성본.** 로컬 커밋까지 완료, **푸시는 안 함**(사용자 요청 시). 성적표: docs/reviews/FINAL-CHECK-20260904.md
+- 구조: 11페이지(브리핑→S1 드론·증거판→S2 돌봄·회복공간→S3 생태→S4 방송→S5 연합→돌아보기→수료증). 페이지 번호 ≠ 파일 번호(src/app/App.tsx, PAGE_META).
+- 저장 스키마 v2(artifacts·prediction·abilityStatements). v1 세이브는 진행 초기화 후 이름·설정만 유지.
+- 에셋: v2 Imagen 14장(원본 _unused/v2-originals), SFX 4개 Mixkit(픽사베이는 Cloudflare로 자동 다운로드 불가), 폰트 Jua·Pretendard 서브셋 셀프호스팅.
+- 오프라인: public/sw.js. 첫 방문은 온라인 필요, 두 번째부터 오프라인 진행 확인.
+- 검수 도구: scripts/screenshot-pages.mjs(3해상도), scripts/probe-offline.mjs.
+- 사용자 직접 확인 필요: 교육 항목(성취기준 코드 [검증 필요], 앵무 돌봄 문구, S3 단순 모델), 실제 태블릿·아동 플레이.
+- 미해결: Phaser 캔버스 글꼴 1920 비례 없음, HTML5 DnD는 iOS에서 탭 대안 경로, 미사용 슬롯 이미지 59개(_unused/DELETE-CANDIDATES.md).

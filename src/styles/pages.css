@@ -13,7 +13,7 @@
 .home-hero { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 430px; max-height: calc(100dvh - 250px); padding-top: 5px; }
 .home-logo { position: relative; z-index: 2; width: min(430px, 78%); max-height: 120px; object-fit: contain; filter: drop-shadow(0 7px 12px rgb(0 0 0 / 40%)); }
 .home-tagline { position: relative; z-index: 2; width: min(590px, 90%); margin: -5px auto 0; text-align: center; color: var(--cream); font-size: var(--fs-body); font-weight: 700; text-shadow: 0 2px 6px #000; }
-.home-keyart { position: absolute; z-index: 1; inset: 82px 0 48px; width: 100%; height: calc(100% - 112px); object-fit: contain; filter: drop-shadow(0 22px 20px rgb(0 0 0 / 55%)); }
+.home-keyart { position: absolute; z-index: 1; inset: 104px 0 48px; width: 100%; height: calc(100% - 134px); object-fit: contain; filter: drop-shadow(0 22px 20px rgb(0 0 0 / 55%)); }
 .home-cta { position: absolute; z-index: 3; bottom: 8px; min-width: min(330px, 74%); }
 .text-button { position: absolute; z-index: 4; bottom: -40px; min-height: 44px; padding: 8px 16px; border: 0; background: none; color: var(--cream); font-size: var(--fs-cap); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .daily-panel { position: relative; overflow: hidden; }
