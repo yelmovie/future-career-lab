@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-test.use({ channel: 'chrome' });
 
 test('page 9 supports keyboard pair assignment and advances a turn', async ({ page }) => {
   const runtimeErrors: string[] = [];

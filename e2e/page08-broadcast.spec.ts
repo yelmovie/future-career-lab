@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-test.use({ channel: 'chrome' });
 
 test('page 8 airs the opening segment from the cue sheet without a timer', async ({ page }) => {
   const runtimeErrors: string[] = [];
@@ -15,9 +14,9 @@ test('page 8 airs the opening segment from the cue sheet without a timer', async
   await expect(air).toBeDisabled();
 
   // 1. 잘못된 소스 → 힌트, 맞는 소스 → 힌트 사라짐
-  await page.getByRole('button', { name: '드론 사진' }).click();
+  await page.getByRole('button', { name: '드론 사진', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('스튜디오 카메라');
-  await page.getByRole('button', { name: '스튜디오 카메라' }).click();
+  await page.getByRole('button', { name: '스튜디오 카메라', exact: true }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
 
   // 2. 출처 있는 자막 (키보드 대안 경로)
