@@ -147,7 +147,7 @@
 .settings-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 480px;
+  min-width: 0;
 }
 
 .settings-table th,

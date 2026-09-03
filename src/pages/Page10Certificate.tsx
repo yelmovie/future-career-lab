@@ -26,7 +26,7 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
   useEffect(() => {
     if (!save.certificateUnlocked || rewarded.current) return;
     rewarded.current = true;
-    grantReward('certificate-2026.08');
+    grantReward('certificate-2026.09');
     audioService.playSfx('reward');
     const timer = window.setTimeout(() => setCelebrating(false), 2600);
     return () => window.clearTimeout(timer);

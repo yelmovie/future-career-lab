@@ -1,3 +1,4 @@
+/* global self, caches, fetch, URL */
 /* 교실 와이파이 대비 오프라인 캐시. 같은 출처의 정적 자원을 캐시 우선으로 제공하고,
    HTML 은 네트워크 우선(새 배포 반영) → 실패 시 캐시. */
 const VERSION = 'fcl-v2-2026.09';

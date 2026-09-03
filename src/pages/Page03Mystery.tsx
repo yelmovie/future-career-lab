@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { GameShell, MissionGuide, Panel } from '../components/GameShell';
-import { SearchIcon } from '../components/Icons';
+import { CheckIcon, SearchIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
@@ -183,7 +183,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
             image={pageAsset(3, 5)}
             imageAlt="증거판"
             action="사진 속 세부를 찾아 사실과 이어"
-            goals={['사진 3장 확대해 숨은 세부 찾기', '카드를 확실·의심·무관으로 나누기', '세부 ↔ 사실 2개 잇고 가설 고르기', '끝내면: 가설 카드 (숲 조사에서 검증)']}
+            goals={['사진 3장 확대해 세부 찾기', '카드를 세 칸으로 나누기', '세부와 사실 2개 잇기', '끝내면: 가설 카드']}
           />
           <ul className="board-steps" aria-label="진행">
             <li className={found.length === PHOTO_DETAILS.length ? 'is-done' : ''}><b>1</b>세부 {found.length} / {PHOTO_DETAILS.length}</li>
@@ -240,7 +240,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
           </div>
 
           <div className={`hypothesis-section${hypothesis ? ' is-done' : ''}`}>
-            <strong><b>{hypothesis ? '✓' : '4'}</b> 가설 고르기</strong>
+            <strong><b>{hypothesis ? <CheckIcon /> : '4'}</b> 가설 고르기</strong>
             {!canChoose && <p className="empty-copy">{links.length < LINKS_TO_UNLOCK ? `연결 ${LINKS_TO_UNLOCK}개가 필요해.` : !allSorted ? '카드를 모두 칸에 넣어 줘.' : '무관한 카드가 다른 칸에 있어. 다시 봐.'}</p>}
             <div className="candidate-list" role="radiogroup" aria-label="가설">
               {HYPOTHESES.map((item) => (

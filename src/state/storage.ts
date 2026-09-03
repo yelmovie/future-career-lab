@@ -24,15 +24,17 @@ export function loadSave(): LoadResult {
     if (parsed.schemaVersion > SAVE_SCHEMA_VERSION) throw new Error('Unsupported future schema');
     const migrated = parsed.schemaVersion !== SAVE_SCHEMA_VERSION || parsed.contentVersion !== CONTENT_VERSION;
     const base = createDefaultSave();
+    // v1(스키마 1)은 페이지 번호 체계가 달라 완료 기록을 그대로 옮기면 산출물 없는 완료가 생긴다. 진행은 비우고 이름·설정만 유지.
+    const legacy = parsed.schemaVersion < 2;
+    const completedPages = !legacy && Array.isArray(parsed.stageProgress.completedPages) ? parsed.stageProgress.completedPages : [];
     const stageProgress = {
-      ...base.stageProgress,
-      ...parsed.stageProgress,
-      completed: { ...base.stageProgress.completed, ...parsed.stageProgress.completed },
-      completedPages: Array.isArray(parsed.stageProgress.completedPages) ? parsed.stageProgress.completedPages : [],
+      completed: legacy ? { ...base.stageProgress.completed } : { ...base.stageProgress.completed, ...parsed.stageProgress.completed },
+      completedPages,
     };
     const save: GameSave = {
       ...base,
       ...parsed,
+      ...(legacy ? { lastPage: 1, badges: [], jobCards: [], logs: [], pageData: {}, traits: base.traits, rewardGranted: [] } : {}),
       schemaVersion: SAVE_SCHEMA_VERSION,
       contentVersion: CONTENT_VERSION,
       stageProgress,

@@ -129,3 +129,5 @@
   .drone-scene { min-height: 420px; }
   .evidence-bins { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 1400px) { .link-area { grid-template-columns: 1fr; gap: var(--space-8); } }

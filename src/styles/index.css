@@ -54,7 +54,7 @@
   --touch-min: 48px;
 }
 
-* { box-sizing: border-box; word-break: keep-all; overflow-wrap: anywhere; }
+* { box-sizing: border-box; word-break: keep-all; overflow-wrap: break-word; }
 
 html, body, #root { min-width: 320px; min-height: 100%; margin: 0; }
 body { min-height: 100vh; overflow-x: hidden; font-size: var(--fs-body); }
@@ -135,7 +135,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   padding: var(--space-8) clamp(14px, 2vw, 32px); background: rgb(5 19 34 / 92%); border-top: 1px solid rgb(241 207 131 / 42%);
 }
 
-.game-grid { display: grid; grid-template-columns: minmax(190px, .82fr) minmax(420px, 2.35fr) minmax(210px, .92fr); gap: clamp(12px, 1.3vw, 22px); align-items: stretch; min-height: clamp(470px, 68vh, 760px); }
+.game-grid { display: grid; grid-template-columns: minmax(200px, .82fr) minmax(400px, 2.2fr) minmax(250px, 1fr); gap: clamp(12px, 1.3vw, 22px); align-items: stretch; min-height: clamp(470px, 68vh, 760px); }
 .game-grid--wide-center { grid-template-columns: minmax(190px, .7fr) minmax(520px, 2.65fr) minmax(210px, .85fr); }
 .two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 28px); }
 .stack { display: flex; flex-direction: column; gap: var(--space-16); }
@@ -280,7 +280,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   .game-grid, .game-grid--wide-center { grid-template-columns: minmax(180px, .8fr) minmax(440px, 2fr); }
   .game-grid > :last-child { grid-column: 1 / -1; }
   .topbar-progress span { display: none; }
-  .stage-rail small { display: none; }
+  .stage-rail li:not(.is-current) small { display: none; }
+  .stage-rail li { min-width: 44px; }
   .stage-rail li { min-width: 43px; }
 }
 
@@ -305,7 +306,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   .mission-guide__art { height: 105px; }
   .mission-guide__copy { padding: 10px; }
   .mission-guide h3 { margin-block: 6px 8px; font-size: 20px; }
-  .mission-guide li { font-size: 16px; }
 }
 
 @media print {

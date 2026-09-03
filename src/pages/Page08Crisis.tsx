@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
-import { CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
+import { ArrowIcon, CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
 import { pageAsset, v2Asset } from '../shared/assets';
 import { CANVAS_FONT, JOB_LABELS, STAGE_META } from '../shared/constants';
@@ -294,7 +294,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
 
       {!finished && (
         <section className="p08-job-deck" aria-labelledby="p08-job-title">
-          <div className="p08-job-heading"><div><span>1 배지 고르기 → 2 위기 카드 누르기 (또는 끌어다 놓기)</span><h2 id="p08-job-title">어떤 힘을 어디에 붙일까?</h2></div>{selectedJob && <p role="status">{JOB_LABELS[selectedJob]} 선택 · 위기 카드를 눌러</p>}</div>
+          <div className="p08-job-heading"><div><span>1 배지 고르기, 2 위기 카드 누르기 (또는 끌어다 놓기)</span><h2 id="p08-job-title">어떤 힘을 어디에 붙일까?</h2></div>{selectedJob && <p role="status">{JOB_LABELS[selectedJob]} 선택 · 위기 카드를 눌러</p>}</div>
           <div className="p08-job-grid">
             {JOB_ORDER.map((job) => {
               const available = isAvailable(state, job);
@@ -325,7 +325,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       {briefing && (
         <Modal title="네 직업의 힘을 짝지어 보자" actions={<button className="button button--primary" onClick={() => { setBriefing(false); audioService.unlock(); audioService.playSfx('tap'); }}>작전 시작</button>}>
           <p>위기 세 개가 한꺼번에 왔어. 카드에는 직업 이름이 없고 "무엇이 필요한지"만 써 있어. 힌트에 맞는 배지 두 개를 붙여야 위기가 줄어.</p>
-          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>위기 카드 힌트 읽기</span><i>→</i><b>2</b><span>배지 두 개 붙이고 턴 진행</span></div>
+          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>위기 카드 힌트 읽기</span><i><ArrowIcon /></i><b>2</b><span>배지 두 개 붙이고 턴 진행</span></div>
           <p className="modal-note">턴마다 아무도 없는 위기는 더 번져. 쓴 배지는 한 턴 쉬어야 하니 순서를 잘 정해 봐.</p>
         </Modal>
       )}
