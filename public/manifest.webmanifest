@@ -1,0 +1,15 @@
+{
+  "name": "미래 직업실",
+  "short_name": "미래직업실",
+  "description": "초등 5~6학년 체험형 진로교육 게임. 숲의 앵무새 사건을 네 직업의 힘으로 해결한다.",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#061426",
+  "theme_color": "#061426",
+  "icons": [
+    { "src": "/assets/page-01/badge.webp", "sizes": "1254x1254", "type": "image/webp", "purpose": "any" }
+  ]
+}

@@ -38,3 +38,12 @@ License: https://pixabay.com/service/license-summary/
 ## v2 추가 이미지 (2026-09-04)
 
 `public/assets/v2/*.webp` 14장은 생성형 AI(Google Imagen)로 제작한 자체 에셋이다. 원본 PNG는 `_unused/v2-originals/` 에 보존. 프롬프트는 `docs/IMAGEN_PROMPTS_v2.md`.
+
+## 글꼴 (2026-09-04, SIL Open Font License 1.1 — 원문 동봉)
+
+| 파일 | 글꼴 | 출처 | 라이선스 | 가공 |
+|---|---|---|---|---|
+| `public/assets/fonts/Jua-Regular.woff2` | Jua (Google Fonts) | https://fonts.google.com/specimen/Jua | SIL OFL 1.1 (`Jua-OFL.txt`) | 한글 완성형·라틴 서브셋, woff2 변환 |
+| `public/assets/fonts/Pretendard-*.sub.woff2` | Pretendard 1.3.9 | https://github.com/orioncactus/pretendard | SIL OFL 1.1 (`Pretendard-OFL.txt`) | 서브셋. Reserved Font Name 은 유지하고 글꼴 이름을 바꾸지 않았다 |
+
+원본 전체 글꼴 파일은 `_unused/fonts-full/` 에 보존.
