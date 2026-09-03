@@ -60,7 +60,7 @@ node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 →
 
 ## 미디어와 라이선스
 
-- 일러스트·배경·v2 에셋 14장: 생성형 AI로 제작한 자체 자산 (ⓒ 2026 옐쌤)
+- 일러스트·배경(ChatGPT 이미지)·v2 에셋 14장(Google Imagen): 생성형 AI로 제작한 자체 자산 (ⓒ 2026 옐쌤)
 - BGM 6곡: 자체 제작
 - 효과음: Pixabay Content License 8개 + Mixkit Sound Effects Free License 4개 (표기 불필요)
 - 글꼴: Jua, Pretendard (SIL OFL 1.1, 원문 동봉)

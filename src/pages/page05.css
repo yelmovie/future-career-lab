@@ -211,10 +211,14 @@
 .p5-footer-progress > span.is-done { border-color: #62d98b; background: rgb(12 76 44 / 56%); color: #a8efc1; }
 .p5-footer-progress .button { margin-left: auto; }
 
+/* 906×755 태블릿: 뷰어 높이를 화면의 절반 안으로 묶어 관찰 기록 패널이 첫 화면 안에서 시작하게 */
 @media (max-width: 1200px) {
-  .p5-layout { grid-template-columns: minmax(210px, .78fr) minmax(500px, 2fr); }
+  .p5-layout { grid-template-columns: minmax(210px, .78fr) minmax(500px, 2fr); min-height: auto; }
   .p5-journal-panel { grid-column: 1 / -1; }
   .p5-statements { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .p5-viewer { max-height: min(52vh, 460px); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .p5-viewport { min-height: 0; }
+  .p5-model-rig { inset: 4% 12% 5%; }
 }
 
 @media (max-width: 780px) {

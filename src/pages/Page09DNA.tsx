@@ -6,7 +6,7 @@ import { pageAsset } from '../shared/assets';
 import { ABILITY_STATEMENTS, JOB_LABELS, PAGE_META, TRAIT_KEYS, TRAIT_LABELS } from '../shared/constants';
 import type { JobId, PageNumber, TraitKey } from '../shared/types';
 import { useGame } from '../state/GameContext';
-import { CAREER_FIELDS, PREDICTION_NOTE, RESULT_DISCLAIMER, TRANSFER_SITUATION, actualJobFromLogs } from '../data/resultRules';
+import { CAREER_FIELDS, PREDICTION_NOTE, RESULT_DISCLAIMER, TRANSFER_SITUATION, actualJob } from '../data/resultRules';
 import './page09.css';
 
 const JOB_ORDER: JobId[] = ['drone', 'care', 'ecology', 'broadcast'];
@@ -56,7 +56,8 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
   }, []);
 
   // (1) 예측 vs 실제
-  const actual = useMemo(() => actualJobFromLogs(save.logs), [save.logs]);
+  const { job: actual, evidence: jobReasons } = useMemo(() => actualJob(save.artifacts, save.logs, save.traits), [save.artifacts, save.logs, save.traits]);
+  const actualReason = jobReasons.find((entry) => entry.job === actual)?.reason ?? null;
   const prediction = save.prediction;
   const matched = prediction !== null && actual !== null && prediction === actual;
 
@@ -147,7 +148,7 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
           <div className="p10-compare">
             <div><span>브리핑 때 예측</span><strong>{prediction ? JOB_LABELS[prediction] : '예측 안 함'}</strong></div>
             <i aria-hidden="true"><ArrowIcon /></i>
-            <div><span>이번 탐험에서 가장 많이 움직인 직업</span><strong>{actual ? JOB_LABELS[actual] : '아직 기록이 적어'}</strong></div>
+            <div><span>이번 탐험에서 가장 잘 움직인 직업</span><strong>{actual ? JOB_LABELS[actual] : '아직 기록이 적어'}</strong>{actualReason && <small className="p10-reason">{actualReason}</small>}</div>
           </div>
           {prediction && actual && <p className={`p10-verdict${matched ? ' is-match' : ''}`}>{matched ? '예측이 실제와 같았어.' : '예측과 실제가 달랐어.'}</p>}
           <p className="p10-note">{PREDICTION_NOTE}</p>

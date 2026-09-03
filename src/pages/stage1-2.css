@@ -18,6 +18,10 @@
 .drone-map-key .is-wind { color: #83e8df; background: rgb(13 111 107 / 28%); }
 .drone-map-key .is-tail { color: #8de8a8; background: rgb(31 114 67 / 31%); }
 .drone-layout > .panel:first-child > .row { flex-wrap: wrap; margin-top: var(--space-16); }
+.drone-layout > .panel:first-child > .row + .row { margin-top: var(--space-8); }
+.drone-target-buttons .button { min-height: 48px; }
+.telemetry-pair.is-head strong { color: #ff9f96; }
+.telemetry-pair.is-tail strong { color: #8de8a8; }
 .drone-layout > .panel:first-child > .row .button { flex: 1 1 120px; padding-inline: var(--space-8); font-size: var(--fs-cap); }
 .drone-scene { min-height: clamp(420px, 56vh, 620px); }
 .replay-badge { position: absolute; z-index: 5; top: 18px; right: 18px; min-height: 38px; padding: var(--space-8); border: 1px solid #ff8a80; border-radius: var(--radius-sm); color: #fff; background: rgb(117 24 20 / 88%); font-size: var(--fs-cap); font-weight: 950; font-variant-numeric: tabular-nums; }
@@ -74,6 +78,9 @@
 .evidence-card-grid--bin { min-height: 72px; }
 .evidence-card { position: relative; min-width: 0; min-height: 64px; display: grid; border: 2px solid rgb(106 222 214 / 35%); border-radius: var(--radius-sm); background: rgb(4 22 37 / 70%); cursor: grab; touch-action: manipulation; }
 .evidence-card:active { cursor: grabbing; }
+.evidence-card.is-bounce { animation: card-bounce .6s ease; border-color: #ff8176; }
+@keyframes card-bounce { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-4px); } }
+@media (prefers-reduced-motion: reduce) { .evidence-card.is-bounce { animation: none; } }
 .evidence-card.is-selected { border-color: var(--gold-pale); box-shadow: 0 0 0 3px rgb(241 207 131 / 35%); transform: translateY(-2px); }
 .evidence-card__pick { display: grid; gap: var(--space-4); width: 100%; padding: 0 0 var(--space-8); border: 0; border-radius: inherit; color: var(--cream); background: transparent; text-align: left; cursor: inherit; }
 .evidence-card__pick img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 11px 11px 0 0; pointer-events: none; }

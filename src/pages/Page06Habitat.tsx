@@ -61,6 +61,7 @@ function readStoredPrediction(value: unknown): Prediction | null {
   return isPrediction(candidate) ? candidate : null;
 }
 
+/** 3별일 때만 고를 수 있는 "그대로 두는 까닭". 3별 미만은 배치를 실제로 옮겨야 끝난다. */
 const KEEP_REASONS = [
   '출입 동선과 각 활동 지점 사이에 충분한 간격이 있어.',
   '휴식·활동·급수 선택지가 서로 겹치지 않고 이어져.',
@@ -78,6 +79,8 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   const [simulation, setSimulation] = useState<HabitatSimulationResult | null>(null);
   const [simulationSnapshot, setSimulationSnapshot] = useState('');
   const [keepReason, setKeepReason] = useState<string | null>(null);
+  /** 시험 뒤 물건을 하나라도 옮겼는지(누적). 3별 미만이면 이게 있어야 완성. */
+  const [redesignedOnce, setRedesignedOnce] = useState(false);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(6));
   const changeHandler = useRef<(next: HabitatPlacement[]) => void>(() => undefined);
   const selectionHandler = useRef<(instanceId: string | null) => void>(() => undefined);
@@ -102,7 +105,11 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   const conditionCheck = useMemo(() => checkConditions(placements, conditions), [placements, conditions]);
   const currentSignature = useMemo(() => layoutSignature(placements), [placements]);
   const redesigned = Boolean(simulation) && currentSignature !== simulationSnapshot;
-  const canFinish = Boolean(simulation) && evaluation.valid && (redesigned || Boolean(keepReason));
+  useEffect(() => { if (redesigned) setRedesignedOnce(true); }, [redesigned]);
+  const perfect = simulation?.stars === 3;
+  /** 완성 조건: 지금 배치로 시험을 마쳤고, 3별이면 (옮겼거나 까닭), 3별 미만이면 옮긴 뒤 다시 시험. */
+  const rethinkDone = perfect ? redesignedOnce || Boolean(keepReason) : redesignedOnce;
+  const canFinish = Boolean(simulation) && evaluation.valid && !redesigned && rethinkDone;
   const selected = placements.find((placement) => placement.instanceId === selectedId) ?? null;
   const placedIds = new Set(placements.map((placement) => placement.itemId));
 
@@ -138,12 +145,14 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   };
 
   const missingBehaviors = simulation ? (Object.keys(simulation.behaviors) as Behavior[]).filter((key) => !simulation.behaviors[key]) : [];
-  const actual: Prediction = missingBehaviors[0] ?? 'none';
-  const predictionHit = Boolean(simulation) && prediction === actual;
+  const actualLabel = missingBehaviors.length === 0 ? '셋 다 보였어.' : `${missingBehaviors.map((key) => BEHAVIOR_LABELS[key]).join('·')}가 안 보였어.`;
+  // 빠진 행동이 둘이면 그중 하나만 맞혀도 예측 성공
+  const predictionHit = Boolean(simulation) && prediction !== null
+    && (missingBehaviors.length === 0 ? prediction === 'none' : prediction !== 'none' && missingBehaviors.includes(prediction));
 
   const finishMission = () => {
     if (!canFinish || !simulation) return;
-    const revisionChoice = redesigned ? '시험해 본 뒤 배치를 실제로 다시 조정했어.' : `배치를 그대로 둔 까닭: ${keepReason}`;
+    const revisionChoice = redesignedOnce ? '시험해 본 뒤 배치를 실제로 다시 조정했어.' : `배치를 그대로 둔 까닭: ${keepReason}`;
     setPageData('page06Design', { placements, evaluation, simulation, revisionChoice, prediction, conditions });
     logEvent({
       page: 6,
@@ -163,11 +172,11 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     });
     logEvent({
       page: 6,
-      type: redesigned ? 'habitat-redesign' : 'habitat-keep-with-reason',
+      type: redesignedOnce ? 'habitat-redesign' : 'habitat-keep-with-reason',
       summary: revisionChoice,
       tags: ['재설계', '의사결정'],
-      traits: redesigned ? { creation: 2, execution: 1 } : { analysis: 1, execution: 1 },
-      contextRef: redesigned ? `redesign-${currentSignature}` : 'keep-with-evidence',
+      traits: redesignedOnce ? { creation: 2, execution: 1 } : { analysis: 1, execution: 1 },
+      contextRef: redesignedOnce ? `redesign-${currentSignature}` : 'keep-with-evidence',
     });
     setArtifacts({ habitatStars: simulation.stars });
     completePage(6);
@@ -189,7 +198,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '집 만들기 완료' : '집 만들기'}</span>
       <span className={prediction ? 'is-ready' : ''}>{prediction ? '예측 완료' : '예측하기'}</span>
       <span className={simulation ? 'is-ready' : ''}>{simulation ? `만족도 ${simulation.stars}/3별` : '시험하기'}</span>
-      <span className={redesigned || keepReason ? 'is-ready' : ''}>{redesigned || keepReason ? '다시 생각하기 완료' : '다시 생각하기'}</span>
+      <span className={rethinkDone && !redesigned ? 'is-ready' : ''}>{redesigned ? '바꾼 배치 다시 시험하기' : rethinkDone ? '다시 생각하기 완료' : '다시 생각하기'}</span>
       <button className="button button--primary button--large" type="button" disabled={!canFinish} onClick={finishMission}>
         생활 공간 완성
         <CheckIcon />
@@ -218,7 +227,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             image={pageAsset(6, 1)}
             imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
             action="두 마리에 맞는 회복 공간을 만들어요"
-            goals={['물건 3~4개 놓고 개체 조건 채우기', '안 보일 행동 예측하고 시험하기', '고치거나 까닭 고르기']}
+            goals={['물건 3~4개 놓고 두 마리 조건 생각하기', '안 보일 행동 예측하고 시험하기', '3별이 아니면 옮겨서 다시 시험하기']}
           />
           <div className="p6-item-palette" aria-label="배치할 물체">
             {HABITAT_ITEM_IDS.map((itemId) => {
@@ -301,13 +310,20 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                 </li>
               ))}
             </ul>
-            <ul className="p6-rule-list p6-rule-list--bird" aria-label="개체별 조건">
-              {birdRows.map((rule) => (
-                <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
-                  <span>{rule.ready ? '충족' : '확인'}</span><strong>{rule.label}</strong>
-                </li>
-              ))}
-            </ul>
+            {simulation ? (
+              <ul className="p6-rule-list p6-rule-list--bird" aria-label="개체별 조건 (시험 결과)">
+                {birdRows.map((rule) => (
+                  <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
+                    <span>{rule.ready ? '충족' : '확인'}</span><strong>{rule.label}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p6-handoff p6-rule-list--bird">
+                <strong>두 마리 조건은 시험해 봐야 알아</strong>
+                <p>{conditions.dehydrated ? '빨강(탈수)은 물이 쉬는 곳에서 가까워야 해. ' : ''}{conditions.stressed ? '초록(스트레스)은 조용한 쪽에 숨을 곳이 있어야 해. ' : ''}어디에 놓을지 먼저 예측해.</p>
+              </div>
+            )}
             {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
             <div className="p6-strategy-result">
               <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong><small>물건을 많이 놓기보다 필요한 물건을 잘 이어 주는 게 중요해.</small>
@@ -339,18 +355,20 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                 </div>
                 <div className={`toast ${predictionHit ? 'toast--success' : 'toast--warning'}`}>
                   {predictionHit ? '예측이 맞았어. ' : '예측과 달랐어. 무엇이 달랐을까? '}
-                  실제로 {actual === 'none' ? '셋 다 보였어.' : `${BEHAVIOR_LABELS[actual]}가 안 보였어.`}
+                  실제로 {actualLabel}
                 </div>
                 <p>{simulation.summary}</p>
                 {redesigned ? (
-                  <div className="toast toast--success"><CheckIcon />시험한 뒤 실제 배치를 바꾼 것을 확인했어.</div>
-                ) : (
+                  <div className="toast toast--success"><CheckIcon />배치를 바꿨어. 아래에서 다시 시험해 봐.</div>
+                ) : perfect ? (
                   <div className="p6-keep-reasons">
                     <strong>그대로 둔다면 까닭을 골라</strong>
                     {KEEP_REASONS.map((reason) => (
                       <button key={reason} type="button" className={keepReason === reason ? 'is-selected' : ''} onClick={() => setKeepReason(reason)} aria-pressed={keepReason === reason}>{reason}</button>
                     ))}
                   </div>
+                ) : (
+                  <div className="toast toast--warning">3별이 아니야. 물건을 하나라도 옮긴 뒤 다시 시험해야 완성할 수 있어.</div>
                 )}
                 <div className="p6-predictions" role="group" aria-label="다시 예측하기">
                   {PREDICTIONS.map((item) => (

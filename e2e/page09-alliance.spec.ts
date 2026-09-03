@@ -34,5 +34,7 @@ test('page 9 supports keyboard pair assignment and advances a turn', async ({ pa
   const flockCard = page.locator('.p08-crisis-card').filter({ hasText: '앵무 무리 이동 경로 위험' });
   await expect(flockCard.locator('.p08-crisis-gauge')).toHaveText('위기 50%');
   await expect(page.locator('.p08-job-card').filter({ hasText: '드론 현장가' })).toContainText('쉬는 중');
+  await expect(page.locator('.p08-turn small')).toContainText('12턴 안에');
+  await expect(page.locator('.p08-metrics')).toContainText('잃은 숲 노드');
   expect(runtimeErrors).toEqual([]);
 });

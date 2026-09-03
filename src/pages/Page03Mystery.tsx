@@ -5,6 +5,7 @@ import { Modal } from '../components/Modal';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
+import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
@@ -18,6 +19,7 @@ import {
   isValidLink,
   linkKey,
   photoCards,
+  sureBlocker,
   type BinId,
   type DetailId,
   type EvidenceCard,
@@ -43,7 +45,7 @@ function linkList(value: unknown): string[] {
 interface Line { key: string; x1: number; y1: number; x2: number; y2: number; wrong: boolean }
 
 export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, completePage, logEvent, setPageData, setArtifacts } = useGame();
+  const { save, completePage, logEvent, setPageData, setArtifacts, addBadge, addJobCard } = useGame();
   const cards = useMemo<EvidenceCard[]>(() => [...photoCards(save.artifacts.photos), ...FACT_CARDS], [save.artifacts.photos]);
   const [found, setFound] = useState<DetailId[]>(() => detailList(save.pageData.p4Details));
   const [bins, setBins] = useState<Record<string, BinId>>(() => binMap(save.pageData.p4Bins));
@@ -54,6 +56,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [pendingDetail, setPendingDetail] = useState<DetailId | null>(null);
   const [wrongLink, setWrongLink] = useState<string | null>(null);
+  const [bounce, setBounce] = useState<string | null>(null);
   const [hint, setHint] = useState('사진을 탭해 확대하고, 숨은 세부를 찾아 봐. 찾은 세부만 선으로 이을 수 있어.');
   const linkArea = useRef<HTMLDivElement>(null);
   const chipRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -102,6 +105,15 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
   };
 
   const placeCard = (cardId: string, bin: BinId) => {
+    const blocker = bin === 'sure' ? sureBlocker(cardId, found, links) : null;
+    if (blocker) {
+      // 근거 없는 '확실'은 튕겨 낸다. 카드는 있던 자리에 그대로.
+      setBounce(cardId);
+      window.setTimeout(() => setBounce(null), 600);
+      setHint(blocker);
+      audioService.playSfx('warning');
+      return;
+    }
     const next = { ...bins, [cardId]: bin };
     setBins(next);
     setPageData('p4Bins', next);
@@ -143,15 +155,22 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
     setPageData('p4Hypothesis', id);
     const label = HYPOTHESES.find((item) => item.id === id)!.label;
     logEvent({ page: 4, type: 'hypothesis', contextRef: `hypothesis-${id}`, summary: `증거판을 보고 "${label}" 가설을 세웠어.`, tags: ['가설', id], traits: { analysis: 2 } });
-    if (!completed) { setCompleted(true); completePage(4); audioService.playSfx('success'); } else audioService.playSfx('tap');
-    setHint(`가설 카드 "${label}" 를 받았어. 맞는지는 숲 생태 조사에서 확인해. 바꿔도 돼.`);
+    if (!completed) {
+      // 스테이지 1 완료 = 가설까지. 배지·직업 카드는 여기서 준다.
+      setCompleted(true);
+      completePage(4);
+      addBadge(STAGE_META[0]!.badgeName);
+      addJobCard(STAGE_META[0]!.jobTitle);
+      audioService.playSfx('reward');
+    } else audioService.playSfx('tap');
+    setHint(`가설 카드 "${label}" 를 받았어. ${completed ? '' : `${STAGE_META[0]!.badgeName}도 받았어! `}맞는지는 숲 생태 조사에서 확인해. 바꿔도 돼.`);
   };
 
   const cardName = (id: string) => cards.find((card) => card.id === id)?.title ?? id;
   const renderCard = (card: EvidenceCard) => (
     <article
       key={card.id}
-      className={`evidence-card${selectedCard === card.id ? ' is-selected' : ''}`}
+      className={`evidence-card${selectedCard === card.id ? ' is-selected' : ''}${bounce === card.id ? ' is-bounce' : ''}`}
       draggable
       onDragStart={(event) => { event.dataTransfer.setData(DRAG_TYPE, card.id); setSelectedCard(card.id); }}
     >
@@ -175,7 +194,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       page={4}
       eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
-      footer={completed ? <StageComplete title="가설 카드를 얻었어" message="구조된 앵무새를 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="앵무새 살피러 가기" onNext={() => onNavigate(5)} /> : undefined}
+      footer={completed ? <StageComplete title={`가설 카드와 ${STAGE_META[0]!.badgeName}를 얻었어`} message="구조된 앵무새를 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="앵무새 살피러 가기" onNext={() => onNavigate(5)} /> : undefined}
     >
       <div className="game-grid game-grid--wide-center mystery-layout">
         <Panel title="이번 미션" kicker="EVIDENCE BOARD">
@@ -183,7 +202,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
             image={pageAsset(3, 5)}
             imageAlt="증거판"
             action="사진 속 세부를 찾아 사실과 이어"
-            goals={['사진 3장 확대해 세부 찾기', '카드를 세 칸으로 나누기', '세부와 사실 2개 잇기', '끝내면: 가설 카드']}
+            goals={['사진 3장 확대해 세부 찾기', '세부와 사실 2개 잇기', '카드를 세 칸으로 나누기 (이은 카드만 확실)', `끝내면: 가설 카드 + ${STAGE_META[0]!.badgeName}`]}
           />
           <ul className="board-steps" aria-label="진행">
             <li className={found.length === PHOTO_DETAILS.length ? 'is-done' : ''}><b>1</b>세부 {found.length} / {PHOTO_DETAILS.length}</li>
@@ -196,7 +215,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
 
         <div className="stack">
           <Panel title="단서 카드" kicker="CARDS">
-            <p className="empty-copy">카드를 끌어 아래 칸에 놓거나, 카드를 누른 뒤 칸의 버튼을 눌러.</p>
+            <p className="empty-copy">카드를 끌어 아래 칸에 놓거나, 카드를 누른 뒤 칸의 버튼을 눌러. 세부를 찾아 선으로 이은 카드만 '확실'에 들어가.</p>
             <div className="evidence-card-grid">{cards.filter((card) => !bins[card.id]).map(renderCard)}</div>
           </Panel>
           <div className="evidence-bins">

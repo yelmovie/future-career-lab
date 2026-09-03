@@ -4,27 +4,58 @@ import {
   CRISES,
   type CrisisId,
   GAUGE_START,
+  MAX_TURNS,
+  SPILL,
   SPREAD_PER_TURN,
   advanceTurn,
   cardQualities,
   createAllianceState,
+  ecologyTrials,
+  isAvailable,
   pairVerdict,
   toggleAssign,
   turnsUsed,
 } from './page08CrisisModel';
 
 const emptyCards = cardQualities(undefined);
+const emptyArtifacts: Artifacts = { photos: [], hypothesis: null, careLog: [], habitatStars: 0, traces: [], graphs: [], clip: null, allianceTurns: null };
 const fire = CRISES[0]!;
 
 describe('alliance turn model', () => {
-  it('spreads every unhandled crisis each turn and caps the gauge', () => {
+  it('spreads every unhandled crisis each turn; at 100% it spills into the others and costs a forest node', () => {
     let state = createAllianceState();
     state = advanceTurn(state, emptyCards);
     expect(state.turn).toBe(2);
     expect(state.gauges.fire).toBe(GAUGE_START + SPREAD_PER_TURN);
-    for (let i = 0; i < 10; i += 1) state = advanceTurn(state, emptyCards);
-    expect(state.gauges.flock).toBe(100);
+    expect(state.spread).toEqual([]);
+    for (let i = 0; i < 5; i += 1) state = advanceTurn(state, emptyCards);
+    expect(state.gauges).toEqual({ fire: 100, flock: 100, citizens: 100 });
+    expect(state.spread).toEqual(['fire', 'flock', 'citizens']);
+    expect(state.feedback.filter((line) => line.includes('숲 노드 하나를 잃었고'))).toHaveLength(3);
+    expect(state.failed).toBe(false);
+    // 같은 위기는 한 번만 번진다
+    state = advanceTurn(state, emptyCards);
+    expect(state.spread).toHaveLength(3);
+  });
+
+  it('spill raises only the other two crises and marks what spread first', () => {
+    let state = { ...createAllianceState(), gauges: { fire: 90, flock: 20, citizens: 0 } };
+    state = advanceTurn(state, emptyCards);
+    expect(state.gauges).toEqual({ fire: 100, flock: 20 + SPREAD_PER_TURN + SPILL, citizens: 0 });
+    expect(state.spread).toEqual(['fire']);
+  });
+
+  it('ends the run after MAX_TURNS with a retry state instead of unlimited turns', () => {
+    let state = createAllianceState();
+    for (let i = 0; i < MAX_TURNS; i += 1) {
+      // 매 턴 hold 로 게이지를 유지해 100% 없이 턴만 흘려 보낸다
+      state = advanceTurn(toggleAssign(state, i % 2 === 0 ? 'drone' : 'broadcast', 'fire'), emptyCards);
+    }
+    expect(state.turn).toBe(MAX_TURNS + 1);
     expect(state.done).toBe(false);
+    expect(state.failed).toBe(true);
+    expect(isAvailable(state, 'care')).toBe(false);
+    expect(advanceTurn(state, emptyCards)).toBe(state);
   });
 
   it('judges pairs by the crisis needs, never by job name', () => {
@@ -66,6 +97,18 @@ describe('alliance turn model', () => {
     expect(state.cooldown.drone).toBe(0);
   });
 
+  it('ecology card rewards trials plus a declared main/sub verdict, whatever the cause', () => {
+    const graphs = (main: Artifacts['graphs'][number]['variable']) => ({ ...emptyArtifacts, graphs: [{ variable: main, verdict: 'main' as const }, { variable: 'noise' as const, verdict: 'sub' as const }] });
+    const power = (artifacts: Artifacts, trials: number) => cardQualities(artifacts, trials)[2]!.power;
+    expect(power(graphs('water'), 3)).toBe(35);
+    expect(power(graphs('logging'), 3)).toBe(35);
+    expect(power(graphs('water'), 1)).toBeLessThan(power(graphs('water'), 3));
+    expect(power(emptyArtifacts, 3)).toBe(28);
+    expect(cardQualities(graphs('water'), 3)[2]!.chip).toBe('실험 3/3 · 원인 확정');
+    expect(ecologyTrials({ page07Ecology: { trials: [1, 2] } })).toBe(2);
+    expect(ecologyTrials(undefined)).toBe(0);
+  });
+
   it('maps artifacts to badge power and stronger cards clear faster', () => {
     const artifacts: Artifacts = {
       photos: [{ id: 'logging', quality: 'center' }, { id: 'stream', quality: 'center' }, { id: 'construction', quality: 'edge' }],
@@ -77,7 +120,7 @@ describe('alliance turn model', () => {
       clip: { trust: 80, corrections: 0 },
       allianceTurns: null,
     };
-    const cards = cardQualities(artifacts);
+    const cards = cardQualities(artifacts, 3);
     expect(cards.map((card) => card.power)).toEqual([30, 35, 35, 32]);
     expect(cards[0]!.chip).toBe('정중앙 2/3');
     expect(emptyCards.every((card) => card.power === 20)).toBe(true);

@@ -82,18 +82,20 @@ export const HABITAT_STRATEGIES: HabitatStrategy[] = [
   {
     id: 'quiet-loop',
     name: '조용한 순환 동선',
-    description: '휴식 공간과 먹이 탐색을 짧은 순환 경로로 이어.',
+    description: '휴식 공간과 먹이 탐색을 짧은 순환 경로로 이어. 물그릇 자리는 네가 정해.',
+    // 빠른 시작은 출발점일 뿐: 물그릇이 쉬는 곳에서 멀어(WATER_REACH 밖) 탈수 개체 조건이 비어 있다.
     placements: [
       { instanceId: 'quiet-perch', itemId: 'natural-perch', x: 44, y: 50, rotation: 0 },
       { instanceId: 'quiet-hideout', itemId: 'quiet-hideout', x: 79, y: 54, rotation: 0 },
       { instanceId: 'quiet-foraging', itemId: 'foraging-puzzle', x: 64, y: 24, rotation: 0 },
-      { instanceId: 'quiet-water', itemId: 'raised-water', x: 29, y: 20, rotation: 0 },
+      { instanceId: 'quiet-water', itemId: 'raised-water', x: 20, y: 12, rotation: 0 },
     ],
   },
   {
     id: 'forage-levels',
     name: '높이별 탐색 동선',
-    description: '횃대와 로프, 먹이 퍼즐을 이어 높이를 바꿔 움직이게 해.',
+    description: '횃대와 로프, 먹이 퍼즐을 이어 높이를 바꿔 움직이게 해. 숨을 곳은 없어.',
+    // 은신처가 없어 스트레스 개체 조건이 비어 있다.
     placements: [
       { instanceId: 'levels-perch', itemId: 'natural-perch', x: 43, y: 50, rotation: 0 },
       { instanceId: 'levels-rope', itemId: 'rope-bridge', x: 71, y: 49, rotation: 90 },
@@ -104,11 +106,12 @@ export const HABITAT_STRATEGIES: HabitatStrategy[] = [
   {
     id: 'open-balanced',
     name: '열린 균형 동선',
-    description: '가운데를 비우고 휴식·활동·급수 지점을 바깥쪽으로 나눠.',
+    description: '가운데를 비우고 휴식·활동·급수 지점을 바깥쪽으로 나눠. 숨숨 공간 자리는 네가 정해.',
+    // 숨숨 공간이 복도 쪽 소음 구역(LOUD_BAND)에 붙어 있어 스트레스 개체 조건이 비어 있다.
     placements: [
       { instanceId: 'open-perch', itemId: 'natural-perch', x: 42, y: 50, rotation: 0 },
       { instanceId: 'open-rope', itemId: 'rope-bridge', x: 69, y: 25, rotation: 0 },
-      { instanceId: 'open-hideout', itemId: 'quiet-hideout', x: 82, y: 55, rotation: 0 },
+      { instanceId: 'open-hideout', itemId: 'quiet-hideout', x: 84, y: 10, rotation: 0 },
       { instanceId: 'open-water', itemId: 'raised-water', x: 28, y: 19, rotation: 0 },
     ],
   },

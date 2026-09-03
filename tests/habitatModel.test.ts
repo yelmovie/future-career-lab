@@ -59,13 +59,20 @@ describe('page 6 bird conditions from care log', () => {
     ];
     expect(checkConditions(farWater, BOTH)).toEqual({ waterNearRest: false, shelterQuiet: false });
     expect(checkConditions(farWater, { dehydrated: false, stressed: false })).toEqual({ waterNearRest: true, shelterQuiet: true });
-    const quietLoop = HABITAT_STRATEGIES.find((s) => s.id === 'quiet-loop')!.placements;
-    expect(checkConditions(quietLoop, BOTH)).toEqual({ waterNearRest: true, shelterQuiet: true });
   });
 
-  it('counts stars from the three observed behaviours', () => {
+  it.each(HABITAT_STRATEGIES)('quick-start preset $name leaves one bird condition unmet so it cannot clear the stage as-is', (strategy) => {
+    const check = checkConditions(strategy.placements, BOTH);
+    expect([check.waterNearRest, check.shelterQuiet].filter(Boolean)).toHaveLength(1);
+    expect(evaluateSimulation(strategy.placements, BOTH).stars).toBe(2);
+  });
+
+  it('counts stars from the three observed behaviours and moving the water fixes the quiet loop', () => {
     const quietLoop = HABITAT_STRATEGIES.find((s) => s.id === 'quiet-loop')!.placements;
-    expect(evaluateSimulation(quietLoop, BOTH).stars).toBe(3);
+    expect(evaluateSimulation(quietLoop, BOTH).behaviors).toEqual({ eat: false, play: true, rest: true });
+    const fixed = quietLoop.map((p) => (p.itemId === 'raised-water' ? { ...p, x: 29, y: 20 } : p));
+    expect(evaluateHabitat(fixed).valid).toBe(true);
+    expect(evaluateSimulation(fixed, BOTH).stars).toBe(3);
     // 은신처가 없는 전략은 스트레스 개체가 쉬지 못한다
     const levels = HABITAT_STRATEGIES.find((s) => s.id === 'forage-levels')!.placements;
     const result = evaluateSimulation(levels, BOTH);

@@ -10,7 +10,6 @@ import {
   nextPoint,
   population,
   runTrial,
-  sensitivity,
   visibleTraces,
 } from './page07EcologyModel';
 
@@ -39,7 +38,7 @@ describe('page 7 ecology model', () => {
     expect(changeLevel(state, 'noise', 2).locked).toBe(false);
   });
 
-  it('runs a trial and the new levels become the baseline', () => {
+  it('runs a trial against the fixed baseline and snaps sliders back', () => {
     expect(runTrial(createExperiment(), 'up')).toBeNull();
     const { state } = changeLevel(createExperiment(), 'noise', 9);
     const result = runTrial(state, 'up');
@@ -47,8 +46,29 @@ describe('page 7 ecology model', () => {
     expect(result!.trial).toMatchObject({ variable: 'noise', from: 5, to: 9, prediction: 'up' });
     expect(actualDirection(result!.trial.before, result!.trial.after)).toBe('down');
     expect(result!.state.active).toBeNull();
-    expect(result!.state.baseline.noise).toBe(9);
-    expect(sensitivity([result!.trial]).noise).toBeGreaterThan(0);
+    expect(result!.state.baseline).toEqual(BASE_LEVELS);
+    expect(result!.state.levels).toEqual(BASE_LEVELS);
+  });
+
+  it('three one-variable trials each show the true effect of that variable (other conditions stay the same)', () => {
+    const base = population(BASE_LEVELS);
+    let state = createExperiment();
+    const run = (variable: 'logging' | 'noise' | 'water', to: number) => {
+      const result = runTrial(changeLevel(state, variable, to).state, 'same')!;
+      state = result.state;
+      return result.trial;
+    };
+    const food = run('logging', 0);
+    const noise = run('noise', 10);
+    const water = run('water', 10);
+    // 매 실험이 기준 5·5·5 에서 출발한다
+    expect([food.before, noise.before, water.before]).toEqual([base, base, base]);
+    expect(actualDirection(food.before, food.after)).toBe('down');
+    expect(actualDirection(noise.before, noise.after)).toBe('down');
+    expect(actualDirection(water.before, water.after)).toBe('up');
+    // 영향 크기 순서도 그대로 드러난다
+    expect(Math.abs(food.after - base)).toBeGreaterThan(Math.abs(noise.after - base));
+    expect(Math.abs(noise.after - base)).toBeGreaterThan(Math.abs(water.after - base));
   });
 
   it('builds verdict cards for every variable', () => {

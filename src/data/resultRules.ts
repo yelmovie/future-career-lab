@@ -1,4 +1,4 @@
-import type { GameLog, JobId, PageNumber, TraitKey } from '../shared/types';
+import type { Artifacts, GameLog, JobId, PageNumber, TraitKey, TraitScores } from '../shared/types';
 
 export interface CareerFieldRule {
   id: string;
@@ -60,22 +60,67 @@ export const CAREER_FIELDS: CareerFieldRule[] = [
 
 export const RESULT_DISCLAIMER = '이 결과는 이번 게임에서 선택한 활동을 모아 본 거야. 잘하고 못함을 정하거나 미래 직업을 정해 주는 검사가 아니야. 다시 탐험하면 달라질 수 있어.';
 
-/** 직업별로 그 직업 스테이지가 남긴 로그 페이지. 예측 vs 실제 비교에 쓴다. */
+/** 직업별로 그 직업 스테이지가 남긴 로그 페이지. */
 export const JOB_STAGE_PAGES: Record<JobId, PageNumber[]> = { drone: [3, 4], care: [5, 6], ecology: [7], broadcast: [8] };
 
+/** 동점 가르기에 쓰는 직업별 성향 키 */
+const JOB_TRAITS: Record<JobId, TraitKey[]> = {
+  drone: ['execution', 'exploration'],
+  care: ['care'],
+  ecology: ['analysis', 'exploration'],
+  broadcast: ['execution', 'collaboration'],
+};
+
+export interface JobEvidence { job: JobId; quality: number; reason: string }
+
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+
 /**
- * "실제로 가장 많이 한 직업": 그 직업 페이지 로그 수 + 로그가 준 성향 점수 합이 가장 큰 직업.
- * 동점이면 JOB_STAGE_PAGES 순서(앞 스테이지 우선). 로그가 없으면 null. 진단이 아니라 이번 플레이 기록이다.
+ * 직업별 "얼마나 잘 해냈나"를 0..1 로 맞춘 근거. 스테이지마다 로그 개수가 정해져 있어서
+ * 로그 수로 세면 항상 같은 직업이 이기므로, 산출물(artifacts) 품질로 본다. 진단이 아니라 이번 플레이 기록이다.
  */
-export function actualJobFromLogs(logs: readonly GameLog[]): JobId | null {
+export function jobEvidence(artifacts: Artifacts, logs: readonly GameLog[]): JobEvidence[] {
+  const has = (type: string) => logs.some((log) => log.type === type);
+
+  const centerCount = artifacts.photos.filter((photo) => photo.quality === 'center').length;
+  const centerRatio = artifacts.photos.length ? centerCount / artifacts.photos.length : 0;
+  const precision = has('drone-precision');
+  const drone = clamp01(centerRatio * 0.8 + (precision ? 0.2 : 0));
+
+  const birds = new Set(artifacts.careLog.map((entry) => entry.bird));
+  const bothStable = birds.has('green') && birds.has('red');
+  const perfect = bothStable && has('care-perfect');
+  const care = clamp01(((bothStable ? 0.5 : 0) + (perfect ? 0.5 : 0) + artifacts.habitatStars / 3) / 2);
+
+  const mainDeclared = artifacts.graphs.some((graph) => graph.verdict === 'main');
+  const ecology = clamp01((clamp01(artifacts.traces.length / 8) + (mainDeclared ? 1 : 0)) / 2);
+
+  const broadcast = artifacts.clip ? clamp01(artifacts.clip.trust / 100 - artifacts.clip.corrections * 0.2) : 0;
+
+  return [
+    { job: 'drone', quality: drone, reason: precision ? '정밀 비행 도장까지 찍었어.' : artifacts.photos.length ? `세 곳 중 정중앙 사진 ${centerCount}장.` : '아직 비행 기록이 없어.' },
+    { job: 'care', quality: care, reason: perfect ? `헛 처치 없이 두 마리를 안정시키고 회복 공간 별 ${artifacts.habitatStars}개.` : bothStable ? `두 마리를 안정시켰고 회복 공간 별 ${artifacts.habitatStars}개.` : '아직 돌봄 기록이 없어.' },
+    { job: 'ecology', quality: ecology, reason: mainDeclared ? `흔적 ${artifacts.traces.length}개를 모으고 주원인을 정했어.` : artifacts.traces.length ? `흔적 ${artifacts.traces.length}개를 모았어. 주원인은 아직.` : '아직 조사 기록이 없어.' },
+    { job: 'broadcast', quality: broadcast, reason: artifacts.clip ? (artifacts.clip.corrections === 0 ? `정정 없이 신뢰도 ${artifacts.clip.trust}점 클린 방송.` : `신뢰도 ${artifacts.clip.trust}점, 정정 ${artifacts.clip.corrections}회.`) : '아직 방송 기록이 없어.' },
+  ];
+}
+
+/**
+ * "실제로 가장 잘 움직인 직업": 산출물 품질이 가장 높은 직업. 동점이면 그 직업 성향 키(최대 성향 대비)로 살짝 가르고,
+ * 그래도 같으면 스테이지 순서. 품질이 전부 0이면 null.
+ */
+export function actualJob(artifacts: Artifacts, logs: readonly GameLog[], traits: TraitScores): { job: JobId | null; evidence: JobEvidence[] } {
+  const evidence = jobEvidence(artifacts, logs);
+  const maxTrait = Math.max(1, ...Object.values(traits));
   let best: { job: JobId; score: number } | null = null;
-  for (const job of Object.keys(JOB_STAGE_PAGES) as JobId[]) {
-    const pages = JOB_STAGE_PAGES[job];
-    const score = logs.filter((log) => pages.includes(log.page))
-      .reduce((sum, log) => sum + 1 + Object.values(log.traits).reduce((inner, value) => inner + (value ?? 0), 0), 0);
-    if (score > 0 && (!best || score > best.score)) best = { job, score };
+  for (const entry of evidence) {
+    if (entry.quality <= 0) continue;
+    const keys = JOB_TRAITS[entry.job];
+    const fit = keys.reduce((sum, key) => sum + traits[key] / maxTrait, 0) / keys.length;
+    const score = entry.quality + fit * 0.05;
+    if (!best || score > best.score) best = { job: entry.job, score };
   }
-  return best?.job ?? null;
+  return { job: best?.job ?? null, evidence };
 }
 
 export const PREDICTION_NOTE = '맞았든 달랐든 둘 다 의미 있어. 예측은 내가 나를 어떻게 보는지, 실제는 이번 탐험에서 내가 어떻게 움직였는지를 보여 줘.';

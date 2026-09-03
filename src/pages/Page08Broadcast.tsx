@@ -15,6 +15,8 @@ import {
   INCIDENTS,
   SEGMENTS,
   SOURCE_LABEL,
+  SOURCE_QUESTION,
+  UNFIT_HINT,
   airBlock,
   airSegment,
   audioZone,
@@ -26,6 +28,7 @@ import {
   photoIds,
   resolveIncident,
   restoreBroadcast,
+  totalSegments,
   type AirBlock,
   type BroadcastState,
   type SourceId,
@@ -41,8 +44,9 @@ const WAVE_BARS = [.35, .7, 1, .55, .85, .45, .95, .6, .8, .4, 1, .65, .5, .9, .
 
 const BLOCK_HINT: Record<AirBlock, string> = {
   source: '먼저 어떤 화면을 내보낼지 골라.',
-  'wrong-source': '이 세그먼트에 맞는 화면이 아니야. 큐시트의 설명을 다시 봐.',
+  'wrong-source': `${SOURCE_QUESTION} 큐시트를 다시 읽어 봐.`,
   caption: '자막 카드를 송출 화면으로 끌어다 놓거나, 카드를 고르고 "자막 올리기"를 눌러.',
+  unfit: `${UNFIT_HINT} 다른 근거 카드를 골라 봐.`,
   audio: '오디오 레벨을 초록 구간에 맞춰. 빨간 구간은 소리가 찢어져.',
   incident: '돌발 사고부터 처리해야 해.',
   finished: '방송이 끝났어.',
@@ -56,7 +60,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
   const cards = useMemo(() => buildCaptionCards(save.artifacts), [save.artifacts]);
   const photos = useMemo(() => photoIds(save.artifacts.photos), [save.artifacts.photos]);
-  const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast());
+  const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast(save.sessionSeed));
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -119,7 +123,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
     commit(next);
   };
 
-  const replay = () => { audioService.playSfx('tap'); setSelectedCard(null); commit(createBroadcast()); };
+  const replay = () => { audioService.playSfx('tap'); setSelectedCard(null); commit(createBroadcast(save.sessionSeed)); };
 
   const onDrop = (event: DragEvent) => {
     event.preventDefault();
@@ -148,11 +152,11 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
             image={pageAsset(3, 3)}
             imageAlt="방송 멘토"
             action="큐시트 6개를 순서대로 송출해"
-            goals={['세그먼트에 맞는 화면 고르기', '출처 있는 자막만 올리기', '오디오를 초록 구간에 맞추기', `끝내면: ${STAGE.reward}`]}
+            goals={['큐시트를 읽고 맞는 화면 고르기', '출처가 믿을 만한 자막만 올리기', '오디오를 초록 구간에 맞추기', `끝내면: ${STAGE.reward}`]}
           />
           <Panel title="큐시트" kicker="CUE SHEET" className="cue-panel">
             <ol className="cue-list" aria-label="큐시트">
-              {SEGMENTS.map((item, index) => {
+              {[...SEGMENTS, ...(totalSegments(state) > SEGMENTS.length ? [CORRECTION_SEGMENT] : [])].map((item, index) => {
                 const done = index < state.index;
                 const current = index === state.index;
                 const corrected = state.correctionAt.includes(index);
@@ -162,7 +166,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
                     <b>{done ? <CheckIcon /> : index + 1}</b>
                     <div>
                       <strong>{shown.title}</strong>
-                      {current && <small>{shown.need} · {SOURCE_LABEL[shown.requiredSource]}</small>}
+                      {current && <small>{shown.need}</small>}
                     </div>
                   </li>
                 );
@@ -180,7 +184,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
             aria-label="송출 화면 미리보기"
           >
             <span className={`on-air${finished ? ' is-off' : ''}`} role="status">{finished ? 'OFF AIR' : 'ON AIR'}</span>
-            <span className="preview-slot">{segment ? `${state.index + 1}/${SEGMENTS.length} ${segment.title}` : '방송 종료'}</span>
+            <span className="preview-slot">{segment ? `${state.index + 1}/${totalSegments(state)} ${segment.title}` : '방송 종료'}</span>
             {state.draft.source === 'drone' && (
               <div className="preview-photos" aria-label="드론 사진">
                 {photos.map((id) => <img key={id} src={v2Asset(`photo-${id}`)} alt={`드론 사진 ${id}`} />)}
@@ -191,10 +195,10 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
             {!state.draft.source && !finished && <p className="preview-empty">아래에서 화면 소스를 골라. 자막 카드는 여기로 끌어다 놔.</p>}
             {finished && <p className="preview-empty">방송이 끝났어. 시청자 신뢰 {result.trust}점.</p>}
             {segment && state.draft.source && block === 'wrong-source' && (
-              <p className="preview-mismatch" role="alert">{segment.title}에는 {SOURCE_LABEL[segment.requiredSource]}이(가) 필요해. 지금 화면은 {SOURCE_LABEL[state.draft.source]}야.</p>
+              <p className="preview-mismatch" role="alert">{SOURCE_QUESTION} 큐시트: "{segment.need}"</p>
             )}
             <div className={`preview-caption${caption ? '' : ' is-empty'}${caption && !caption.sourced ? ' is-unsourced' : ''}`} aria-live="polite">
-              {caption ? <><span>{caption.origin || '출처 없음'}</span>{caption.text}</> : '자막 자리'}
+              {caption ? <><span>{caption.origin}</span>{caption.text}</> : '자막 자리'}
             </div>
           </div>
 
@@ -230,7 +234,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
                       >
                         <GripIcon />
                         <span>{card.text}</span>
-                        <small>{card.origin ? `출처: ${card.origin}` : '출처 표시 없음'}</small>
+                        <small>출처: {card.origin}</small>
                       </button>
                     );
                   })}
@@ -286,7 +290,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
           </Panel>
           <Panel title="멘토 한마디" kicker="MENTOR" className="mentor-panel">
             <img src={pageAsset(3, 3)} alt="" className="mentor-art" />
-            <p>{segment?.id === 'correction' ? '틀린 건 바로잡으면 돼. 이번엔 출처를 꼭 확인하자.' : state.corrections > 0 ? '출처가 없는 말은 생방송에 못 올려. 카드 아래 출처 표시를 봐.' : '빠른 것보다 정확한 게 먼저야. 출처 없는 자막은 내보내지 마.'}</p>
+            <p>{segment?.id === 'correction' ? '틀린 건 바로잡으면 돼. 이번엔 출처가 믿을 만한지 확인하자.' : state.corrections > 0 ? 'SNS 제보나 익명 댓글은 근거가 아니야. 조사·사진·기록에서 나온 말만 올려.' : '빠른 것보다 정확한 게 먼저야. 출처가 어디서 왔는지 봐.'}</p>
           </Panel>
         </aside>
       </div>

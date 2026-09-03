@@ -62,10 +62,11 @@
   min-height: 420px;
   touch-action: pan-y;
   user-select: none;
-  background: radial-gradient(circle at 50% 30%, rgb(48 174 100 / 18%), transparent 45%), linear-gradient(180deg, rgb(12 60 40 / 55%), rgb(6 30 24 / 75%));
+  /* 정글 배경 위에 지점별 어두운 색조 */
+  background: var(--p7-tint, linear-gradient(180deg, rgb(4 22 16 / 35%), rgb(3 15 12 / 65%))), url('/assets/backgrounds/page-06.webp') center / cover no-repeat;
 }
-.p7-scene[data-point='A'] { background-image: radial-gradient(circle at 30% 30%, rgb(200 120 50 / 18%), transparent 45%), linear-gradient(180deg, rgb(40 60 30 / 55%), rgb(20 30 15 / 75%)); }
-.p7-scene[data-point='B'] { background-image: radial-gradient(circle at 60% 70%, rgb(50 170 200 / 22%), transparent 45%), linear-gradient(180deg, rgb(12 50 60 / 55%), rgb(6 24 34 / 75%)); }
+.p7-scene[data-point='A'] { --p7-tint: linear-gradient(180deg, rgb(70 45 15 / 40%), rgb(20 14 6 / 68%)); }
+.p7-scene[data-point='B'] { --p7-tint: linear-gradient(180deg, rgb(8 40 55 / 40%), rgb(3 18 28 / 68%)); }
 .p7-scene-hint { position: absolute; left: 12px; bottom: 10px; margin: 0; padding: var(--space-4) var(--space-8); border-radius: 9px; background: rgb(3 15 28 / 76%); color: rgb(var(--cream-rgb) / 72%); font-size: var(--fs-cap); pointer-events: none; }
 
 .p7-spot {
@@ -172,10 +173,10 @@
 
 .p7-trials { display: grid; gap: var(--space-4); margin: 0 0 var(--space-16); padding: 0; list-style: none; }
 .p7-trials li { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: var(--space-8); padding: var(--space-8); border-radius: var(--radius-sm); background: rgb(3 15 28 / 45%); color: var(--cream); font-size: var(--fs-cap); }
+.p7-trials li span { line-height: 1.45; }
 .p7-trials li b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: #041b1c; }
 .p7-verdict h3 { margin: var(--space-16) 0 var(--space-8); color: var(--cream); font-size: var(--fs-body); }
-.p7-sens { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; color: rgb(var(--cream-rgb) / 80%); font-size: var(--fs-cap); }
-.p7-sens b { color: var(--gold-pale); }
+.p7-reset { margin-top: var(--space-4) !important; color: var(--teal-bright) !important; font-weight: 800; }
 
 /* 푸터 */
 .p7-footer { width: min(100%, 1250px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8); }

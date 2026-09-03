@@ -12,7 +12,7 @@
 .p08-turn > span { color: #8ce8df; font-size: var(--fs-cap); font-weight: 900; letter-spacing: .08em; }
 .p08-turn > strong { color: var(--cream); font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .p08-turn > small { color: var(--gold-pale); font-size: var(--fs-cap); font-weight: 850; }
-.p08-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); margin: var(--space-8) 0; }
+.p08-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); margin: var(--space-8) 0; }
 .p08-metrics > div { padding: var(--space-8); border: 1px solid rgb(255 255 255 / 11%); border-radius: var(--radius-sm); background: rgb(3 14 26 / 40%); }
 .p08-metrics span { display: block; color: rgb(var(--cream-rgb) / 64%); font-size: var(--fs-cap); font-weight: 850; }
 .p08-metrics strong { color: var(--cream); font-size: var(--fs-head); }
@@ -26,6 +26,11 @@
 .p08-crisis-card { display: grid; gap: var(--space-8); padding: var(--space-8); border: 3px solid #efa942; border-radius: 15px; background: rgb(9 34 58 / 96%); color: var(--cream); box-shadow: 0 8px 20px rgb(0 0 0 / 43%); pointer-events: auto; }
 .p08-crisis-card.is-critical { border-color: #df5d50; }
 .p08-crisis-card.is-stable { border-color: #48c778; background: rgb(12 59 42 / 96%); }
+.p08-crisis-card.is-spread { border-color: #9a9a9a; border-style: dashed; }
+.p08-crisis-spread { color: #d9d9d9; font-size: var(--fs-cap); font-weight: 900; }
+.p08-replan { display: grid; gap: var(--space-8); padding: var(--space-8); border: 2px solid var(--gold); border-radius: var(--radius-md); background: rgb(241 207 131 / 12%); }
+.p08-replan strong { color: var(--gold-pale); font-size: var(--fs-body); line-height: 1.3; }
+.p08-replan p { margin: 0; color: var(--cream); font-size: var(--fs-cap); line-height: 1.45; }
 .p08-crisis-card.is-target:not(.is-stable) { outline: 3px dashed var(--teal-bright); outline-offset: 2px; }
 .p08-crisis-head { display: grid; gap: 2px; min-height: 48px; padding: var(--space-4) var(--space-8); border: 0; border-radius: 10px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
 .p08-crisis-head:disabled { cursor: default; }

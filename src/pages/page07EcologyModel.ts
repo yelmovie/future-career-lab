@@ -136,7 +136,7 @@ export const actualDirection = (before: number, after: number): Prediction =>
   Math.abs(after - before) <= 1 ? 'same' : after > before ? 'up' : 'down';
 
 export interface ExperimentState {
-  /** 실행 전 기준 값 */
+  /** 고정 기준 (5·5·5). 매 실험은 항상 이 값과 비교한다 — "다른 조건은 같게" */
   baseline: Levels;
   /** 지금 만지는 값 */
   levels: Levels;
@@ -144,6 +144,7 @@ export interface ExperimentState {
 }
 
 export const LOCK_MESSAGE = '두 개를 같이 바꾸면 어느 쪽 때문인지 알 수 있을까? 하나만 바꿔 보자.';
+export const RESET_MESSAGE = '기준으로 되돌렸어. 다른 조건은 같게!';
 
 export const createExperiment = (baseline: Levels = BASE_LEVELS): ExperimentState => ({ baseline, levels: baseline, active: null });
 
@@ -156,7 +157,7 @@ export function changeLevel(state: ExperimentState, variable: CauseId, value: nu
   return { state: { ...state, levels, active }, locked: false };
 }
 
-/** 실행: 결과를 기록하고, 바뀐 값이 새 기준이 된다. */
+/** 실행: 기준(baseline)과 대조해 기록하고, 슬라이더는 기준으로 되돌린다. 기준은 바뀌지 않는다. */
 export function runTrial(state: ExperimentState, prediction: Prediction): { state: ExperimentState; trial: Trial } | null {
   if (!state.active) return null;
   const variable = state.active;
@@ -168,7 +169,7 @@ export function runTrial(state: ExperimentState, prediction: Prediction): { stat
     before: population(state.baseline),
     after: population(state.levels),
   };
-  return { state: { baseline: state.levels, levels: state.levels, active: null }, trial };
+  return { state: createExperiment(state.baseline), trial };
 }
 
 export const MIN_TRIALS = 3;
@@ -178,16 +179,4 @@ export type Verdict = 'main' | 'sub' | 'none';
 /** 학생이 정한 주원인·보조원인을 그래프 카드 3장으로 */
 export function buildGraphs(main: CauseId, sub: CauseId): { variable: CauseId; verdict: Verdict }[] {
   return VARIABLES.map(({ id }) => ({ variable: id, verdict: id === main ? 'main' : id === sub ? 'sub' : 'none' }));
-}
-
-/** 시도 기록으로 본 변수별 개체수 변화 폭(레벨 1당). 학생 판단을 돕는 비교표에 쓴다. */
-export function sensitivity(trials: Trial[]): Partial<Record<CauseId, number>> {
-  const out: Partial<Record<CauseId, number>> = {};
-  trials.forEach((trial) => {
-    const step = Math.abs(trial.to - trial.from);
-    if (step === 0) return;
-    const perLevel = Math.abs(trial.after - trial.before) / step;
-    out[trial.variable] = Math.max(out[trial.variable] ?? 0, Math.round(perLevel * 10) / 10);
-  });
-  return out;
 }

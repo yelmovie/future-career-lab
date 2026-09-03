@@ -8,6 +8,7 @@ import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
+  BASE_LEVELS,
   ENV_SPOTS,
   LEVEL_MAX,
   LOCK_MESSAGE,
@@ -15,6 +16,7 @@ import {
   POINTS,
   POINT_STATS,
   PREDICTIONS,
+  RESET_MESSAGE,
   SOUND_CHOICES,
   TRACES,
   UNLOCK_SPOT,
@@ -28,9 +30,9 @@ import {
   nextPoint,
   population,
   runTrial,
-  sensitivity,
   visibleTraces,
   type ExperimentState,
+  type Levels,
   type PointId,
   type Prediction,
   type SoundKind,
@@ -56,10 +58,22 @@ interface Stored {
   chartPick: { point: PointId; variable: CauseId } | null;
   exp: ExperimentState;
   trials: Trial[];
+  prediction: Prediction | null;
+  lastTrial: Trial | null;
+  main: CauseId | null;
+  sub: CauseId | null;
 }
 
+const isCause = (v: unknown): v is CauseId => VARIABLES.some((x) => x.id === v);
+const isPrediction = (v: unknown): v is Prediction => PREDICTIONS.some((p) => p.id === v);
+const isLevels = (v: unknown): v is Levels => Boolean(v) && typeof v === 'object' && VARIABLES.every(({ id }) => Number.isFinite((v as Record<string, unknown>)[id]));
+const isTrial = (v: unknown): v is Trial => {
+  const t = v as Partial<Trial> | null;
+  return Boolean(t) && typeof t === 'object' && isCause(t!.variable) && isPrediction(t!.prediction) && [t!.from, t!.to, t!.before, t!.after].every(Number.isFinite);
+};
+
 function readStored(value: unknown): Stored {
-  const base: Stored = { step: 'collect', point: 'A', found: [], envSeen: [], chartPick: null, exp: createExperiment(), trials: [] };
+  const base: Stored = { step: 'collect', point: 'A', found: [], envSeen: [], chartPick: null, exp: createExperiment(), trials: [], prediction: null, lastTrial: null, main: null, sub: null };
   if (!value || typeof value !== 'object') return base;
   const c = value as Partial<Stored>;
   return {
@@ -67,9 +81,14 @@ function readStored(value: unknown): Stored {
     point: POINTS.some((p) => p.id === c.point) ? (c.point as PointId) : base.point,
     found: Array.isArray(c.found) ? c.found.filter((id): id is string => typeof id === 'string' && Boolean(getTrace(id))) : [],
     envSeen: Array.isArray(c.envSeen) ? c.envSeen.filter((id): id is string => typeof id === 'string') : [],
-    chartPick: c.chartPick && typeof c.chartPick === 'object' ? c.chartPick : null,
-    exp: c.exp && typeof c.exp === 'object' && c.exp.levels ? c.exp : base.exp,
-    trials: Array.isArray(c.trials) ? c.trials : [],
+    chartPick: c.chartPick && POINTS.some((p) => p.id === c.chartPick?.point) && isCause(c.chartPick.variable) ? { point: c.chartPick.point, variable: c.chartPick.variable } : null,
+    // 기준은 항상 고정 5·5·5. 저장된 levels 가 깨졌으면 기준으로.
+    exp: c.exp && isLevels(c.exp.levels) ? { baseline: BASE_LEVELS, levels: c.exp.levels, active: isCause(c.exp.active) ? c.exp.active : null } : base.exp,
+    trials: Array.isArray(c.trials) ? c.trials.filter(isTrial) : [],
+    prediction: isPrediction(c.prediction) ? c.prediction : null,
+    lastTrial: isTrial(c.lastTrial) ? c.lastTrial : null,
+    main: isCause(c.main) ? c.main : null,
+    sub: isCause(c.sub) && c.sub !== c.main ? c.sub : null,
   };
 }
 
@@ -87,12 +106,12 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [chartPick, setChartPick] = useState(stored.chartPick);
   const [exp, setExp] = useState<ExperimentState>(stored.exp);
   const [trials, setTrials] = useState<Trial[]>(stored.trials);
-  const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [prediction, setPrediction] = useState<Prediction | null>(stored.prediction);
   const [locked, setLocked] = useState(false);
-  const [lastTrial, setLastTrial] = useState<Trial | null>(null);
-  const [shownPop, setShownPop] = useState(() => population(stored.exp.baseline));
-  const [main, setMain] = useState<CauseId | null>(null);
-  const [sub, setSub] = useState<CauseId | null>(null);
+  const [lastTrial, setLastTrial] = useState<Trial | null>(stored.lastTrial);
+  const [shownPop, setShownPop] = useState(() => stored.lastTrial?.after ?? population(stored.exp.baseline));
+  const [main, setMain] = useState<CauseId | null>(stored.main);
+  const [sub, setSub] = useState<CauseId | null>(stored.sub);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(7));
   const swipe = useRef<{ x: number } | null>(null);
   const swiped = useRef(false);
@@ -101,12 +120,12 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const hypothesis = save.artifacts.hypothesis;
 
   useEffect(() => {
-    setPageData('page07Ecology', { step, point, found, envSeen, chartPick, exp, trials } satisfies Stored);
-  }, [step, point, found, envSeen, chartPick, exp, trials]);
+    setPageData('page07Ecology', { step, point, found, envSeen, chartPick, exp, trials, prediction, lastTrial, main, sub } satisfies Stored);
+  }, [step, point, found, envSeen, chartPick, exp, trials, prediction, lastTrial, main, sub]);
 
   // 개체수 숫자 애니메이션
   useEffect(() => {
-    const target = population(exp.baseline);
+    const target = lastTrial ? lastTrial.after : population(exp.baseline);
     const start = shownPop;
     if (start === target) return;
     const t0 = performance.now();
@@ -118,7 +137,20 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [exp.baseline]);
+  }, [lastTrial]);
+
+  // 실행 후 바뀐 슬라이더를 기준으로 되돌리는 애니메이션
+  const snapBack = (variable: CauseId, from: number) => {
+    const to = BASE_LEVELS[variable];
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - t0) / 500);
+      const value = Math.round(from + (to - from) * (1 - (1 - k) ** 3));
+      setExp({ baseline: BASE_LEVELS, levels: { ...BASE_LEVELS, [variable]: value } as Levels, active: null });
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
 
   // ----- 1단계 -----
   const movePoint = (dir: 1 | -1) => {
@@ -203,10 +235,10 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
     if (!prediction) return;
     const result = runTrial(exp, prediction);
     if (!result) return;
-    setExp(result.state);
     setTrials([...trials, result.trial]);
     setLastTrial(result.trial);
     setPrediction(null);
+    snapBack(result.trial.variable, result.trial.to);
     audioService.playSfx(actualDirection(result.trial.before, result.trial.after) === prediction ? 'success' : 'record');
   };
 
@@ -226,7 +258,6 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const currentPoint = POINTS.find((p) => p.id === point)!;
   const focusTrace = focus?.type === 'trace' ? getTrace(focus.id) : undefined;
   const focusEnv = focus?.type === 'env' ? ENV_SPOTS.find((s) => s.id === focus.id) : undefined;
-  const sens = sensitivity(trials);
   const hypothesisMatch = hypothesis && main ? (hypothesis === main ? `네 첫 가설(${HYPOTHESIS_LABEL[hypothesis]})과 같아.` : `네 첫 가설(${HYPOTHESIS_LABEL[hypothesis]})과 달라. 실험이 생각을 바꿨네.`) : '';
 
   const footer = completed ? (
@@ -358,7 +389,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
             <Panel title="그래프 읽기" kicker="QUESTION" className="p7-side">
               <p className="p7-mentor">앵무 흔적이 가장 적은 지점은 어디야? 그 지점에서 유난히 튀는 값 하나를 막대로 눌러 골라.</p>
               {chartPick ? <p className="p7-pick">고른 것 · 지점 {chartPick.point}의 <b>{VARIABLE_LABEL[chartPick.variable]}</b></p> : <p className="p7-muted">막대를 누르면 여기에 표시돼.</p>}
-              <p className="p7-muted">정답은 없어. 고른 값이 첫 실험의 출발점이 돼.</p>
+              <p className="p7-muted">고른 값이 첫 실험의 출발점이 돼.</p>
               <button type="button" className="button button--primary button--block p7-next" disabled={!chartPick} onClick={seedExperiment}>이 값으로 실험 시작 <ArrowIcon /></button>
             </Panel>
           </>
@@ -399,7 +430,9 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
               {lastTrial && (
                 <div className={`p7-result ${actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction ? 'is-match' : 'is-miss'}`} role="status">
                   <h3>대조</h3>
-                  <p>예측 <b>{PREDICTION_LABEL[lastTrial.prediction]}</b> · 결과 <b>{PREDICTION_LABEL[actualDirection(lastTrial.before, lastTrial.after)]}</b> ({lastTrial.before} → {lastTrial.after})</p>
+                  <p>{VARIABLE_LABEL[lastTrial.variable]} {lastTrial.from} → {lastTrial.to} · 예측 <b>{PREDICTION_LABEL[lastTrial.prediction]}</b> · 결과 <b>{PREDICTION_LABEL[actualDirection(lastTrial.before, lastTrial.after)]}</b></p>
+                  <p>기준 5·5·5에서 개체수 <b>{lastTrial.before} → {lastTrial.after}</b></p>
+                  <p className="p7-reset">{RESET_MESSAGE}</p>
                   <p className="p7-mentor">{actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction ? '예측대로야. 이 변수가 얼마나 세게 작용했는지 기억해 둬.' : `무엇이 달랐을까? ${VARIABLE_LABEL[lastTrial.variable]}만 바꿨는데 개체수가 이렇게 움직였어.`}</p>
                   <button type="button" className="button button--ghost" onClick={() => setLastTrial(null)}>다음 실험 <ArrowIcon /></button>
                 </div>
@@ -407,13 +440,12 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
             </section>
             <Panel title={`실험 기록 ${trials.length}/${MIN_TRIALS}`} kicker="LOG" className="p7-side">
               <ul className="p7-trials">
-                {trials.map((t, i) => <li key={i}><b>{i + 1}</b>{VARIABLE_LABEL[t.variable]} {t.from}→{t.to} · 개체수 {t.before}→{t.after}</li>)}
+                {trials.map((t, i) => <li key={i}><b>{i + 1}</b><span>{VARIABLE_LABEL[t.variable]} {t.from}→{t.to} · 예측 {PREDICTION_LABEL[t.prediction]}<br />개체수 {t.before}→{t.after}</span></li>)}
                 {trials.length === 0 && <li className="p7-muted">아직 실험이 없어. 슬라이더 하나를 움직여 봐.</li>}
               </ul>
               {trials.length >= MIN_TRIALS && !completed && (
                 <div className="p7-verdict">
-                  <h3>레벨 1당 개체수 변화</h3>
-                  <ul className="p7-sens">{VARIABLES.map((v) => <li key={v.id}>{v.label} <b>{sens[v.id] ?? '실험 안 함'}</b></li>)}</ul>
+                  <p className="p7-mentor">네 실험 기록을 근거로 골라. 어느 값이 개체수를 가장 크게 움직였어?</p>
                   <h3>주원인은?</h3>
                   <div className="p7-choices">{VARIABLES.map((v) => <button key={v.id} type="button" className={main === v.id ? 'is-picked' : ''} aria-pressed={main === v.id} onClick={() => { setMain(v.id); if (sub === v.id) setSub(null); audioService.playSfx('tap'); }}>{v.label}</button>)}</div>
                   {main && (

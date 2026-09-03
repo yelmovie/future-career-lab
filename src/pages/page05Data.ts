@@ -35,6 +35,9 @@ export interface Bird {
   soundAnswer: SoundVerdict;
   soundFeedback: Record<SoundVerdict, string>;
   correctTreatment: TreatmentId;
+  /** 보조 처치: 틀리진 않지만 먼저 할 일이 있어 효과가 절반 */
+  assistTreatment?: TreatmentId;
+  assistFeedback?: string;
   /** 틀린 처치를 놓았을 때 질문형 피드백 */
   wrongTreatmentFeedback: Record<TreatmentId, string>;
   zones: CareZone[];
@@ -69,14 +72,15 @@ const HOTSPOTS: Record<CareZoneId, { x: number; y: number }> = {
   behavior: { x: 80, y: 74 },
 };
 
-function zone(id: CareZoneId, number: number, visible: string, statements: [string, string, string]): CareZone {
+/** statements 안에서 근거 있는 진술의 자리. 구역마다 다르게 두고, 화면에서는 세션 시드로 한 번 더 섞는다. */
+function zone(id: CareZoneId, number: number, visible: string, groundedIndex: 0 | 1 | 2, statements: [string, string, string]): CareZone {
   return {
     id,
     number,
     title: ZONE_TITLES[id],
     visible,
     hotspot: HOTSPOTS[id],
-    statements: statements.map((text, index) => ({ id: `${id}-${index}`, text, grounded: index === 0 })),
+    statements: statements.map((text, index) => ({ id: `${id}-${index}`, text, grounded: index === groundedIndex })),
   };
 }
 
@@ -96,36 +100,38 @@ export const BIRDS: Bird[] = [
       normal: '파형을 다시 봐. 뾰족한 소리가 쉬지 않고 이어지는데, 평소 울음일까?',
     },
     correctTreatment: 'shelter',
+    assistTreatment: 'puzzle',
+    assistFeedback: '좋은 생각이야. 그런데 먼저 조용히 숨을 곳이 필요해. 퍼즐은 그 다음이야.',
     wrongTreatmentFeedback: {
       water: '물을 줬는데 안 마셔. 왜일까? 이 아이가 힘든 건 목이 아니야.',
-      puzzle: '퍼즐을 줬는데 쳐다보지도 않고 몸만 흔들어. 놀기 전에 필요한 게 뭘까?',
+      puzzle: '',
       feather: '깃털을 다듬어 줬는데 또 뽑아. 깃털이 문제일까, 뽑게 만드는 게 문제일까?',
       shelter: '',
     },
     zones: [
-      zone('eyes', 1, '눈은 또렷하고, 소리가 날 때마다 빠르게 두리번거려.', [
-        '눈은 맑은데 계속 두리번거려',
+      zone('eyes', 1, '눈은 또렷하고, 소리가 날 때마다 빠르게 두리번거려.', 1, [
         '눈이 흐리고 반쯤 감겨 있어',
+        '눈은 맑은데 계속 두리번거려',
         '눈에서 눈물이 흘러',
       ]),
-      zone('feathers', 2, '가슴 쪽 깃털이 듬성듬성 비어 있고, 바닥에 뽑힌 깃털이 떨어져 있어.', [
-        '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어',
+      zone('feathers', 2, '가슴 쪽 깃털이 듬성듬성 비어 있고, 바닥에 뽑힌 깃털이 떨어져 있어.', 2, [
         '깃털이 윤기 있게 고르게 나 있어',
         '깃털이 물에 젖어 있어',
+        '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어',
       ]),
-      zone('posture', 3, '횃대 끝에 바짝 붙어 서서 몸을 좌우로 계속 흔들어.', [
+      zone('posture', 3, '횃대 끝에 바짝 붙어 서서 몸을 좌우로 계속 흔들어.', 0, [
         '횃대 끝에 붙어 몸을 계속 흔들어',
         '날개가 축 처져 바닥에 닿아',
         '한쪽 다리로 편하게 서서 졸아',
       ]),
-      zone('water', 4, '물그릇의 물은 줄어 있고, 먹이는 여기저기 흩뿌려져 있어.', [
-        '물은 마셨고 먹이는 흩뿌려져 있어',
+      zone('water', 4, '물그릇의 물은 줄어 있고, 먹이는 여기저기 흩뿌려져 있어.', 2, [
         '물이 아침 그대로 남아 있어',
         '먹이를 남김없이 다 먹었어',
+        '물은 마셨고 먹이는 흩뿌려져 있어',
       ]),
-      zone('behavior', 5, '케이지 안에 숨을 곳이 없고, 옆방에서 큰 소리가 계속 들려와.', [
-        '숨을 곳이 없고 큰 소리가 계속 들려',
+      zone('behavior', 5, '케이지 안에 숨을 곳이 없고, 옆방에서 큰 소리가 계속 들려와.', 1, [
         '구석에 숨어서 나오지 않아',
+        '숨을 곳이 없고 큰 소리가 계속 들려',
         '장난감을 굴리며 놀고 있어',
       ]),
     ],
@@ -152,30 +158,30 @@ export const BIRDS: Bird[] = [
       water: '',
     },
     zones: [
-      zone('eyes', 1, '눈이 흐리고 반쯤 감겨 있어. 불러도 눈을 천천히 떠.', [
-        '눈이 흐리고 반쯤 감겨 있어',
+      zone('eyes', 1, '눈이 흐리고 반쯤 감겨 있어. 불러도 눈을 천천히 떠.', 2, [
         '눈이 맑고 빠르게 두리번거려',
         '눈 주위가 빨갛게 부어 있어',
+        '눈이 흐리고 반쯤 감겨 있어',
       ]),
-      zone('feathers', 2, '깃털이 푸석하고 윤기가 없지만, 빠지거나 뽑힌 자리는 없어.', [
+      zone('feathers', 2, '깃털이 푸석하고 윤기가 없지만, 빠지거나 뽑힌 자리는 없어.', 0, [
         '깃털이 푸석하지만 뽑힌 자리는 없어',
         '가슴 깃털이 뽑혀 있어',
         '깃털이 기름져 번들거려',
       ]),
-      zone('posture', 3, '날개가 축 처져 있고, 횃대 대신 바닥 가까이 웅크려 있어.', [
-        '날개가 처지고 바닥 가까이 웅크려 있어',
+      zone('posture', 3, '날개가 축 처져 있고, 횃대 대신 바닥 가까이 웅크려 있어.', 1, [
         '횃대 끝에서 몸을 흔들어',
+        '날개가 처지고 바닥 가까이 웅크려 있어',
         '날개를 활짝 펴고 있어',
       ]),
-      zone('water', 4, '물그릇 물이 아침 표시선 그대로야. 부리 가장자리가 말라 있어.', [
-        '물이 아침 그대로고 부리가 말라 있어',
+      zone('water', 4, '물그릇 물이 아침 표시선 그대로야. 부리 가장자리가 말라 있어.', 1, [
         '물을 자주 마시러 내려와',
+        '물이 아침 그대로고 부리가 말라 있어',
         '물그릇이 엎어져 바닥이 젖었어',
       ]),
-      zone('behavior', 5, '거의 움직이지 않고, 불러도 한참 뒤에 천천히 고개만 돌려.', [
-        '움직임이 거의 없고 반응이 느려',
+      zone('behavior', 5, '거의 움직이지 않고, 불러도 한참 뒤에 천천히 고개만 돌려.', 2, [
         '소리를 지르며 돌아다녀',
         '숨을 곳을 찾아 이리저리 다녀',
+        '움직임이 거의 없고 반응이 느려',
       ]),
     ],
   },

@@ -14,11 +14,15 @@ import { useGame } from '../state/GameContext';
 import {
   CRISES,
   JOB_ORDER,
+  MAX_TURNS,
   advanceTurn,
   cardQualities,
   createAllianceState,
+  ecologyTrials,
   isAvailable,
+  isEnded,
   isStabilized,
+  lostNodes,
   pairVerdict,
   toggleAssign,
   turnsUsed,
@@ -91,6 +95,21 @@ class AllianceCityScene extends Phaser.Scene {
       color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.head, fontStyle: 'bold',
     }).setOrigin(0.5);
 
+    // 숲 노드 3개: 위기가 번질 때마다 하나씩 잃는다 (회색 + 손실)
+    const lost = lostNodes(this.snapshot);
+    [-90, 30, 150].forEach((degree, index) => {
+      const radian = degree * Math.PI / 180;
+      const nx = width / 2 + Math.cos(radian) * mapSize * 0.27;
+      const ny = height / 2 + Math.sin(radian) * mapSize * 0.27;
+      const isLost = index < lost;
+      const nodeColor = isLost ? 0x6f6f6f : forestColor;
+      graphics.fillStyle(nodeColor, isLost ? 0.5 : 0.35).fillCircle(nx, ny, 22);
+      graphics.lineStyle(3, nodeColor, 1).strokeCircle(nx, ny, 22);
+      this.add.text(nx, ny, isLost ? '손실' : '숲', {
+        color: isLost ? '#e8e8e8' : '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
+      }).setOrigin(0.5);
+    });
+
     CRISES.forEach((crisis) => {
       const px = width * crisis.x / 100;
       const py = height * crisis.y / 100;
@@ -114,13 +133,13 @@ class AllianceCityScene extends Phaser.Scene {
 function restoreState(raw: unknown): AllianceState | null {
   if (!raw || typeof raw !== 'object') return null;
   const candidate = raw as Partial<AllianceState>;
-  if (typeof candidate.turn !== 'number' || !candidate.gauges || !candidate.cooldown || candidate.done) return null;
-  return { ...createAllianceState(), ...candidate, assigned: { fire: [], flock: [], citizens: [] }, feedback: [] };
+  if (typeof candidate.turn !== 'number' || !candidate.gauges || !candidate.cooldown || candidate.done || candidate.failed) return null;
+  return { ...createAllianceState(), ...candidate, spread: Array.isArray(candidate.spread) ? candidate.spread : [], assigned: { fire: [], flock: [], citizens: [] }, feedback: [] };
 }
 
 export default function Page08Crisis({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, setPageData, addBadge, addJobCard, grantReward, setArtifacts } = useGame();
-  const cards = useMemo(() => cardQualities(save.artifacts), [save.artifacts]);
+  const cards = useMemo(() => cardQualities(save.artifacts, ecologyTrials(save.pageData)), [save.artifacts, save.pageData]);
   const bestTurns = typeof save.pageData[BEST_KEY] === 'number' ? save.pageData[BEST_KEY] as number : null;
   const [state, setState] = useState<AllianceState>(() => restoreState(save.pageData[SAVE_KEY]) ?? createAllianceState());
   const [briefing, setBriefing] = useState(() => !restoreState(save.pageData[SAVE_KEY]));
@@ -150,7 +169,18 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     const anyWrong = CRISES.some((crisis) => pairVerdict(crisis, state.assigned[crisis.id]) === 'wrong');
     audioService.playSfx(anyWrong ? 'warning' : 'success');
     if (next.done) finish(next);
-    else setPageData(SAVE_KEY, next);
+    else if (next.failed) {
+      setPageData(SAVE_KEY, null);
+      const first = CRISES.find((crisis) => crisis.id === next.spread[0]);
+      logEvent({
+        page: 9,
+        type: 'alliance-replan',
+        summary: `${MAX_TURNS}턴 안에 위기를 다 잡지 못했어. ${first ? `${first.title}이(가) 먼저 번졌어.` : ''} 다시 계획하기로 했어.`,
+        tags: ['연합 대응', '재도전'],
+        traits: { analysis: 1 },
+        contextRef: `run-${runId}`,
+      });
+    } else setPageData(SAVE_KEY, next);
   };
 
   const finish = (final: AllianceState) => {
@@ -184,6 +214,8 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
   };
 
   const stabilizedCount = CRISES.filter((crisis) => isStabilized(state, crisis.id)).length;
+  const ended = isEnded(state);
+  const firstSpread = CRISES.find((crisis) => crisis.id === state.spread[0]);
   const assignedCount = JOB_ORDER.filter((job) => Object.values(state.assigned).some((list) => list.includes(job))).length;
 
   return (
@@ -220,18 +252,27 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
             />
             <div className="p08-turn" role="status">
               <span>턴</span><strong>{state.turn}턴</strong>
-              <small>최고 기록 {bestTurns === null ? '아직 없음' : `${bestTurns}턴`}</small>
+              <small>{MAX_TURNS}턴 안에 · 최고 기록 {bestTurns === null ? '아직 없음' : `${bestTurns}턴`}</small>
             </div>
             <div className="p08-metrics">
               <div><span>안정된 위기</span><strong>{stabilizedCount}<small>/3</small></strong></div>
               <div><span>이번 턴 배치</span><strong>{assignedCount}<small>/4</small></strong></div>
+              <div><span>잃은 숲 노드</span><strong>{lostNodes(state)}<small>/3</small></strong></div>
             </div>
             {state.feedback.length > 0 && (
               <ul className="p08-feedback" aria-label="지난 턴 결과">
                 {state.feedback.map((line) => <li key={line} className={line.includes('필요하다고') || line.includes('번졌어') ? 'is-warning' : ''}>{line}</li>)}
               </ul>
             )}
-            <button className="button button--primary button--block" onClick={endTurn} disabled={briefing}>턴 진행</button>
+            {state.failed ? (
+              <div className="p08-replan" role="status">
+                <strong>{MAX_TURNS}턴이 지났어. 다시 계획해 보자.</strong>
+                <p>{firstSpread ? `먼저 번진 건 ${firstSpread.title}이었어. 그 카드엔 무엇이 필요하다고 써 있었을까?` : '위기가 남았어. 짝이 맞는 두 힘을 먼저 붙여 봐.'}</p>
+                <button className="button button--primary button--block" onClick={retry}>다시 계획해 보자</button>
+              </div>
+            ) : (
+              <button className="button button--primary button--block" onClick={endTurn} disabled={briefing || ended}>턴 진행</button>
+            )}
           </Panel>
 
           <section className="scene-card p08-scene" aria-labelledby="p08-map-title">
@@ -242,10 +283,11 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
                 const value = state.gauges[crisis.id];
                 const stabilized = value <= 0;
                 const jobs = state.assigned[crisis.id];
+                const spread = state.spread.includes(crisis.id);
                 return (
                   <article
                     key={crisis.id}
-                    className={`p08-crisis-card${stabilized ? ' is-stable' : value >= 70 ? ' is-critical' : ''}${selectedJob ? ' is-target' : ''}`}
+                    className={`p08-crisis-card${stabilized ? ' is-stable' : value >= 70 ? ' is-critical' : ''}${spread && !stabilized ? ' is-spread' : ''}${selectedJob ? ' is-target' : ''}`}
                     onDragOver={(event) => { if (!stabilized) event.preventDefault(); }}
                     onDrop={(event) => dropJob(event, crisis.id)}
                   >
@@ -257,6 +299,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
                     >
                       <strong>{crisis.title}</strong>
                       <span className="p08-crisis-gauge">{stabilized ? '안정' : `위기 ${value}%`}</span>
+                      {spread && !stabilized && <span className="p08-crisis-spread">번짐 · 숲 노드 손실</span>}
                     </button>
                     <ProgressBar value={Math.max(0, value)} label={`${crisis.title} 위기 게이지`} compact />
                     <p className="p08-crisis-symptom">{crisis.symptom}</p>
@@ -292,7 +335,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
         </div>
       )}
 
-      {!finished && (
+      {!finished && !state.failed && (
         <section className="p08-job-deck" aria-labelledby="p08-job-title">
           <div className="p08-job-heading"><div><span>1 배지 고르기, 2 위기 카드 누르기 (또는 끌어다 놓기)</span><h2 id="p08-job-title">어떤 힘을 어디에 붙일까?</h2></div>{selectedJob && <p role="status">{JOB_LABELS[selectedJob]} 선택 · 위기 카드를 눌러</p>}</div>
           <div className="p08-job-grid">
@@ -326,7 +369,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
         <Modal title="네 직업의 힘을 짝지어 보자" actions={<button className="button button--primary" onClick={() => { setBriefing(false); audioService.unlock(); audioService.playSfx('tap'); }}>작전 시작</button>}>
           <p>위기 세 개가 한꺼번에 왔어. 카드에는 직업 이름이 없고 "무엇이 필요한지"만 써 있어. 힌트에 맞는 배지 두 개를 붙여야 위기가 줄어.</p>
           <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>위기 카드 힌트 읽기</span><i><ArrowIcon /></i><b>2</b><span>배지 두 개 붙이고 턴 진행</span></div>
-          <p className="modal-note">턴마다 아무도 없는 위기는 더 번져. 쓴 배지는 한 턴 쉬어야 하니 순서를 잘 정해 봐.</p>
+          <p className="modal-note">턴마다 아무도 없는 위기는 더 번져. 100%에 닿으면 옆 위기까지 번지고 숲 노드를 하나 잃어. 쓴 배지는 한 턴 쉬어야 하니 {MAX_TURNS}턴 안에 순서를 잘 정해 봐.</p>
         </Modal>
       )}
     </GameShell>

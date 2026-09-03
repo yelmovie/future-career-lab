@@ -10,63 +10,70 @@ import { CANVAS_FONT, STAGE_META } from '../shared/constants';
 import type { PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
+  DRAIN_MULTIPLIER,
+  DRONE_SPEED,
   DRONE_START,
   DRONE_TARGETS,
+  MAX_WAYPOINTS,
   NUDGE_DRAIN,
   PRECISION_BATTERY,
+  REC_DWELL_MS,
   REC_RADIUS,
+  WIND_LABEL,
   batteryDrain,
   distance,
   evaluateFlight,
   photoAsset,
-  pointInRect,
   recQuality,
+  windRelation,
   windZonesFor,
   type DronePhoto,
   type DronePoint,
   type DroneResult,
+  type WindRelation,
   type WindZone,
 } from './stage1-2-content';
 import './stage1-2.css';
 
 interface DroneTelemetry {
   battery: number;
-  wind: string;
+  wind: WindRelation;
   recTarget: PhotoId | null;
   recCenter: boolean;
   photos: DronePhoto[];
-  passes: number;
   returning: boolean;
   replayRemaining: number | null;
 }
 
-const initialTelemetry: DroneTelemetry = { battery: 100, wind: '잔잔함', recTarget: null, recCenter: false, photos: [], passes: 1, returning: false, replayRemaining: null };
+const initialTelemetry: DroneTelemetry = { battery: 100, wind: 'calm', recTarget: null, recCenter: false, photos: [], returning: false, replayRemaining: null };
 const FONT = 'Pretendard, sans-serif';
+const STILL: DronePoint = { x: 0, y: 0 };
 
 function pointList(value: unknown): DronePoint[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is DronePoint => !!item && typeof item === 'object' && typeof (item as DronePoint).x === 'number' && typeof (item as DronePoint).y === 'number').slice(0, 4);
+  return value.filter((item): item is DronePoint => !!item && typeof item === 'object' && typeof (item as DronePoint).x === 'number' && typeof (item as DronePoint).y === 'number').slice(0, MAX_WAYPOINTS);
 }
 
 function savedResult(value: unknown): DroneResult | null {
   if (!value || typeof value !== 'object') return null;
   const result = value as Partial<DroneResult>;
   if (!Array.isArray(result.photos) || typeof result.batteryRemaining !== 'number' || typeof result.passed !== 'boolean') return null;
-  return { photos: result.photos, batteryRemaining: result.batteryRemaining, passes: result.passes ?? 1, drainByZone: result.drainByZone ?? {}, passed: result.passed, precision: result.precision ?? false };
+  return { photos: result.photos, batteryRemaining: result.batteryRemaining, drainByZone: result.drainByZone ?? {}, passed: result.passed, precision: result.precision ?? false };
 }
 
 const targetName = (id: PhotoId) => DRONE_TARGETS.find((target) => target.id === id)?.name ?? id;
+const missedTargets = (photos: readonly DronePhoto[]) => DRONE_TARGETS.filter((target) => !photos.some((photo) => photo.id === target.id)).map((target) => target.id);
 
 class DroneFlightScene extends Phaser.Scene {
   private waypoints: DronePoint[] = [];
   private position: DronePoint = { ...DRONE_START };
+  private heading: DronePoint = STILL;
   private droneImage: Phaser.GameObjects.Image | null = null;
   private readonly rings = new Map<PhotoId, Phaser.GameObjects.Arc>();
   private mode: 'plan' | 'flight' | 'return' | 'review' | 'replay' = 'plan';
   private segmentIndex = 0;
   private dwellRemaining = 0;
   private battery = 100;
-  private passes = 1;
   private readonly photos = new Map<PhotoId, 'center' | 'edge'>();
   private drainByZone: Record<string, number> = {};
   private recTarget: PhotoId | null = null;
@@ -82,7 +89,6 @@ class DroneFlightScene extends Phaser.Scene {
       addWaypoint: (point: DronePoint) => void;
       moveWaypoint: (index: number, point: DronePoint) => void;
       telemetry: (value: DroneTelemetry) => void;
-      secondPass: (missed: PhotoId[]) => void;
       flightComplete: (result: DroneResult) => void;
     },
   ) {
@@ -112,8 +118,8 @@ class DroneFlightScene extends Phaser.Scene {
     const dt = Math.min(delta, 80) / 1000;
 
     if (this.battery > 0) {
-      const drain = batteryDrain(this.position, this.zones, dt);
-      const zone = this.zones.find((item) => pointInRect(this.position, item));
+      const drain = batteryDrain(this.position, this.heading, this.zones, dt);
+      const { zone } = windRelation(this.position, this.heading, this.zones);
       if (zone) this.drainByZone[zone.id] = (this.drainByZone[zone.id] ?? 0) + drain;
       this.battery = Math.max(0, this.battery - drain);
       if (this.battery <= 0 && this.mode === 'flight') this.mode = 'return';
@@ -125,24 +131,18 @@ class DroneFlightScene extends Phaser.Scene {
       if (this.dwellRemaining <= 0) this.segmentIndex += 1;
     } else if (goal) {
       const remaining = distance(this.position, goal);
-      const step = .17 * dt;
+      const step = DRONE_SPEED * dt;
+      if (remaining > 1e-6) this.heading = { x: (goal.x - this.position.x) / remaining, y: (goal.y - this.position.y) / remaining };
       if (remaining <= step) {
         this.position = { ...goal };
         if (this.mode === 'return') { this.finishFlight(); return; }
-        this.dwellRemaining = 900;
+        this.dwellRemaining = REC_DWELL_MS;
       } else {
-        this.position = { x: this.position.x + ((goal.x - this.position.x) / remaining) * step, y: this.position.y + ((goal.y - this.position.y) / remaining) * step };
+        this.position = { x: this.position.x + this.heading.x * step, y: this.position.y + this.heading.y * step };
       }
     } else {
-      const missed = DRONE_TARGETS.filter((target) => !this.photos.has(target.id)).map((target) => target.id);
-      if (missed.length && this.passes === 1 && this.battery > 0) {
-        this.passes = 2;
-        this.waypoints = missed.map((id) => DRONE_TARGETS.find((target) => target.id === id)!).map(({ x, y }) => ({ x, y }));
-        this.segmentIndex = 0;
-        this.callbacks.secondPass(missed);
-      } else {
-        this.mode = 'return';
-      }
+      // 마지막 점까지 갔으면 끝. 놓친 목표는 다시 계획해서 날아야 한다(두 번째 바퀴 없음).
+      this.mode = 'return';
     }
 
     this.updateRecWindow();
@@ -161,10 +161,10 @@ class DroneFlightScene extends Phaser.Scene {
     if (this.waypoints.length < 2) return;
     this.mode = 'flight';
     this.position = { ...DRONE_START };
+    this.heading = STILL;
     this.segmentIndex = 0;
     this.dwellRemaining = 0;
     this.battery = 100;
-    this.passes = 1;
     this.photos.clear();
     this.drainByZone = {};
     this.recTarget = null;
@@ -196,6 +196,7 @@ class DroneFlightScene extends Phaser.Scene {
   resetFlight() {
     this.mode = 'plan';
     this.position = { ...DRONE_START };
+    this.heading = STILL;
     this.highlightZone = null;
     this.drawMap();
   }
@@ -238,8 +239,7 @@ class DroneFlightScene extends Phaser.Scene {
     });
   }
 
-  private drawArrow(g: Phaser.GameObjects.Graphics, x: number, y: number, direction: WindZone['direction'], size: number) {
-    const [dx, dy] = direction === 'head' ? [-1, 0] : direction === 'tail' ? [1, 0] : [0, 1];
+  private drawArrow(g: Phaser.GameObjects.Graphics, x: number, y: number, { x: dx, y: dy }: DronePoint, size: number) {
     g.lineBetween(x - dx * size, y - dy * size, x + dx * size, y + dy * size);
     const tipX = x + dx * size; const tipY = y + dy * size;
     g.fillTriangle(tipX + dx * size * .5, tipY + dy * size * .5, tipX - dy * size * .45, tipY + dx * size * .45, tipX + dy * size * .45, tipY - dx * size * .45);
@@ -254,29 +254,30 @@ class DroneFlightScene extends Phaser.Scene {
     this.add.image(width / 2, height / 2, 'drone-map').setDisplaySize(width, height).setAlpha(.7).setTint(0xb9d8cc);
     this.add.rectangle(width / 2, height / 2, width, height, 0x04101d, .28);
 
-    this.zones.forEach((zone) => {
+    this.zones.forEach((zone, index) => {
       const hot = this.highlightZone === zone.id;
-      const color = zone.direction === 'head' ? 0xd65b4a : zone.direction === 'tail' ? 0x3ab76b : 0x36b9bf;
+      const color = hot ? 0xd65b4a : 0x36b9bf;
       this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, color, hot ? .3 : .12)
         .setStrokeStyle(hot ? 5 : 2, color, hot ? 1 : .6).setDepth(1);
       const g = this.add.graphics().setDepth(2);
       g.lineStyle(hot ? 5 : 3, color, hot ? 1 : .8).fillStyle(color, hot ? 1 : .8);
-      const cols = 3; const rows = 2;
+      const cols = 3; const rows = 3;
       for (let c = 0; c < cols; c += 1) for (let r = 0; r < rows; r += 1) {
-        this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.direction, hot ? 16 : 11);
+        this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.wind, hot ? 16 : 11);
       }
-      this.add.text((zone.x + .01) * width, (zone.y + .01) * height, `${zone.name}${zone.direction === 'head' ? ' · 배터리 2배' : ''}`, {
+      this.add.text((zone.x + .01) * width, (zone.y + .01) * height, `${index + 1}구간 · ${hot ? '여기서 배터리가 많이 닳았어' : '화살표 거스르면 맞바람'}`, {
         fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#f7e9c9', backgroundColor: '#06263acc', padding: { x: 5, y: 3 },
       }).setDepth(3);
     });
 
     DRONE_TARGETS.forEach((target) => {
       const done = this.photos.has(target.id);
-      const ring = this.add.circle(target.x * width, target.y * height, REC_RADIUS * Math.min(width, height), done ? 0x3ab76b : 0xe4a63c, done ? .35 : .22)
-        .setStrokeStyle(3, done ? 0x74e49a : 0xffd37b, .95).setDepth(5);
+      const missed = !done && this.mode === 'review';
+      const ring = this.add.circle(target.x * width, target.y * height, REC_RADIUS * Math.min(width, height), done ? 0x3ab76b : missed ? 0xd65b4a : 0xe4a63c, done ? .35 : missed ? .3 : .22)
+        .setStrokeStyle(missed ? 5 : 3, done ? 0x74e49a : missed ? 0xff8176 : 0xffd37b, .95).setDepth(5);
       this.rings.set(target.id, ring);
       this.add.circle(target.x * width, target.y * height, 7, 0xfff1ca, .9).setDepth(6);
-      this.add.text(target.x * width, target.y * height + 14, `${target.name}${done ? ' · 찍음' : ''}`, {
+      this.add.text(target.x * width, target.y * height + 14, `${target.name}${done ? ' · 찍음' : missed ? ' · 놓침' : ''}`, {
         fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff1ca', backgroundColor: '#061426d8', padding: { x: 6, y: 4 },
       }).setOrigin(.5, 0).setDepth(6);
     });
@@ -302,7 +303,7 @@ class DroneFlightScene extends Phaser.Scene {
       });
     }
 
-    const caption = this.mode === 'plan' ? '지도를 눌러 점 추가 · 점을 끌어 옮기기' : this.mode === 'replay' ? '4초 다시 보기' : this.mode === 'return' ? '이륙장으로 돌아가는 중' : `비행 중 · ${this.passes === 2 ? '두 번째 바퀴' : '첫 바퀴'}`;
+    const caption = this.mode === 'plan' ? '지도를 눌러 점 추가 · 점을 끌어 옮기기' : this.mode === 'replay' ? '4초 다시 보기' : this.mode === 'return' ? '이륙장으로 돌아가는 중' : '비행 중 · 점 순서대로 한 번만 지나가';
     this.add.text(18, height - 18, caption, { fontFamily: FONT, fontSize: CANVAS_FONT.label, fontStyle: 'bold', color: '#f7e9c9', backgroundColor: '#061426d8', padding: { x: 8, y: 6 } }).setOrigin(0, 1).setDepth(10);
     this.droneImage = this.add.image(0, 0, 'drone-craft').setDisplaySize(78, 78).setDepth(12);
     this.positionDrone();
@@ -313,11 +314,10 @@ class DroneFlightScene extends Phaser.Scene {
   }
 
   private emitTelemetry(replayRemaining: number | null = null) {
-    const zone = this.zones.find((item) => pointInRect(this.position, item));
     this.callbacks.telemetry({
-      battery: Math.round(this.battery), wind: zone?.name ?? '잔잔함', recTarget: this.recTarget,
+      battery: Math.round(this.battery), wind: windRelation(this.position, this.heading, this.zones).relation, recTarget: this.recTarget,
       recCenter: recQuality(this.recDistance) === 'center', photos: [...this.photos].map(([id, quality]) => ({ id, quality })),
-      passes: this.passes, returning: this.mode === 'return', replayRemaining,
+      returning: this.mode === 'return', replayRemaining,
     });
   }
 
@@ -326,7 +326,7 @@ class DroneFlightScene extends Phaser.Scene {
     this.recTarget = null;
     const result = evaluateFlight({
       photos: DRONE_TARGETS.filter((target) => this.photos.has(target.id)).map((target) => ({ id: target.id, quality: this.photos.get(target.id)! })),
-      batteryRemaining: Math.round(this.battery), passes: this.passes, drainByZone: this.drainByZone,
+      batteryRemaining: Math.round(this.battery), drainByZone: this.drainByZone,
     });
     this.drawMap();
     this.emitTelemetry();
@@ -351,7 +351,7 @@ class DroneFlightScene extends Phaser.Scene {
 }
 
 export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
+  const { save, completePage, logEvent, setPageData, setArtifacts } = useGame();
   const zones = useMemo(() => windZonesFor(save.sessionSeed), [save.sessionSeed]);
   const [waypoints, setWaypoints] = useState<DronePoint[]>(() => pointList(save.pageData.p3Waypoints));
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(3));
@@ -359,37 +359,32 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const [telemetry, setTelemetry] = useState<DroneTelemetry>(initialTelemetry);
   const [result, setResult] = useState<DroneResult | null>(() => savedResult(save.pageData.p3Result));
   const [precisionStamp, setPrecisionStamp] = useState(save.pageData.p3Precision === true);
-  const [notice, setNotice] = useState('바람 화살표를 보고 지나갈 점 2~4개를 정해. 세 목표 원을 다 지나가야 해.');
+  const [notice, setNotice] = useState('바람 화살표를 보고 지나갈 점 2~4개를 정해. 세 목표 원을 한 번에 다 지나가야 해. 놓치면 다시 계획!');
   const callbacks = useRef<{
     addWaypoint: (point: DronePoint) => void;
     moveWaypoint: (index: number, point: DronePoint) => void;
-    secondPass: (missed: PhotoId[]) => void;
     flightComplete: (result: DroneResult) => void;
-  }>({ addWaypoint: () => undefined, moveWaypoint: () => undefined, secondPass: () => undefined, flightComplete: () => undefined });
+  }>({ addWaypoint: () => undefined, moveWaypoint: () => undefined, flightComplete: () => undefined });
   const scene = useMemo(() => new DroneFlightScene(zones, {
     addWaypoint: (point) => callbacks.current.addWaypoint(point),
     moveWaypoint: (index, point) => callbacks.current.moveWaypoint(index, point),
     telemetry: setTelemetry,
-    secondPass: (missed) => callbacks.current.secondPass(missed),
     flightComplete: (value) => callbacks.current.flightComplete(value),
   }), [zones]);
 
   const savePlan = (next: DronePoint[]) => { setWaypoints(next); setPageData('p3Waypoints', next); };
+  const full = waypoints.length >= MAX_WAYPOINTS;
   callbacks.current.addWaypoint = (point) => {
     if (phase !== 'plan') return;
-    if (waypoints.length >= 4) { setNotice('지나갈 점은 최대 4개야. 점을 끌어 옮기거나 마지막 점을 지워 봐.'); audioService.playSfx('warning'); return; }
+    if (full) { setNotice(`지나갈 점은 최대 ${MAX_WAYPOINTS}개야. 점을 끌어 옮기거나 마지막 점을 지워 봐.`); audioService.playSfx('warning'); return; }
     savePlan([...waypoints, point]);
-    setNotice(`${waypoints.length + 1}번 점을 놓았어. 붉은 맞바람 구간을 오래 지나면 배터리가 2배로 닳아.`);
+    setNotice(`${waypoints.length + 1}번 점을 놓았어. 화살표를 거슬러 날면 배터리가 ${DRAIN_MULTIPLIER.head}배로 닳아. 화살표 따라 날면 덜 닳아.`);
     audioService.playSfx('drop');
   };
   callbacks.current.moveWaypoint = (index, point) => {
     if (phase !== 'plan') return;
     savePlan(waypoints.map((item, i) => (i === index ? point : item)));
     audioService.playSfx('tap');
-  };
-  callbacks.current.secondPass = (missed) => {
-    setNotice(`${missed.map(targetName).join(', ')}을 놓쳤어. 한 바퀴 더 돌아. 배터리를 봐!`);
-    audioService.playSfx('warning');
   };
   callbacks.current.flightComplete = (value) => {
     setResult(value);
@@ -398,8 +393,6 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
     if (value.passed) {
       setCompleted(true);
       completePage(3);
-      addBadge(STAGE_META[0]!.badgeName);
-      addJobCard(STAGE_META[0]!.jobTitle);
       setArtifacts({ photos: value.photos });
       logEvent({
         page: 3, type: 'drone-mission', contextRef: 'p3-passed-flight',
@@ -413,23 +406,33 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
       }
       setNotice(value.precision ? '정밀 비행 도장! 세 컷 다 정중앙에 배터리도 넉넉해.' : '세 곳을 다 찍었어. 다시 날면 정밀 비행 도장에 도전할 수 있어.');
       audioService.playSfx(value.precision ? 'reward' : 'success');
-    } else {
+      return;
+    }
+    const missed = missedTargets(value.photos).map(targetName).join(', ');
+    if (value.batteryRemaining <= 0) {
       const worst = Object.entries(value.drainByZone).sort((a, b) => b[1] - a[1])[0];
       const zone = zones.find((item) => item.id === worst?.[0]);
       scene.highlight(zone?.id ?? null);
-      setNotice(zone ? `배터리가 먼저 떨어졌어. 어느 구간에서 빨리 닳았지? ${zone.name} 구간에서 ${Math.round(worst![1])}%나 썼어. 화살표를 다시 봐.` : '배터리가 먼저 떨어졌어. 어느 구간에서 빨리 닳았을까? 경로를 짧게 바꿔 봐.');
-      audioService.playSfx('warning');
+      setNotice(`${missed}을 못 찍고 배터리가 먼저 떨어졌어. 어느 구간에서 배터리가 빨리 닳았지?${zone ? ` 붉게 표시한 구간에서 ${Math.round(worst![1])}%나 썼어. 화살표 방향을 다시 봐.` : ' 경로를 짧게 바꿔 봐.'}`);
+    } else {
+      setNotice(`${missed}을 놓쳤어. 어디서 REC를 놓쳤지? 붉은 원이 놓친 목표야. 점을 원 한가운데로 옮기고 REC 창이 열릴 때 눌러.`);
     }
+    audioService.playSfx('warning');
   };
 
   useEffect(() => { scene.setPlan(waypoints); }, [scene, waypoints]);
+
+  const addTargetPoint = (id: PhotoId) => {
+    const target = DRONE_TARGETS.find((item) => item.id === id)!;
+    callbacks.current.addWaypoint({ x: target.x, y: target.y });
+  };
 
   const launch = () => {
     if (waypoints.length < 2) { setNotice('출발하려면 지나갈 점이 2개 이상 필요해.'); audioService.playSfx('warning'); return; }
     setPhase('flight');
     setResult(null);
     setTelemetry(initialTelemetry);
-    setNotice('비행 중! 목표 원에 들어가 버튼이 빨갛게 빛나면 REC 를 눌러.');
+    setNotice('비행 중! 목표 원에 들어가 버튼이 빨갛게 빛나면 REC 를 눌러. 한 바퀴뿐이야.');
     scene.launch();
     audioService.playSfx('record');
   };
@@ -444,7 +447,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const retry = () => {
     setPhase('plan');
     setTelemetry(initialTelemetry);
-    setNotice('경로를 남겨 뒀어. 점을 끌어 바람을 피하거나 목표 한가운데로 옮겨 봐.');
+    setNotice('경로를 남겨 뒀어. 다시 계획해도 잃는 건 없어. 점을 끌어 바람을 따라가거나 목표 한가운데로 옮겨 봐.');
     scene.resetFlight();
   };
 
@@ -457,7 +460,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
       eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
       footer={completed && phase === 'review' ? (
-        <StageComplete title="현장 사진 3장을 얻었어" message="사진은 증거판의 재료가 돼. 확대해서 숨은 세부를 찾아보자." nextLabel="증거판으로 가기" onNext={() => onNavigate(4)} />
+        <StageComplete title="현장 사진 3장을 얻었어" message="사진은 증거판의 재료가 돼. 확대해서 숨은 세부를 찾아보자. 배지는 증거판까지 끝내면 받아." nextLabel="증거판으로 가기" onNext={() => onNavigate(4)} />
       ) : undefined}
     >
       <div className={`game-grid game-grid--wide-center drone-layout${phase === 'plan' ? ' is-planning' : ''}`}>
@@ -466,10 +469,15 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             image={pageAsset(4, 2)}
             imageAlt="드론 멘토"
             action="벌목지·막힌 물길·공사장을 드론으로 찍어"
-            goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기', `끝내면: ${stage.reward}`]}
+            goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)', `끝내면: ${stage.reward}`]}
           />
-          <div className="drone-map-key" aria-label="지도 색 안내">
-            <span className="is-danger">맞바람 · 배터리 2배</span><span className="is-wind">옆바람 · 조금 더</span><span className="is-tail">뒷바람 · 덜 닳음</span>
+          <div className="drone-map-key" aria-label="바람 안내">
+            <span className="is-danger">화살표 거슬러 = 맞바람 · {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
+          </div>
+          <div className="row drone-target-buttons" aria-label="목표 점 추가">
+            {DRONE_TARGETS.map((target) => (
+              <button key={target.id} className="button button--ghost" disabled={phase !== 'plan' || full} onClick={() => addTargetPoint(target.id)}>{target.name} 점 추가</button>
+            ))}
           </div>
           <div className="row">
             <button className="button button--ghost" disabled={phase !== 'plan' || waypoints.length === 0} onClick={() => { savePlan(waypoints.slice(0, -1)); audioService.playSfx('tap'); }}>마지막 점 지우기</button>
@@ -516,8 +524,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             {!showResult ? (
               <div className="metric-grid">
                 <ProgressBar value={telemetry.battery} label={`배터리 ${telemetry.battery}%`} />
-                <div className="telemetry-pair"><span>바람</span><strong>{telemetry.wind}</strong></div>
-                <div className="telemetry-pair"><span>바퀴</span><strong>{telemetry.passes}번째</strong></div>
+                <div className={`telemetry-pair is-${telemetry.wind}`}><span>바람</span><strong>{WIND_LABEL[telemetry.wind]}{telemetry.wind !== 'calm' ? ` · ${DRAIN_MULTIPLIER[telemetry.wind]}배` : ''}</strong></div>
                 <div className="target-checks">
                   <strong>촬영 목표</strong>
                   {DRONE_TARGETS.map((target) => {
@@ -529,7 +536,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             ) : (
               <div className="drone-review">
                 <div className={`review-total ${result.passed ? 'is-pass' : 'is-partial'}`}>
-                  <span>{result.passed ? (result.precision ? '정밀 비행!' : '미션 완수') : '배터리 0 · 다시 할 수 있어'}</span>
+                  <span>{result.passed ? (result.precision ? '정밀 비행!' : '미션 완수') : result.batteryRemaining <= 0 ? '배터리 0 · 다시 계획하자' : '목표를 놓쳤어 · 다시 계획하자'}</span>
                   <strong>{result.batteryRemaining}<small>% 남음</small></strong>
                 </div>
                 <div className="photo-cards" aria-label="획득한 사진">
@@ -544,9 +551,8 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
                   })}
                 </div>
                 <div className="review-facts">
-                  <span>돈 바퀴</span><strong>{result.passes}번</strong>
-                  <span>바람에 쓴 배터리</span>
-                  <strong>{zones.map((zone) => `${zone.name} ${Math.round(result.drainByZone[zone.id] ?? 0)}%`).join(' · ')}</strong>
+                  <span>바람 구간에 쓴 배터리</span>
+                  <strong>{zones.map((zone, index) => `${index + 1}구간 ${Math.round(result.drainByZone[zone.id] ?? 0)}%`).join(' · ')}</strong>
                 </div>
               </div>
             )}

@@ -11,11 +11,15 @@ import { BIRDS, getBird, TREATMENTS, type BirdId, type CareZoneId, type SoundVer
 import {
   applyTreatment,
   birdGauge,
+  birdStatus,
   buildCareLog,
+  chooseStatement as pickStatement,
   evaluateCare,
   groundedCount,
   isStable,
   readCareState,
+  RECORDS_PER_BIRD,
+  shuffledStatements,
   soundCorrect,
   type CareState,
 } from './page05CareModel';
@@ -50,6 +54,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
 
   const bird = getBird(birdId);
   const zone = bird.zones.find((item) => item.id === zoneId) ?? bird.zones[0]!;
+  const statements = useMemo(() => shuffledStatements(birdId, zoneId, save.sessionSeed), [birdId, zoneId, save.sessionSeed]);
   const mission = useMemo(() => evaluateCare(state), [state]);
   const stable = isStable(state, birdId);
 
@@ -73,16 +78,11 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   };
 
   const chooseStatement = (statementId: string) => {
-    const statement = zone.statements.find((item) => item.id === statementId);
-    if (!statement) return;
-    if (!statement.grounded) {
-      setFeedback({ tone: 'warning', text: '그건 지금 화면에 보이는 걸까, 짐작한 걸까? "보이는 것"을 다시 읽고 골라 봐.' });
-      audioService.playSfx('warning');
-      return;
-    }
-    commit({ ...state, records: { ...state.records, [birdId]: { ...state.records[birdId], [zoneId]: statementId } } });
-    setFeedback({ tone: 'success', text: '근거가 있는 기록이야. 게이지가 조금 올랐어.' });
-    audioService.playSfx('clue');
+    const result = pickStatement(state, birdId, zoneId, statementId);
+    if (!result.feedback) return;
+    commit(result.state);
+    setFeedback({ tone: result.grounded ? 'success' : 'warning', text: result.feedback });
+    audioService.playSfx(result.grounded ? 'clue' : 'warning');
   };
 
   const playCall = (target: BirdId) => {
@@ -103,8 +103,9 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     const result = applyTreatment(state, target, treatment);
     commit(result.state);
     setSelectedTreatment(null);
-    setFeedback({ tone: result.matched ? 'success' : 'warning', text: result.feedback });
-    audioService.playSfx(result.matched ? 'success' : 'warning');
+    const good = result.matched || result.assist;
+    setFeedback({ tone: good ? 'success' : 'warning', text: result.feedback });
+    audioService.playSfx(good ? 'success' : 'warning');
     if (target !== birdId) switchBird(target);
   };
 
@@ -213,9 +214,10 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     />
   ) : (
     <div className="p5-footer-progress" aria-live="polite">
-      <span className={mission.grounded >= 4 ? 'is-done' : ''}>근거 기록 {Math.min(mission.grounded, 4)}/4</span>
+      <span className={mission.grounded >= RECORDS_PER_BIRD * 2 ? 'is-done' : ''}>근거 기록 {Math.min(mission.grounded, RECORDS_PER_BIRD * 2)}/{RECORDS_PER_BIRD * 2}</span>
       <span className={mission.soundsClassified >= 2 ? 'is-done' : ''}>소리 분류 {mission.soundsClassified}/2</span>
       <span className={mission.stableBirds >= 2 ? 'is-done' : ''}>안정 {mission.stableBirds}/2</span>
+      <span className={state.wrongRecords === 0 ? 'is-done' : ''}>헛 기록 {state.wrongRecords}번</span>
       <span className={state.wrongTreatments === 0 ? 'is-done' : ''}>헛 처치 {state.wrongTreatments}번</span>
       <button className="button button--primary button--large" type="button" disabled={!mission.ready} onClick={finishMission}>
         돌봄 기록 확정
@@ -232,7 +234,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
             image={pageAsset(5, 9)}
             imageAlt="돌봄 기록용 태블릿"
             action="두 마리를 따로 살피고 맞는 처치를 골라요"
-            goals={['숫자를 눌러 보이는 것만 기록', '울음소리 듣고 정상·이상 고르기', '처치 카드를 앵무새에게 끌어 놓기']}
+            goals={[`숫자를 눌러 보이는 것만 기록 (한 마리에 ${RECORDS_PER_BIRD}개 이상)`, '울음소리 듣고 정상·이상 고르기', '처치 카드를 앵무새에게 끌어 놓기']}
           />
           <div className="p5-reward">
             <span>끝내면 얻는 것</span>
@@ -253,12 +255,12 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
                   className={`p5-bird ${birdId === item.id ? 'is-selected' : ''} ${calm ? 'is-stable' : ''} ${selectedTreatment ? 'is-drop-target' : ''}`}
                   onClick={() => onBirdTap(item.id)}
                   aria-pressed={birdId === item.id}
-                  aria-label={`${item.name}, 상태 ${gauge}, ${calm ? '안정' : '불안정'}${selectedTreatment ? ', 눌러서 고른 처치 놓기' : ''}`}
+                  aria-label={`${item.name}, 상태 ${gauge}, ${birdStatus(state, item.id)}${selectedTreatment ? ', 눌러서 고른 처치 놓기' : ''}`}
                 >
                   <img src={calm ? item.recoveredImage : item.sickImage} alt="" draggable={false} />
                   <span className="p5-bird__copy">
                     <strong>{item.name}</strong>
-                    <small>{calm ? '안정' : '살펴보는 중'} · 기록 {groundedCount(state, item.id)}/5</small>
+                    <small>{birdStatus(state, item.id)} · 기록 {groundedCount(state, item.id)}/5</small>
                     <span className="p5-gauge" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={gauge} aria-label={`${item.name} 상태 게이지`}>
                       <i style={{ width: `${gauge}%` } as CSSProperties} />
                     </span>
@@ -293,7 +295,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
         <section className="p5-viewer" aria-labelledby="p5-viewer-title">
           <header className="p5-viewer__header">
             <h2 id="p5-viewer-title">{bird.name} 살펴보기</h2>
-            <span>{stable ? '안정' : bird.issueLabel}</span>
+            <span>{stable ? '안정' : `${bird.issueLabel} · ${birdStatus(state, birdId)}`}</span>
           </header>
           <div
             className="p5-viewport"
@@ -346,7 +348,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
             <div><strong>{zone.title} — 보이는 것</strong><p>{zone.visible}</p></div>
           </div>
           <div className="p5-statements" role="group" aria-label="무엇을 기록할까">
-            {zone.statements.map((statement) => {
+            {statements.map((statement) => {
               const chosen = state.records[birdId][zoneId] === statement.id;
               return (
                 <button key={statement.id} type="button" className={`p5-statement ${chosen ? 'is-chosen' : ''}`} onClick={() => chooseStatement(statement.id)} aria-pressed={chosen}>

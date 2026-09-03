@@ -34,7 +34,7 @@
   --fs-title: clamp(30px, 2.6vw, 40px);
   --fs-head: clamp(26px, 2.2vw, 34px);
   --fs-body: clamp(20px, 1.7vw, 26px);
-  --fs-cap: clamp(16px, 1.3vw, 18px);
+  --fs-cap: clamp(16px, 1.3vw, 20px);
 
   /* Spacing — 6 steps only. */
   --space-4: 4px;
