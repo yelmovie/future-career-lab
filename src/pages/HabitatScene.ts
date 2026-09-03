@@ -2,9 +2,13 @@ import Phaser from 'phaser';
 import { sample3d } from '../shared/assets';
 import { CANVAS_FONT } from '../shared/constants';
 import {
+  BEHAVIOR_LABELS,
   evaluateHabitat,
   evaluateSimulation,
   HABITAT_ITEMS,
+  LOUD_BAND,
+  type Behavior,
+  type HabitatConditions,
   type HabitatItemId,
   type HabitatPlacement,
   type HabitatSimulationResult,
@@ -30,6 +34,7 @@ export class HabitatScene extends Phaser.Scene {
   private routeGraphics?: Phaser.GameObjects.Graphics;
   private selectionGraphics?: Phaser.GameObjects.Graphics;
   private entranceLabel?: Phaser.GameObjects.Text;
+  private loudLabel?: Phaser.GameObjects.Text;
   private selectedId: string | null = null;
   private readyForCommands = false;
   private simulating = false;
@@ -58,6 +63,14 @@ export class HabitatScene extends Phaser.Scene {
       backgroundColor: '#6f322dcc',
       padding: { x: 7, y: 4 },
     }).setOrigin(0.5);
+    this.loudLabel = this.add.text(0, 0, '복도 쪽 · 시끄러움', {
+      fontFamily: 'Pretendard, Noto Sans KR, sans-serif',
+      fontSize: CANVAS_FONT.cap,
+      fontStyle: 'bold',
+      color: '#f7e9c9',
+      backgroundColor: '#5a3a7acc',
+      padding: { x: 7, y: 4 },
+    }).setOrigin(1, 0);
 
     this.input.on('dragstart', (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Image) => {
       if (this.simulating) return;
@@ -153,6 +166,10 @@ export class HabitatScene extends Phaser.Scene {
     this.grid.fillStyle(0xd64535, 0.22).fillRect(entranceLeft, entranceTop, entranceWidth, entranceHeight);
     this.grid.lineStyle(2, 0xf2766a, 0.72).strokeRect(entranceLeft, entranceTop, entranceWidth, entranceHeight);
     this.entranceLabel?.setPosition(entranceLeft + entranceWidth / 2, entranceTop + entranceHeight / 2).setDepth(1);
+    const loudHeight = board.height * (LOUD_BAND / 70);
+    this.grid.fillStyle(0x8a5cc4, 0.14).fillRect(board.left + entranceWidth, board.top, board.width - entranceWidth, loudHeight);
+    this.grid.lineStyle(2, 0xb89ae6, 0.55).lineBetween(board.left + entranceWidth, board.top + loudHeight, board.left + board.width, board.top + loudHeight);
+    this.loudLabel?.setPosition(board.left + board.width - 8, board.top + 6).setDepth(1);
   }
 
   private createView(placement: HabitatPlacement) {
@@ -286,41 +303,62 @@ export class HabitatScene extends Phaser.Scene {
     this.loadPlacements([]);
   }
 
-  runSimulation(): Promise<HabitatSimulationResult> {
-    if (!this.readyForCommands || this.placements.length === 0 || this.simulating) return Promise.resolve(evaluateSimulation(this.placements));
+  runSimulation(conditions: HabitatConditions): Promise<HabitatSimulationResult> {
+    const result = evaluateSimulation(this.placements, conditions);
+    if (!this.readyForCommands || this.placements.length === 0 || this.simulating) return Promise.resolve(result);
     this.simulating = true;
     const board = this.getBoardRect();
     const ordered = [...this.placements].sort((a, b) => a.x - b.x);
-    const points = [{ x: 15, y: 50 }, ...ordered.map(({ x, y }) => ({ x, y }))].map((point) => this.boardToScreen(point, board));
+    const behaviorOf = (placement: HabitatPlacement): Behavior => {
+      const categories = HABITAT_ITEMS[placement.itemId].categories;
+      return categories.includes('water') ? 'eat' : categories.includes('activity') ? 'play' : 'rest';
+    };
+    const stops = [{ point: this.boardToScreen({ x: 15, y: 50 }, board), behavior: null as Behavior | null }, ...ordered.map((placement) => ({ point: this.boardToScreen(placement, board), behavior: behaviorOf(placement) }))];
     this.routeGraphics?.clear().lineStyle(4, 0x58ddd1, 0.46);
-    points.slice(1).forEach((point, index) => {
-      const previous = points[index];
-      if (previous) this.routeGraphics?.lineBetween(previous.x, previous.y, point.x, point.y);
+    stops.slice(1).forEach((stop, index) => {
+      const previous = stops[index];
+      if (previous) this.routeGraphics?.lineBetween(previous.point.x, previous.point.y, stop.point.x, stop.point.y);
     });
     this.routeGraphics?.setDepth(2);
-    const start = points[0] ?? { x: board.left, y: board.top + board.height / 2 };
+    const start = stops[0]?.point ?? { x: board.left, y: board.top + board.height / 2 };
     const parrot = this.add.image(start.x, start.y, 'habitat-parrot').setDisplaySize(58, 58).setDepth(30).setTint(0x8afff3);
+    const labels: Phaser.GameObjects.Text[] = [];
 
     return new Promise((resolve) => {
       let index = 1;
       const next = () => {
-        const point = points[index];
-        if (!point) {
-          this.time.delayedCall(260, () => {
+        const stop = stops[index];
+        if (!stop) {
+          this.time.delayedCall(700, () => {
             parrot.destroy();
+            labels.forEach((label) => label.destroy());
             this.simulating = false;
-            resolve(evaluateSimulation(this.placements));
+            resolve(result);
           });
           return;
         }
         this.tweens.add({
           targets: parrot,
-          x: point.x,
-          y: point.y,
+          x: stop.point.x,
+          y: stop.point.y,
           angle: index % 2 ? 4 : -4,
           duration: 620,
           ease: 'Sine.InOut',
-          onComplete: () => { index += 1; next(); },
+          onComplete: () => {
+            if (stop.behavior) {
+              const seen = result.behaviors[stop.behavior];
+              labels.push(this.add.text(stop.point.x, stop.point.y - 40, seen ? BEHAVIOR_LABELS[stop.behavior] : `${BEHAVIOR_LABELS[stop.behavior]} 안 함`, {
+                fontFamily: 'Pretendard, Noto Sans KR, sans-serif',
+                fontSize: CANVAS_FONT.label,
+                fontStyle: 'bold',
+                color: seen ? '#041b1c' : '#f7e9c9',
+                backgroundColor: seen ? '#8afff3ee' : '#8b2e28ee',
+                padding: { x: 7, y: 4 },
+              }).setOrigin(0.5).setDepth(31));
+            }
+            index += 1;
+            this.time.delayedCall(stop.behavior ? 420 : 0, next);
+          },
         });
       };
       next();

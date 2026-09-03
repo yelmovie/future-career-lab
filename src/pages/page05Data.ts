@@ -1,207 +1,185 @@
-import { sample3d } from '../shared/assets';
+import { pageAsset, v2Asset } from '../shared/assets';
 
-export type CareZoneId = 'water-feed' | 'perches' | 'enrichment' | 'entry-safety' | 'behavior';
-export type ObservationStatus = 'normal' | 'follow-up' | 'uncertain';
+export type BirdId = 'green' | 'red';
+export type CareZoneId = 'eyes' | 'feathers' | 'posture' | 'water' | 'behavior';
+export type TreatmentId = 'water' | 'shelter' | 'puzzle' | 'feather';
+export type SoundVerdict = 'normal' | 'abnormal';
 
-export interface CareObservation {
+export interface CareStatement {
   id: string;
-  zoneId: CareZoneId;
-  title: string;
-  status: ObservationStatus;
-  evidence: string;
-  handoffFlag?: 'stable-perch' | 'raised-water' | 'more-enrichment' | 'clear-entry' | 'quiet-route';
-  needsExpertShare?: boolean;
+  text: string;
+  /** 화면에 실제로 보이는 근거인가. 짐작이면 false. */
+  grounded: boolean;
 }
 
 export interface CareZone {
   id: CareZoneId;
   number: number;
   title: string;
-  prompt: string;
-  image: string;
+  /** 확대했을 때 보이는 것 */
+  visible: string;
   hotspot: { x: number; y: number };
-  observations: CareObservation[];
+  statements: CareStatement[];
 }
 
-export const STATUS_META: Record<ObservationStatus, { label: string; description: string }> = {
-  normal: { label: '평소 범위', description: '지금 확인한 근거에서는 안정적으로 보여.' },
-  'follow-up': { label: '추가 확인', description: '한 번 더 살피거나 환경을 조정할 근거가 있어.' },
-  uncertain: { label: '판단 보류', description: '한 장면만으로 정하지 않고 다음 기록과 비교해.' },
+export interface Bird {
+  id: BirdId;
+  name: string;
+  issue: string;
+  issueLabel: string;
+  sickImage: string;
+  recoveredImage: string;
+  cue: 'parrotCall' | 'parrotAlarm';
+  /** 소리 파일이 없어도 답할 수 있게 하는 글 설명 */
+  soundHint: string;
+  soundAnswer: SoundVerdict;
+  soundFeedback: Record<SoundVerdict, string>;
+  correctTreatment: TreatmentId;
+  /** 틀린 처치를 놓았을 때 질문형 피드백 */
+  wrongTreatmentFeedback: Record<TreatmentId, string>;
+  zones: CareZone[];
+}
+
+export interface Treatment {
+  id: TreatmentId;
+  name: string;
+  detail: string;
+}
+
+export const ZONE_TITLES: Record<CareZoneId, string> = {
+  eyes: '눈',
+  feathers: '깃털',
+  posture: '날개·자세',
+  water: '물·먹이',
+  behavior: '행동·주변',
 };
 
-export const CARE_ZONES: CareZone[] = [
+export const TREATMENTS: Treatment[] = [
+  { id: 'water', name: '물·전해질', detail: '부리 옆에 물을 대주고 전해질을 섞어' },
+  { id: 'shelter', name: '은신처·조용한 곳', detail: '가려진 상자를 넣고 조용한 방으로 옮겨' },
+  { id: 'puzzle', name: '먹이 퍼즐', detail: '먹이를 찾아 먹게 하는 놀이 장치' },
+  { id: 'feather', name: '깃털 관리', detail: '깃털을 다듬고 분무로 적셔 줘' },
+];
+
+const HOTSPOTS: Record<CareZoneId, { x: number; y: number }> = {
+  eyes: { x: 52, y: 26 },
+  feathers: { x: 47, y: 52 },
+  posture: { x: 66, y: 46 },
+  water: { x: 24, y: 76 },
+  behavior: { x: 80, y: 74 },
+};
+
+function zone(id: CareZoneId, number: number, visible: string, statements: [string, string, string]): CareZone {
+  return {
+    id,
+    number,
+    title: ZONE_TITLES[id],
+    visible,
+    hotspot: HOTSPOTS[id],
+    statements: statements.map((text, index) => ({ id: `${id}-${index}`, text, grounded: index === 0 })),
+  };
+}
+
+export const BIRDS: Bird[] = [
   {
-    id: 'water-feed',
-    number: 1,
-    title: '물·먹이 구역',
-    prompt: '양, 청결, 고정 상태를 눈에 보이는 근거로 확인해.',
-    image: sample3d(6),
-    hotspot: { x: 29, y: 72 },
-    observations: [
-      {
-        id: 'water-line-clear',
-        zoneId: 'water-feed',
-        title: '물 높이가 기준선 안에 있어',
-        status: 'normal',
-        evidence: '투명 물그릇의 수면이 오전 급수 표시선과 나란해.',
-      },
-      {
-        id: 'water-stand-tilted',
-        zoneId: 'water-feed',
-        title: '물그릇 고정대가 한쪽으로 기울었어',
-        status: 'follow-up',
-        evidence: '왼쪽 받침과 바닥 사이에 손가락 한 마디 정도 틈이 보여.',
-        handoffFlag: 'raised-water',
-      },
+    id: 'green',
+    name: '초록 앵무',
+    issue: '스트레스',
+    issueLabel: '스트레스로 보여',
+    sickImage: v2Asset('parrot-sick-green'),
+    recoveredImage: pageAsset(5, 3),
+    cue: 'parrotAlarm',
+    soundHint: '짧고 날카로운 소리를 쉬지 않고 반복해. 파형이 뾰족하고 촘촘해.',
+    soundAnswer: 'abnormal',
+    soundFeedback: {
+      abnormal: '맞아. 날카롭게 반복하는 울음은 불안하다는 신호야.',
+      normal: '파형을 다시 봐. 뾰족한 소리가 쉬지 않고 이어지는데, 평소 울음일까?',
+    },
+    correctTreatment: 'shelter',
+    wrongTreatmentFeedback: {
+      water: '물을 줬는데 안 마셔. 왜일까? 이 아이가 힘든 건 목이 아니야.',
+      puzzle: '퍼즐을 줬는데 쳐다보지도 않고 몸만 흔들어. 놀기 전에 필요한 게 뭘까?',
+      feather: '깃털을 다듬어 줬는데 또 뽑아. 깃털이 문제일까, 뽑게 만드는 게 문제일까?',
+      shelter: '',
+    },
+    zones: [
+      zone('eyes', 1, '눈은 또렷하고, 소리가 날 때마다 빠르게 두리번거려.', [
+        '눈은 맑은데 계속 두리번거려',
+        '눈이 흐리고 반쯤 감겨 있어',
+        '눈에서 눈물이 흘러',
+      ]),
+      zone('feathers', 2, '가슴 쪽 깃털이 듬성듬성 비어 있고, 바닥에 뽑힌 깃털이 떨어져 있어.', [
+        '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어',
+        '깃털이 윤기 있게 고르게 나 있어',
+        '깃털이 물에 젖어 있어',
+      ]),
+      zone('posture', 3, '횃대 끝에 바짝 붙어 서서 몸을 좌우로 계속 흔들어.', [
+        '횃대 끝에 붙어 몸을 계속 흔들어',
+        '날개가 축 처져 바닥에 닿아',
+        '한쪽 다리로 편하게 서서 졸아',
+      ]),
+      zone('water', 4, '물그릇의 물은 줄어 있고, 먹이는 여기저기 흩뿌려져 있어.', [
+        '물은 마셨고 먹이는 흩뿌려져 있어',
+        '물이 아침 그대로 남아 있어',
+        '먹이를 남김없이 다 먹었어',
+      ]),
+      zone('behavior', 5, '케이지 안에 숨을 곳이 없고, 옆방에서 큰 소리가 계속 들려와.', [
+        '숨을 곳이 없고 큰 소리가 계속 들려',
+        '구석에 숨어서 나오지 않아',
+        '장난감을 굴리며 놀고 있어',
+      ]),
     ],
   },
   {
-    id: 'perches',
-    number: 2,
-    title: '횃대 구역',
-    prompt: '굵기와 높이가 다양하고 흔들림이 없는지 살펴봐.',
-    image: sample3d(3),
-    hotspot: { x: 54, y: 47 },
-    observations: [
-      {
-        id: 'perch-variety',
-        zoneId: 'perches',
-        title: '서로 다른 굵기의 횃대가 있어',
-        status: 'normal',
-        evidence: '가는 횃대와 굵은 횃대가 각각 한 개 이상 보여 발을 바꿔 디딜 수 있어.',
-      },
-      {
-        id: 'perch-wobble-mark',
-        zoneId: 'perches',
-        title: '높은 횃대 연결부에 움직인 자국이 있어',
-        status: 'uncertain',
-        evidence: '고정 나사 주변의 먼지가 반달 모양으로 밀려 있지만 실제 흔들림은 더 확인해야 해.',
-        handoffFlag: 'stable-perch',
-      },
-    ],
-  },
-  {
-    id: 'enrichment',
-    number: 3,
-    title: '놀이·탐색 구역',
-    prompt: '사용 흔적과 안전 상태를 함께 확인해.',
-    image: sample3d(5),
-    hotspot: { x: 76, y: 29 },
-    observations: [
-      {
-        id: 'foraging-used',
-        zoneId: 'enrichment',
-        title: '먹이 찾기 장치에 사용 흔적이 있어',
-        status: 'normal',
-        evidence: '종이 조각이 입구 쪽으로 밀리고 안쪽 먹이가 조금 줄어 있어.',
-      },
-      {
-        id: 'rope-fray',
-        zoneId: 'enrichment',
-        title: '놀이 줄 끝이 조금 풀려 보여',
-        status: 'follow-up',
-        evidence: '줄 끝 세 가닥이 다른 부분보다 길게 튀어나와 교체 시점을 확인할 필요가 있어.',
-        handoffFlag: 'more-enrichment',
-      },
-    ],
-  },
-  {
-    id: 'entry-safety',
-    number: 4,
-    title: '출입 안전 구역',
-    prompt: '문 잠금과 비상 동선을 먼저 확인해.',
-    image: sample3d(7),
-    hotspot: { x: 16, y: 38 },
-    observations: [
-      {
-        id: 'double-latch',
-        zoneId: 'entry-safety',
-        title: '위·아래 잠금 장치가 모두 닫혀 있어',
-        status: 'normal',
-        evidence: '두 잠금 핀이 표시선 끝까지 들어가 있고 문 틈이 일정해.',
-      },
-      {
-        id: 'entry-box',
-        zoneId: 'entry-safety',
-        title: '출입선 가까이에 보관 상자가 있어',
-        status: 'follow-up',
-        evidence: '문이 열리는 선에서 한 걸음 안쪽에 상자 모서리가 걸쳐 있어 이동이 필요해.',
-        handoffFlag: 'clear-entry',
-      },
-    ],
-  },
-  {
-    id: 'behavior',
-    number: 5,
-    title: '행동 관찰 구역',
-    prompt: '한 번의 모습으로 단정하지 말고 횟수와 상황을 기록해.',
-    image: sample3d(1),
-    hotspot: { x: 78, y: 72 },
-    observations: [
-      {
-        id: 'balanced-activity',
-        zoneId: 'behavior',
-        title: '쉬기와 탐색 행동이 번갈아 보여',
-        status: 'normal',
-        evidence: '5분 동안 횃대에서 쉬기와 먹이 찾기가 각각 두 번 이상 관찰됐어.',
-      },
-      {
-        id: 'repeated-route',
-        zoneId: 'behavior',
-        title: '같은 이동 경로를 짧게 반복했어',
-        status: 'uncertain',
-        evidence: '문 앞과 높은 횃대 사이를 2분 동안 세 번 오갔어. 다음 시간대 기록과 비교해야 해.',
-        handoffFlag: 'quiet-route',
-        needsExpertShare: true,
-      },
+    id: 'red',
+    name: '빨강 앵무',
+    issue: '탈수',
+    issueLabel: '탈수로 보여',
+    sickImage: v2Asset('parrot-sick-red'),
+    recoveredImage: pageAsset(5, 4),
+    cue: 'parrotCall',
+    soundHint: '낮고 부드러운 소리를 가끔 한 번씩 내. 파형이 둥글고 드문드문해.',
+    soundAnswer: 'normal',
+    soundFeedback: {
+      normal: '맞아. 소리는 평소랑 같아. 이 아이 문제는 소리가 아니라 다른 데 있어.',
+      abnormal: '파형을 다시 봐. 둥글고 느린 소리는 건강한 앵무 울음이야. 아픈 데가 꼭 소리로 나타날까?',
+    },
+    correctTreatment: 'water',
+    wrongTreatmentFeedback: {
+      shelter: '은신처에 들어갔는데 그대로 축 늘어져 있어. 몸에 부족한 게 뭘까?',
+      puzzle: '퍼즐 앞에서 꼼짝도 안 해. 먹이보다 먼저 채워야 할 게 있지 않을까?',
+      feather: '깃털은 다듬었는데 눈은 여전히 흐려. 깃털이 원인이었을까?',
+      water: '',
+    },
+    zones: [
+      zone('eyes', 1, '눈이 흐리고 반쯤 감겨 있어. 불러도 눈을 천천히 떠.', [
+        '눈이 흐리고 반쯤 감겨 있어',
+        '눈이 맑고 빠르게 두리번거려',
+        '눈 주위가 빨갛게 부어 있어',
+      ]),
+      zone('feathers', 2, '깃털이 푸석하고 윤기가 없지만, 빠지거나 뽑힌 자리는 없어.', [
+        '깃털이 푸석하지만 뽑힌 자리는 없어',
+        '가슴 깃털이 뽑혀 있어',
+        '깃털이 기름져 번들거려',
+      ]),
+      zone('posture', 3, '날개가 축 처져 있고, 횃대 대신 바닥 가까이 웅크려 있어.', [
+        '날개가 처지고 바닥 가까이 웅크려 있어',
+        '횃대 끝에서 몸을 흔들어',
+        '날개를 활짝 펴고 있어',
+      ]),
+      zone('water', 4, '물그릇 물이 아침 표시선 그대로야. 부리 가장자리가 말라 있어.', [
+        '물이 아침 그대로고 부리가 말라 있어',
+        '물을 자주 마시러 내려와',
+        '물그릇이 엎어져 바닥이 젖었어',
+      ]),
+      zone('behavior', 5, '거의 움직이지 않고, 불러도 한참 뒤에 천천히 고개만 돌려.', [
+        '움직임이 거의 없고 반응이 느려',
+        '소리를 지르며 돌아다녀',
+        '숨을 곳을 찾아 이리저리 다녀',
+      ]),
     ],
   },
 ];
 
-export interface CareMissionResult {
-  zonesVisited: number;
-  observationCount: number;
-  normalCount: number;
-  concernCount: number;
-  safetyReady: boolean;
-  expertShareRequired: boolean;
-  expertReady: boolean;
-  ready: boolean;
-}
-
-export function getObservation(id: string): CareObservation | undefined {
-  return CARE_ZONES.flatMap((zone) => zone.observations).find((observation) => observation.id === id);
-}
-
-export function evaluateCareMission(recordIds: Iterable<string>, safetyChecked: boolean, expertShared: boolean): CareMissionResult {
-  const records = [...new Set(recordIds)].map(getObservation).filter((item): item is CareObservation => Boolean(item));
-  const zonesVisited = new Set(records.map((record) => record.zoneId)).size;
-  const normalCount = records.filter((record) => record.status === 'normal').length;
-  const concernCount = records.filter((record) => record.status !== 'normal').length;
-  const expertShareRequired = records.some((record) => record.needsExpertShare);
-  const expertReady = !expertShareRequired || expertShared;
-  return {
-    zonesVisited,
-    observationCount: records.length,
-    normalCount,
-    concernCount,
-    safetyReady: safetyChecked,
-    expertShareRequired,
-    expertReady,
-    ready: zonesVisited >= 4 && records.length >= 7 && normalCount >= 1 && concernCount >= 2 && safetyChecked && expertReady,
-  };
-}
-
-export function buildCareHandoff(recordIds: Iterable<string>) {
-  const records = [...new Set(recordIds)].map(getObservation).filter((item): item is CareObservation => Boolean(item));
-  return {
-    source: 'page05-parrot-check',
-    flags: [...new Set(records.flatMap((record) => record.handoffFlag ? [record.handoffFlag] : []))],
-    evidence: records.filter((record) => record.status !== 'normal').map((record) => ({
-      zoneId: record.zoneId,
-      observationId: record.id,
-      status: record.status,
-      summary: record.title,
-    })),
-  };
-}
+export const getBird = (id: BirdId): Bird => BIRDS.find((bird) => bird.id === id) ?? BIRDS[0]!;
+export const getTreatment = (id: TreatmentId): Treatment => TREATMENTS.find((item) => item.id === id) ?? TREATMENTS[0]!;

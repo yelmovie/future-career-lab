@@ -1468,28 +1468,28 @@
       "id": "v2.sfx.parrot-call",
       "src": "/audio/v2/parrot-call.mp3",
       "kind": "audio",
-      "available": false,
+      "available": true,
       "fallback": null
     },
     {
       "id": "v2.sfx.parrot-alarm",
       "src": "/audio/v2/parrot-alarm.mp3",
       "kind": "audio",
-      "available": false,
+      "available": true,
       "fallback": null
     },
     {
       "id": "v2.sfx.chainsaw",
       "src": "/audio/v2/chainsaw-far.mp3",
       "kind": "audio",
-      "available": false,
+      "available": true,
       "fallback": "sfx.warning"
     },
     {
       "id": "v2.sfx.drone-loop",
       "src": "/audio/v2/drone-loop.mp3",
       "kind": "audio",
-      "available": false,
+      "available": true,
       "fallback": null
     }
   ]

@@ -2,30 +2,38 @@ import { expect, test } from '@playwright/test';
 
 test.use({ channel: 'chrome' });
 
-test('page 9 supports keyboard assignment and pauses its shared timer', async ({ page }) => {
+test('page 9 supports keyboard pair assignment and advances a turn', async ({ page }) => {
   const runtimeErrors: string[] = [];
   page.on('pageerror', (error) => runtimeErrors.push(error.message));
   page.on('response', (response) => { if (response.status() >= 400) runtimeErrors.push(`${response.status()} ${response.url()}`); });
   await page.goto('/#/page/9');
-  await expect(page.getByRole('heading', { name: '직업의 힘을 이어 보자' })).toBeVisible();
-  await page.getByRole('button', { name: '32초로 해 보기' }).click();
+  await expect(page.getByRole('heading', { name: '네 직업의 힘을 짝지어 보자' })).toBeVisible();
+  await page.getByRole('button', { name: '작전 시작' }).click();
   await expect(page.locator('.p08-scene canvas')).toBeVisible();
+  await expect(page.locator('.p08-turn strong')).toHaveText('1턴');
 
-  const caretaker = page.locator('.p08-job-card').filter({ hasText: '동물 돌봄가' });
-  await caretaker.focus();
-  await page.keyboard.press('Enter');
-  await expect(caretaker).toHaveAttribute('aria-pressed', 'true');
+  const fireCard = page.locator('.p08-crisis-card').filter({ hasText: '벌목지 화재 확산' });
+  await expect(fireCard.locator('.p08-crisis-gauge')).toHaveText('위기 40%');
+  await expect(fireCard).not.toContainText(/드론|방송/);
 
-  const park = page.getByRole('button', { name: /공존 공원/ });
-  await park.focus();
-  await page.keyboard.press('Enter');
-  await expect(caretaker).toContainText(/가는 중|돕는 중|쉬는 중/);
+  const assignByKeyboard = async (badge: string) => {
+    const card = page.locator('.p08-job-card').filter({ hasText: badge });
+    await card.focus();
+    await page.keyboard.press('Enter');
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    const target = fireCard.getByRole('button', { name: /벌목지 화재 확산, 위기/ });
+    await target.focus();
+    await page.keyboard.press('Enter');
+    await expect(card).toContainText('벌목지 화재 확산에 배치');
+  };
+  await assignByKeyboard('드론 현장가');
+  await assignByKeyboard('미래방송기술자');
 
-  await page.getByRole('button', { name: '전략 잠시 멈춤' }).click();
-  await expect(page.getByRole('heading', { name: '도시 문제 풀이가 멈췄어' })).toBeVisible();
-  const timerValue = await page.getByRole('timer').locator('strong').textContent();
-  await page.waitForTimeout(700);
-  await expect(page.getByRole('timer').locator('strong')).toHaveText(timerValue ?? '');
-  await page.getByRole('button', { name: '계속하기' }).click();
+  await page.getByRole('button', { name: '턴 진행' }).click();
+  await expect(page.locator('.p08-turn strong')).toHaveText('2턴');
+  await expect(fireCard.locator('.p08-crisis-gauge')).toHaveText('안정');
+  const flockCard = page.locator('.p08-crisis-card').filter({ hasText: '앵무 무리 이동 경로 위험' });
+  await expect(flockCard.locator('.p08-crisis-gauge')).toHaveText('위기 50%');
+  await expect(page.locator('.p08-job-card').filter({ hasText: '드론 현장가' })).toContainText('쉬는 중');
   expect(runtimeErrors).toEqual([]);
 });

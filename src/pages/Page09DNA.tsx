@@ -1,11 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { GameShell, Panel } from '../components/GameShell';
-import { ArrowIcon, SparkIcon } from '../components/Icons';
+import { ArrowIcon, CheckIcon, SparkIcon } from '../components/Icons';
+import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
-import { PAGE_META, TRAIT_KEYS, TRAIT_LABELS } from '../shared/constants';
-import type { PageNumber, TraitKey } from '../shared/types';
+import { ABILITY_STATEMENTS, JOB_LABELS, PAGE_META, TRAIT_KEYS, TRAIT_LABELS } from '../shared/constants';
+import type { JobId, PageNumber, TraitKey } from '../shared/types';
 import { useGame } from '../state/GameContext';
-import { CAREER_FIELDS, RESULT_DISCLAIMER } from '../data/resultRules';
+import { CAREER_FIELDS, PREDICTION_NOTE, RESULT_DISCLAIMER, TRANSFER_SITUATION, actualJobFromLogs } from '../data/resultRules';
+import './page09.css';
+
+const JOB_ORDER: JobId[] = ['drone', 'care', 'ecology', 'broadcast'];
+const MAX_STATEMENTS = 2;
+const MAX_CUSTOM_LENGTH = 40;
+const PLAN_KEY = 'p10Plan';
 
 function radarPoints(values: number[]): string {
   const center = 120;
@@ -17,8 +24,12 @@ function radarPoints(values: number[]): string {
   }).join(' ');
 }
 
+function isJobList(raw: unknown): raw is JobId[] {
+  return Array.isArray(raw) && raw.length === 4 && JOB_ORDER.every((job) => raw.includes(job));
+}
+
 export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save } = useGame();
+  const { save, logEvent, setPageData, setAbilityStatements } = useGame();
   const completedStages = Object.values(save.stageProgress.completed).filter(Boolean).length;
   const distinctPages = new Set(save.logs.map((log) => log.page)).size;
   const insufficient = save.logs.length < 12 || distinctPages < 4 || completedStages < 3;
@@ -44,8 +55,63 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
     return [...items, { page: log.page, copy: log.summary }];
   }, []);
 
+  // (1) 예측 vs 실제
+  const actual = useMemo(() => actualJobFromLogs(save.logs), [save.logs]);
+  const prediction = save.prediction;
+  const matched = prediction !== null && actual !== null && prediction === actual;
+
+  // (2) 생활 전이 — 내 계획 순서
+  const [plan, setPlan] = useState<JobId[]>(() => isJobList(save.pageData[PLAN_KEY]) ? save.pageData[PLAN_KEY] : JOB_ORDER);
+  const [planSaved, setPlanSaved] = useState(() => isJobList(save.pageData[PLAN_KEY]));
+  const movePlan = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
+    if (target < 0 || target >= plan.length) return;
+    const next = [...plan];
+    [next[index], next[target]] = [next[target]!, next[index]!];
+    setPlan(next);
+    setPlanSaved(false);
+    audioService.playSfx('tap');
+  };
+  const savePlan = () => {
+    setPageData(PLAN_KEY, plan);
+    setPlanSaved(true);
+    logEvent({
+      page: 10,
+      type: 'transfer-plan',
+      summary: `우리 동네 상황에 ${plan.map((job) => JOB_LABELS[job]).join(' → ')} 순서로 계획을 세웠어.`,
+      tags: ['생활 전이', '내 계획', '직업 협업'],
+      traits: { collaboration: 1, execution: 1 },
+      contextRef: `${TRANSFER_SITUATION.id}:${plan.join('-')}`,
+    });
+    audioService.playSfx('success');
+  };
+
+  // (3) 능력 진술
+  const chosen = save.abilityStatements;
+  const [custom, setCustom] = useState('');
+  const customChosen = chosen.find((statement) => !ABILITY_STATEMENTS.includes(statement));
+  const toggleStatement = (statement: string) => {
+    const next = chosen.includes(statement) ? chosen.filter((entry) => entry !== statement) : [...chosen, statement];
+    if (next.length > MAX_STATEMENTS) return;
+    setAbilityStatements(next);
+    audioService.playSfx('tap');
+  };
+  const addCustom = () => {
+    const text = custom.trim().slice(0, MAX_CUSTOM_LENGTH);
+    if (!text || chosen.length >= MAX_STATEMENTS) return;
+    setAbilityStatements([...chosen.filter((entry) => ABILITY_STATEMENTS.includes(entry)), text]);
+    setCustom('');
+    audioService.playSfx('success');
+  };
+  const ready = chosen.length >= MAX_STATEMENTS;
+
   return (
-    <GameShell page={10} eyebrow="PLAY REFLECTION" onNavigate={onNavigate} className="dna-page" footer={<button className="button button--primary button--large" onClick={() => onNavigate(11)}>수료증 확인하기 <ArrowIcon /></button>}>
+    <GameShell page={10} eyebrow="PLAY REFLECTION" onNavigate={onNavigate} className="dna-page" footer={
+      <div className="p10-footer">
+        {!ready && <p role="status">능력 문장을 {MAX_STATEMENTS - chosen.length}개 더 고르면 수료증이 열려.</p>}
+        <button className="button button--primary button--large" onClick={() => onNavigate(11)} disabled={!ready}>수료증 확인하기 <ArrowIcon /></button>
+      </div>
+    }>
       <div className="result-disclaimer"><SparkIcon /><p>{RESULT_DISCLAIMER}</p></div>
       {insufficient && <div className="toast toast--warning" role="status">아직 돌아볼 장면이 조금 부족해. 한두 미션을 더 체험하면 이번 플레이의 흐름을 더 잘 보여 줄게.</div>}
       <div className="dna-grid">
@@ -73,6 +139,67 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
 
         <Panel kicker="EVIDENCE" title="내가 실제로 한 일" className="evidence-panel">
           <ol className="evidence-list">{evidence.length ? evidence.map((item, index) => <li key={item.page}><span>{index + 1}</span><div><small>{PAGE_META[item.page].title}</small><p>{item.copy}</p></div></li>) : <li className="empty-evidence">미션에서 행동하면 실제 기록이 여기에 모여.</li>}</ol>
+        </Panel>
+      </div>
+
+      <div className="p10-grid">
+        <Panel kicker="PREDICTION" title="예측 vs 실제" className="p10-predict">
+          <div className="p10-compare">
+            <div><span>브리핑 때 예측</span><strong>{prediction ? JOB_LABELS[prediction] : '예측 안 함'}</strong></div>
+            <i aria-hidden="true"><ArrowIcon /></i>
+            <div><span>이번 탐험에서 가장 많이 움직인 직업</span><strong>{actual ? JOB_LABELS[actual] : '아직 기록이 적어'}</strong></div>
+          </div>
+          {prediction && actual && <p className={`p10-verdict${matched ? ' is-match' : ''}`}>{matched ? '예측이 실제와 같았어.' : '예측과 실제가 달랐어.'}</p>}
+          <p className="p10-note">{PREDICTION_NOTE}</p>
+        </Panel>
+
+        <Panel kicker="MY TOWN" title="우리 동네라면?" className="p10-transfer">
+          <h3>{TRANSFER_SITUATION.title}</h3>
+          <p className="p10-note">{TRANSFER_SITUATION.copy}</p>
+          <ol className="p10-plan" aria-label="내 계획 순서">
+            {plan.map((job, index) => (
+              <li key={job}>
+                <b>{index + 1}</b>
+                <span>{JOB_LABELS[job]}</span>
+                <div className="p10-plan-move">
+                  <button className="button button--ghost" onClick={() => movePlan(index, -1)} disabled={index === 0} aria-label={`${JOB_LABELS[job]} 위로`}>위로</button>
+                  <button className="button button--ghost" onClick={() => movePlan(index, 1)} disabled={index === plan.length - 1} aria-label={`${JOB_LABELS[job]} 아래로`}>아래로</button>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <button className="button button--teal button--block" onClick={savePlan} disabled={planSaved}>{planSaved ? <><CheckIcon />내 계획 저장됨</> : '이 순서로 내 계획 저장'}</button>
+        </Panel>
+
+        <Panel kicker="I CAN NOW" title="나는 이제 …" className="p10-ability">
+          <p className="p10-note">{MAX_STATEMENTS}개를 골라. 고른 문장은 수료증에 그대로 찍혀.</p>
+          <ul className="p10-statements" aria-label="능력 문장 고르기">
+            {ABILITY_STATEMENTS.map((statement) => {
+              const selected = chosen.includes(statement);
+              return (
+                <li key={statement}>
+                  <button className={`p10-statement${selected ? ' is-selected' : ''}`} onClick={() => toggleStatement(statement)} aria-pressed={selected} disabled={!selected && ready}>
+                    <span className="p10-statement__mark">{selected && <CheckIcon />}</span>{statement}
+                  </button>
+                </li>
+              );
+            })}
+            {customChosen && (
+              <li>
+                <button className="p10-statement is-selected" onClick={() => toggleStatement(customChosen)} aria-pressed="true">
+                  <span className="p10-statement__mark"><CheckIcon /></span>{customChosen}
+                </button>
+              </li>
+            )}
+          </ul>
+          <form className="p10-custom" onSubmit={(event) => { event.preventDefault(); addCustom(); }}>
+            <label htmlFor="p10-custom-input">직접 쓰기 (최대 {MAX_CUSTOM_LENGTH}자)</label>
+            <div>
+              <input id="p10-custom-input" type="text" value={custom} maxLength={MAX_CUSTOM_LENGTH} placeholder="예: 친구와 역할을 나눠 문제를 풀 수 있다" onChange={(event) => setCustom(event.target.value)} disabled={ready} />
+              <button type="submit" className="button button--ghost" disabled={ready || !custom.trim()}>추가</button>
+            </div>
+          </form>
+          <p className="p10-count" role="status">고른 문장 {chosen.length}/{MAX_STATEMENTS}</p>
         </Panel>
       </div>
 

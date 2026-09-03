@@ -4,7 +4,7 @@ import { PAGE_META, STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
-import { HelpIcon, HomeIcon, MutedIcon, SoundIcon } from './Icons';
+import { CheckIcon, HelpIcon, HomeIcon, MutedIcon, SoundIcon } from './Icons';
 import { Modal } from './Modal';
 import { SettingsModal } from './SettingsModal';
 
@@ -53,7 +53,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
         <ol className="stage-rail" aria-label={meta.stage ? `현재 스테이지 ${meta.stage} / 5` : '전체 스테이지 길'}>
           {GAME_FLOW.map((item) => {
             const done = Boolean(save.stageProgress.completed[item.stage]);
-            return <li key={item.stage} className={`${done ? 'is-done' : ''}${activeStage === item.stage ? ' is-current' : ''}`}><span>{done ? '✓' : item.stage}</span><small>{item.short}</small></li>;
+            return <li key={item.stage} className={`${done ? 'is-done' : ''}${activeStage === item.stage ? ' is-current' : ''}`}><span>{done ? <CheckIcon /> : item.stage}</span><small>{item.short}</small></li>;
           })}
         </ol>
         <div className="topbar-actions">

@@ -202,23 +202,77 @@ export function evaluateHabitat(placements: HabitatPlacement[]): HabitatEvaluati
   };
 }
 
+/** S2-a 돌봄 기록에서 나온 개체별 조건. 탈수 → 물이 쉼터 가까이, 스트레스 → 은신처가 소음 쪽에서 떨어져. */
+export interface HabitatConditions {
+  dehydrated: boolean;
+  stressed: boolean;
+}
+
+export const WATER_REACH = 36;
+/** 보드 위쪽(y < LOUD_BAND) 은 복도 쪽 소음 구역 */
+export const LOUD_BAND = 20;
+
+export interface CareLogEntry { bird: 'green' | 'red'; issue: string; treatment: string }
+
+/** 기록이 없으면(5페이지를 건너뜀) 두 조건을 모두 켠다 — 이야기상 두 마리 다 있으니까. */
+export function conditionsFromCareLog(careLog: CareLogEntry[]): HabitatConditions {
+  if (careLog.length === 0) return { dehydrated: true, stressed: true };
+  return {
+    dehydrated: careLog.some((entry) => entry.issue.includes('탈수')),
+    stressed: careLog.some((entry) => entry.issue.includes('스트레스')),
+  };
+}
+
+export interface ConditionCheck {
+  /** 물그릇이 쉼터(횃대·숨숨 공간)에서 WATER_REACH 안에 있다. 탈수 조건이 꺼져 있으면 항상 true */
+  waterNearRest: boolean;
+  /** 은신처가 있고 소음 구역에 붙어 있지 않다. 스트레스 조건이 꺼져 있으면 항상 true */
+  shelterQuiet: boolean;
+}
+
+export function checkConditions(placements: HabitatPlacement[], conditions: HabitatConditions): ConditionCheck {
+  const water = placements.filter((placement) => HABITAT_ITEMS[placement.itemId].categories.includes('water'));
+  const rest = placements.filter((placement) => HABITAT_ITEMS[placement.itemId].categories.includes('rest'));
+  const shelters = placements.filter((placement) => HABITAT_ITEMS[placement.itemId].categories.includes('shelter'));
+  const waterNearRest = !conditions.dehydrated || water.some((w) => rest.some((r) => distance(w, r) <= WATER_REACH));
+  const shelterQuiet = !conditions.stressed || shelters.some((shelter) => placementBounds(shelter).top >= LOUD_BAND);
+  return { waterNearRest, shelterQuiet };
+}
+
+export type Behavior = 'eat' | 'play' | 'rest';
+export const BEHAVIOR_LABELS: Record<Behavior, string> = { eat: '먹기', play: '놀기', rest: '쉬기' };
+
 export interface HabitatSimulationResult {
   route: number;
   comfort: number;
   safety: number;
   summary: string;
+  behaviors: Record<Behavior, boolean>;
+  stars: 0 | 1 | 2 | 3;
 }
 
-export function evaluateSimulation(placements: HabitatPlacement[]): HabitatSimulationResult {
+export function evaluateSimulation(placements: HabitatPlacement[], conditions: HabitatConditions = { dehydrated: false, stressed: false }): HabitatSimulationResult {
   const evaluation = evaluateHabitat(placements);
+  const check = checkConditions(placements, conditions);
   const categories = new Set(placements.flatMap((placement) => HABITAT_ITEMS[placement.itemId].categories));
+  const behaviors: Record<Behavior, boolean> = {
+    eat: categories.has('water') && check.waterNearRest,
+    play: categories.has('activity') && evaluation.connected,
+    rest: categories.has('rest') && check.shelterQuiet,
+  };
+  const stars = Object.values(behaviors).filter(Boolean).length as 0 | 1 | 2 | 3;
   const route = evaluation.connected ? 88 + Math.min(8, placements.length * 2) : 48;
-  const comfort = 58 + (categories.has('rest') ? 16 : 0) + (categories.has('activity') ? 12 : 0) + (categories.has('shelter') ? 8 : 0);
+  const comfort = 58 + (behaviors.rest ? 16 : 0) + (behaviors.play ? 12 : 0) + (categories.has('shelter') ? 8 : 0);
   const safety = 50 + (evaluation.entranceClear ? 18 : 0) + (evaluation.noCollisions ? 18 : 0) + (evaluation.withinBudget ? 8 : 0);
-  const summary = categories.has('shelter')
-    ? '활동 지점 뒤에 쉴 선택지가 있어 움직임과 휴식이 자연스럽게 이어졌어.'
-    : '동선은 이어졌지만 시선을 피할 조용한 선택지가 필요한지 다음 관찰에서 확인해 봐.';
-  return { route: Math.min(100, route), comfort: Math.min(100, comfort), safety: Math.min(100, safety), summary };
+  const missing = (Object.keys(behaviors) as Behavior[]).filter((key) => !behaviors[key]);
+  const summary = missing.length === 0
+    ? '먹고, 놀고, 쉬는 모습이 다 보였어. 두 마리 모두 편안해 보여.'
+    : missing.map((key) => key === 'eat'
+      ? '빨강이가 물까지 가다 말고 돌아왔어. 물이 쉬는 곳에서 너무 멀지 않았을까?'
+      : key === 'rest'
+        ? '초록이가 쉴 곳을 찾다 계속 두리번거려. 숨을 곳이 있고, 시끄러운 쪽에서 떨어져 있을까?'
+        : '놀이 기구까지 가는 길이 이어지지 않아 오가지 못했어. 어디가 끊겼을까?').join(' ');
+  return { route: Math.min(100, route), comfort: Math.min(100, comfort), safety: Math.min(100, safety), summary, behaviors, stars };
 }
 
 export function layoutSignature(placements: HabitatPlacement[]): string {
@@ -226,14 +280,4 @@ export function layoutSignature(placements: HabitatPlacement[]): string {
     .sort((a, b) => a.instanceId.localeCompare(b.instanceId))
     .map((placement) => `${placement.itemId}:${Math.round(placement.x)}:${Math.round(placement.y)}:${((placement.rotation % 360) + 360) % 360}`)
     .join('|');
-}
-
-export function recommendedItemsFor(flags: string[]): HabitatItemId[] {
-  const recommendations = new Set<HabitatItemId>();
-  if (flags.includes('stable-perch')) recommendations.add('natural-perch');
-  if (flags.includes('raised-water')) recommendations.add('raised-water');
-  if (flags.includes('more-enrichment')) recommendations.add('foraging-puzzle');
-  if (flags.includes('clear-entry')) recommendations.add('rope-bridge');
-  if (flags.includes('quiet-route')) recommendations.add('quiet-hideout');
-  return [...recommendations];
 }

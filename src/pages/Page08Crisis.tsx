@@ -1,73 +1,62 @@
 import Phaser from 'phaser';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from 'react';
+import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import { GameShell, MissionGuide, Panel } from '../components/GameShell';
 import { Modal } from '../components/Modal';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
-import { CheckIcon, ClockIcon, GripIcon } from '../components/Icons';
+import { CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { pageAsset } from '../shared/assets';
-import { CANVAS_FONT } from '../shared/constants';
-import type { PageNumber } from '../shared/types';
+import { pageAsset, v2Asset } from '../shared/assets';
+import { CANVAS_FONT, JOB_LABELS, STAGE_META } from '../shared/constants';
+import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
-  JOBS,
-  REGIONS,
-  advanceCrisisRuntime,
-  assignCrisisJob,
-  createCrisisRuntime,
-  crisisOutcome,
-  incidentSetForSeed,
-  type CrisisRuntime,
-  type JobId,
-  type RegionId,
-  type RegionState,
+  CRISES,
+  JOB_ORDER,
+  advanceTurn,
+  cardQualities,
+  createAllianceState,
+  isAvailable,
+  isStabilized,
+  pairVerdict,
+  toggleAssign,
+  turnsUsed,
+  type AllianceState,
+  type CrisisId,
 } from './page08CrisisModel';
 import './page07-08.css';
 
 interface PageProps { onNavigate: (page: PageNumber) => void }
-type RunPhase = 'briefing' | 'running' | 'result';
-type CrisisResult = ReturnType<typeof crisisOutcome>;
 
-const REGION_LABEL: Record<RegionState, string> = {
-  stable: '좋음',
-  warning: '조심',
-  critical: '빨리!',
-  responding: '돕는 중',
-  restored: '도움 끝',
+const BADGE_IMAGE: Record<JobId, string> = {
+  drone: pageAsset(8, 5),
+  care: pageAsset(8, 4),
+  ecology: v2Asset('badge-ecology'),
+  broadcast: v2Asset('badge-broadcast'),
 };
 
-const REGION_COLOR: Record<RegionState, number> = {
-  stable: 0x5291aa,
-  warning: 0xefa942,
-  critical: 0xdc5146,
-  responding: 0x44b9ce,
-  restored: 0x48c778,
-};
+const STAGE = STAGE_META[4]!;
+const SAVE_KEY = 'p9State';
+const BEST_KEY = 'p9BestTurns';
 
-const JOB_STATUS_LABEL = {
-  ready: '쓸 수 있어',
-  assigned: '가는 중',
-  resolving: '돕는 중',
-  cooldown: '쉬는 중',
-} as const;
-
-interface CrisisSceneSnapshot {
-  runtime: CrisisRuntime;
+function gaugeColor(value: number): number {
+  if (value <= 0) return 0x48c778;
+  if (value >= 70) return 0xdc5146;
+  return 0xefa942;
 }
 
-let crisisSceneSequence = 0;
+let sceneSequence = 0;
 
-class CrisisCityScene extends Phaser.Scene {
-  private snapshot?: CrisisSceneSnapshot;
+class AllianceCityScene extends Phaser.Scene {
+  private snapshot?: AllianceState;
   private ready = false;
 
-  constructor() { super(`page08-city-${++crisisSceneSequence}`); }
+  constructor() { super(`page09-city-${++sceneSequence}`); }
 
   preload() {
     this.load.image('city-map', pageAsset(8, 3));
-    this.load.image('alliance', pageAsset(8, 10));
+    this.load.image('beacon', pageAsset(8, 9));
   }
 
   create() {
@@ -77,7 +66,7 @@ class CrisisCityScene extends Phaser.Scene {
     this.redraw();
   }
 
-  setSnapshot(snapshot: CrisisSceneSnapshot) {
+  setSnapshot(snapshot: AllianceState) {
     this.snapshot = snapshot;
     if (this.ready) this.redraw();
   }
@@ -87,309 +76,257 @@ class CrisisCityScene extends Phaser.Scene {
     this.children.removeAll(true);
     const { width, height } = this.scale.gameSize;
     if (width < 40 || height < 40) return;
+    const allClear = this.snapshot.done;
     const graphics = this.add.graphics();
-    graphics.fillStyle(0x041524, 0.9).fillRoundedRect(10, 10, width - 20, height - 20, 25);
+    graphics.fillStyle(allClear ? 0x062a1e : 0x041524, 0.92).fillRoundedRect(10, 10, width - 20, height - 20, 25);
     graphics.lineStyle(2, 0xe7b861, 0.6).strokeRoundedRect(10, 10, width - 20, height - 20, 25);
+    const mapSize = Math.min(width * 0.7, height * 0.8);
+    this.add.image(width / 2, height / 2, 'city-map').setDisplaySize(mapSize, mapSize).setAlpha(0.25);
 
-    const mapSize = Math.min(width * 0.63, height * 0.7);
-    graphics.fillStyle(0xf6ead1, 0.1).fillCircle(width / 2, height / 2, mapSize * 0.48);
-    this.add.image(width / 2, height / 2, 'city-map').setDisplaySize(mapSize, mapSize).setAlpha(0.2);
-    this.add.image(width / 2, height / 2, 'alliance').setDisplaySize(Math.min(92, mapSize * 0.24), Math.min(92, mapSize * 0.24)).setAlpha(0.92);
+    // 숲 노드: 위기가 남아 있으면 주황, 모두 안정되면 초록
+    const forestColor = allClear ? 0x48c778 : 0xb8742a;
+    graphics.fillStyle(forestColor, 0.35).fillCircle(width / 2, height / 2, mapSize * 0.16);
+    graphics.lineStyle(4, forestColor, 1).strokeCircle(width / 2, height / 2, mapSize * 0.16);
+    this.add.text(width / 2, height / 2, allClear ? '숲 회복' : '숲', {
+      color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.head, fontStyle: 'bold',
+    }).setOrigin(0.5);
 
-    const points = REGIONS.map((region) => ({ ...region, px: width * region.x / 100, py: height * region.y / 100 }));
-    graphics.lineStyle(4, 0x2f958f, 0.5);
-    for (let index = 0; index < points.length; index += 1) {
-      const point = points[index];
-      const next = points[(index + 1) % points.length];
-      if (point && next) graphics.lineBetween(point.px, point.py, next.px, next.py);
-    }
-
-    points.forEach((point) => {
-      const runtime = this.snapshot?.runtime.regions[point.id];
-      if (!runtime) return;
-      graphics.fillStyle(0x071a2c, 0.96).fillCircle(point.px, point.py, 43);
-      graphics.lineStyle(runtime.state === 'critical' ? 7 : 4, REGION_COLOR[runtime.state], 1).strokeCircle(point.px, point.py, 43);
-      if (runtime.state === 'responding') {
-        graphics.lineStyle(3, 0x7ce7df, 0.75).strokeCircle(point.px, point.py, 51);
+    CRISES.forEach((crisis) => {
+      const px = width * crisis.x / 100;
+      const py = height * crisis.y / 100;
+      const value = this.snapshot?.gauges[crisis.id] ?? 0;
+      const color = gaugeColor(value);
+      graphics.lineStyle(3, color, 0.5).lineBetween(px, py, width / 2, height / 2);
+      if (value > 0) {
+        // 확산 반경: 게이지가 클수록 넓게 번진다
+        graphics.fillStyle(color, 0.16).fillCircle(px, py, 40 + value * 0.7);
       }
-      this.add.text(point.px, point.py - 5, runtime.contributors.length ? String(runtime.contributors.length) : '0', {
-        color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.head, fontStyle: 'bold',
-      }).setOrigin(0.5);
-      this.add.text(point.px, point.py + 19, '연결', {
-        color: '#9ac8c4', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
+      graphics.fillStyle(0x071a2c, 0.96).fillCircle(px, py, 40);
+      graphics.lineStyle(value >= 70 ? 7 : 4, color, 1).strokeCircle(px, py, 40);
+      if (value > 0) this.add.image(px, py - 6, 'beacon').setDisplaySize(36, 36);
+      this.add.text(px, py + (value > 0 ? 18 : 0), value <= 0 ? '안정' : `${value}%`, {
+        color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
       }).setOrigin(0.5);
     });
   }
 }
 
-function formatTime(milliseconds: number): string {
-  const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
-  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+function restoreState(raw: unknown): AllianceState | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const candidate = raw as Partial<AllianceState>;
+  if (typeof candidate.turn !== 'number' || !candidate.gauges || !candidate.cooldown || candidate.done) return null;
+  return { ...createAllianceState(), ...candidate, assigned: { fire: [], flock: [], citizens: [] }, feedback: [] };
 }
 
 export default function Page08Crisis({ onNavigate }: PageProps) {
-  const { save, completePage, logEvent, setPageData, addBadge, addJobCard, grantReward } = useGame();
-  const incidentSet = useMemo(() => incidentSetForSeed(save.sessionSeed), [save.sessionSeed]);
-  const [runtime, setRuntime] = useState(() => createCrisisRuntime(incidentSet));
-  const [phase, setPhase] = useState<RunPhase>('briefing');
-  const [durationMs, setDurationMs] = useState(80_000);
-  const [elapsedMs, setElapsedMs] = useState(0);
+  const { save, completePage, logEvent, setPageData, addBadge, addJobCard, grantReward, setArtifacts } = useGame();
+  const cards = useMemo(() => cardQualities(save.artifacts), [save.artifacts]);
+  const bestTurns = typeof save.pageData[BEST_KEY] === 'number' ? save.pageData[BEST_KEY] as number : null;
+  const [state, setState] = useState<AllianceState>(() => restoreState(save.pageData[SAVE_KEY]) ?? createAllianceState());
+  const [briefing, setBriefing] = useState(() => !restoreState(save.pageData[SAVE_KEY]));
   const [selectedJob, setSelectedJob] = useState<JobId | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState<RegionId>('clinic');
-  const [result, setResult] = useState<CrisisResult | null>(null);
   const [runId, setRunId] = useState(0);
-  const [hidden, setHidden] = useState(document.hidden);
-  const [pausedByUser, setPausedByUser] = useState(false);
-  const finalizedRuns = useRef(new Set<number>());
-  const scene = useMemo(() => new CrisisCityScene(), [runId]);
-  const speedFactor = durationMs / 80_000;
-  const remainingMs = Math.max(0, durationMs - elapsedMs);
-  const paused = hidden || pausedByUser;
-  const outcomeNow = crisisOutcome(runtime);
-  const activeRegion = runtime.regions[selectedRegion];
+  const [finished, setFinished] = useState(false);
+  const scene = useMemo(() => new AllianceCityScene(), [runId]);
 
-  useEffect(() => {
-    const onVisibility = () => setHidden(document.hidden);
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
+  useEffect(() => { scene.setSnapshot(state); }, [scene, state]);
 
-  useEffect(() => {
-    if (phase !== 'running' || paused) return;
-    let previous = performance.now();
-    const timer = window.setInterval(() => {
-      const now = performance.now();
-      const delta = Math.min(500, now - previous);
-      previous = now;
-      setElapsedMs((current) => Math.min(durationMs, current + delta));
-    }, 180);
-    return () => window.clearInterval(timer);
-  }, [durationMs, paused, phase]);
-
-  useEffect(() => {
-    if (phase !== 'running') return;
-    setRuntime((current) => advanceCrisisRuntime(current, elapsedMs, speedFactor));
-  }, [elapsedMs, phase, speedFactor]);
-
-  useEffect(() => {
-    scene.setSnapshot({ runtime });
-  }, [runtime, scene]);
-
-  const startRun = (milliseconds: number) => {
-    audioService.playSfx('tap');
-    setDurationMs(milliseconds);
-    setElapsedMs(0);
-    setRuntime(createCrisisRuntime(incidentSet));
+  const assign = (job: JobId, crisis: CrisisId) => {
+    const next = toggleAssign(state, job, crisis);
+    if (next !== state) { setState(next); audioService.playSfx('drop'); }
     setSelectedJob(null);
-    setSelectedRegion('clinic');
-    setPausedByUser(false);
-    setResult(null);
-    setPhase('running');
   };
 
-  const assign = (jobId: JobId, regionId: RegionId) => {
-    if (phase !== 'running') return;
-    const before = runtime;
-    const after = assignCrisisJob(before, jobId, regionId, elapsedMs, speedFactor);
-    if (after === before) return;
-    setRuntime(after);
-    setSelectedJob(null);
-    setSelectedRegion(regionId);
-    audioService.playSfx('drop');
-  };
-
-  const chooseRegion = (regionId: RegionId) => {
-    setSelectedRegion(regionId);
-    if (selectedJob) assign(selectedJob, regionId);
-  };
-
-  const dropJob = (event: DragEvent<HTMLButtonElement>, regionId: RegionId) => {
+  const dropJob = (event: DragEvent<HTMLElement>, crisis: CrisisId) => {
     event.preventDefault();
-    const jobId = event.dataTransfer.getData('text/future-job') as JobId;
-    if (JOBS.some((job) => job.id === jobId)) assign(jobId, regionId);
+    const job = event.dataTransfer.getData('text/future-job') as JobId;
+    if (JOB_ORDER.includes(job)) assign(job, crisis);
   };
 
-  const finishRun = useCallback((snapshot: CrisisRuntime) => {
-    if (finalizedRuns.current.has(runId)) return;
-    finalizedRuns.current.add(runId);
-    const outcome = crisisOutcome(snapshot);
-    setResult(outcome);
-    setPhase('result');
-    if (outcome.success) {
-      completePage(9);
-      addJobCard('미래도시 협력 해결사');
-      addBadge('직업 연합 전략가');
-      grantReward('stage5-alliance-strategist');
-    }
-    setPageData('page08', {
-      incidentSet: incidentSet.id,
-      restored: outcome.restored.map((region) => ({ id: region.id, contributors: region.contributors, solution: region.resolvedBy })),
-      unresolved: outcome.unresolved.map((region) => region.id),
-      stability: snapshot.stability,
-      synergies: snapshot.synergiesTriggered,
-      success: outcome.success,
-      duration: durationMs,
-    });
-    outcome.restored.forEach((region) => logEvent({
-      page: 9,
-      type: 'crisis-region-restored',
-      summary: `${region.label}: ${region.contributors.map((jobId) => snapshot.jobs[jobId].label).join(' + ')}의 관점을 이어 ${region.incident.title}에 대응했어.`,
-      tags: [region.label, '직업 협업', ...region.contributors],
-      traits: { collaboration: 1, analysis: 1, execution: 1 },
-      contextRef: `${incidentSet.id}:${region.id}`,
-    }));
-    if (outcome.restored.length > 0) {
-      logEvent({
-        page: 9,
-        type: outcome.success ? 'crisis-success' : 'crisis-partial',
-        summary: `${outcome.restored.length}개 지역을 회복하고 도시 회복 점수 ${Math.round(snapshot.stability)}를 만들었어.`,
-        tags: ['함께 해결', `협력 효과 ${outcome.synergyCount}`, outcome.success ? '목표 도달' : '다시 도전'],
-        traits: { collaboration: 1, analysis: 1, creation: 1 },
-        contextRef: `${incidentSet.id}:${outcome.success ? 'success' : 'partial'}`,
-      });
-    }
-    audioService.playSfx(outcome.success ? 'reward' : 'success');
-  }, [addBadge, addJobCard, completePage, durationMs, grantReward, incidentSet.id, logEvent, runId, setPageData]);
+  const endTurn = () => {
+    const next = advanceTurn(state, cards);
+    setState(next);
+    setSelectedJob(null);
+    const anyWrong = CRISES.some((crisis) => pairVerdict(crisis, state.assigned[crisis.id]) === 'wrong');
+    audioService.playSfx(anyWrong ? 'warning' : 'success');
+    if (next.done) finish(next);
+    else setPageData(SAVE_KEY, next);
+  };
 
-  useEffect(() => {
-    if (phase === 'running' && (elapsedMs >= durationMs || outcomeNow.restored.length === REGIONS.length)) finishRun(runtime);
-  }, [durationMs, elapsedMs, finishRun, outcomeNow.restored.length, phase, runtime]);
+  const finish = (final: AllianceState) => {
+    const turns = turnsUsed(final);
+    setFinished(true);
+    setPageData(SAVE_KEY, null);
+    if (bestTurns === null || turns < bestTurns) setPageData(BEST_KEY, turns);
+    setArtifacts({ allianceTurns: turns });
+    completePage(9);
+    addBadge(STAGE.badgeName);
+    addJobCard(STAGE.jobTitle);
+    grantReward('stage5-alliance');
+    logEvent({
+      page: 9,
+      type: 'alliance-clear',
+      summary: `위기 3개를 ${turns}턴 만에 안정시켰어. 각 위기에 필요한 두 직업의 힘을 짝지었어.`,
+      tags: ['직업 협업', '연합 대응', '협업', `${turns}턴`],
+      traits: { collaboration: 2, analysis: 1, execution: 1 },
+      contextRef: `run-${runId}`,
+    });
+    audioService.playSfx('reward');
+  };
 
   const retry = () => {
     setRunId((current) => current + 1);
-    setPhase('briefing');
-    setResult(null);
-    setRuntime(createCrisisRuntime(incidentSet));
+    setState(createAllianceState());
+    setFinished(false);
+    setSelectedJob(null);
+    setPageData(SAVE_KEY, null);
+    audioService.playSfx('tap');
   };
 
-  const resultMessage = result
-    ? `${result.restored.length}곳을 도왔고, 도시 힘은 ${Math.round(runtime.stability)}야. ${result.success ? '서로 다른 직업의 힘을 잘 이었어.' : '네 곳을 돕고 도시 힘 55를 채워야 해.'}`
-    : '';
+  const stabilizedCount = CRISES.filter((crisis) => isStabilized(state, crisis.id)).length;
+  const assignedCount = JOB_ORDER.filter((job) => Object.values(state.assigned).some((list) => list.includes(job))).length;
 
   return (
     <GameShell
       page={9}
-      eyebrow="STAGE 5 · ALLIANCE CITY"
+      eyebrow="STAGE 5 · ALLIANCE"
       onNavigate={onNavigate}
       className="page08"
-      footer={phase === 'result' && result?.success
-        ? <StageComplete title="도시 네 곳을 도왔어" message={resultMessage} nextLabel="나의 일하기 지도 보기" onNext={() => onNavigate(10)} />
+      footer={finished
+        ? <StageComplete title="네 직업의 힘이 맞물렸어" message={`${turnsUsed(state)}턴 만에 위기 3개를 안정시켰어. 앵무 무리가 숲으로 돌아오고 있어.`} nextLabel="탐험 돌아보기" onNext={() => onNavigate(10)} />
         : undefined}
     >
-      <div className="p08-layout">
-        <Panel kicker="CITY BRIEFING" title="이번에 할 일" className="p08-brief-panel">
-          <MissionGuide
-            image={pageAsset(8, 10)}
-            imageAlt="여러 직업이 함께 힘을 모으는 문장"
-            action="직업의 힘으로 4곳을 도와요"
-            goals={['네 곳 돕기', '도시 힘 55']}
-          />
-          <div className="p08-stability">
-            <div className="row row--between"><span>도시 힘</span><strong>{Math.round(runtime.stability)}</strong></div>
-            <ProgressBar value={runtime.stability} label="도시 힘" compact />
+      {finished ? (
+        <section className="p08-ending" aria-labelledby="p08-ending-title">
+          <img className="p08-ending__scene" src={v2Asset('scene-restored')} alt="불이 꺼지고 초록으로 돌아온 숲 위로 앵무 무리가 돌아오는 장면" />
+          <div className="p08-ending__copy">
+            <img className="p08-ending__emblem" src={pageAsset(8, 10)} alt="연합 엠블럼" />
+            <div>
+              <h2 id="p08-ending-title">앵무 무리가 돌아왔어</h2>
+              <p>화재가 꺼지고 숲 노드가 초록으로 바뀌었어. 위에서 보고, 근거를 찾고, 보호하고, 정확히 알린 네 힘이 하나로 맞물렸어.</p>
+              <p className="p08-ending__turns">이번 기록 {turnsUsed(state)}턴 · 최고 기록 {Math.min(bestTurns ?? turnsUsed(state), turnsUsed(state))}턴</p>
+              <button className="button button--ghost" onClick={retry}>더 적은 턴으로 다시 하기</button>
+            </div>
           </div>
-          <div className="p08-metrics">
-            <div><span>도운 곳</span><strong>{outcomeNow.restored.length}<small>곳</small></strong></div>
-            <div><span>함께 맞춤</span><strong>{outcomeNow.synergyCount}<small>번</small></strong></div>
-          </div>
-          {runtime.feedback[0] && <div className="toast" role="status">{runtime.feedback[0]}</div>}
-          {phase === 'running' && <button className="button button--ghost button--block" onClick={() => setPausedByUser(true)}><ClockIcon />전략 잠시 멈춤</button>}
-          {phase === 'running' && outcomeNow.restored.length >= 4 && (
-            <button className="button button--teal button--block" onClick={() => finishRun(runtime)}>현재 대응 마무리</button>
-          )}
-        </Panel>
+        </section>
+      ) : (
+        <div className="p08-layout">
+          <Panel kicker="ALLIANCE BRIEFING" title="이번에 할 일" className="p08-brief-panel">
+            <MissionGuide
+              image={pageAsset(8, 10)}
+              imageAlt="네 직업의 힘을 모으는 연합 엠블럼"
+              action="위기마다 필요한 두 힘을 짝지어"
+              goals={['위기 카드의 힌트 읽기', '배지 두 개를 끌어다 붙이기', '턴 진행 → 위기 3개 안정', `끝내면 얻는 것: ${STAGE.reward}`]}
+            />
+            <div className="p08-turn" role="status">
+              <span>턴</span><strong>{state.turn}턴</strong>
+              <small>최고 기록 {bestTurns === null ? '아직 없음' : `${bestTurns}턴`}</small>
+            </div>
+            <div className="p08-metrics">
+              <div><span>안정된 위기</span><strong>{stabilizedCount}<small>/3</small></strong></div>
+              <div><span>이번 턴 배치</span><strong>{assignedCount}<small>/4</small></strong></div>
+            </div>
+            {state.feedback.length > 0 && (
+              <ul className="p08-feedback" aria-label="지난 턴 결과">
+                {state.feedback.map((line) => <li key={line} className={line.includes('필요하다고') || line.includes('번졌어') ? 'is-warning' : ''}>{line}</li>)}
+              </ul>
+            )}
+            <button className="button button--primary button--block" onClick={endTurn} disabled={briefing}>턴 진행</button>
+          </Panel>
 
-        <section className="scene-card p08-scene" aria-labelledby="p08-map-title">
-          <h2 id="p08-map-title" className="sr-only">함께 해결하는 도시 지도</h2>
-          <div className={`p08-central-timer${remainingMs < durationMs * 0.2 ? ' is-urgent' : ''}`} role="timer">
-            <span>함께 풀기 시간</span><strong>{formatTime(remainingMs)}</strong>{paused && <small>시간 멈춤</small>}
-          </div>
-          <PhaserStage scene={scene} ariaLabel={`다섯 지역 도시 지도. 회복 ${outcomeNow.restored.length}곳, 대응 중 ${REGIONS.filter((region) => runtime.regions[region.id].state === 'responding').length}곳`} />
-          <div className="p08-region-layer" aria-label="직업을 배치할 지역">
-            {REGIONS.map((region) => {
-              const regionRuntime = runtime.regions[region.id];
+          <section className="scene-card p08-scene" aria-labelledby="p08-map-title">
+            <h2 id="p08-map-title" className="sr-only">도시 홀로그램</h2>
+            <PhaserStage scene={scene} ariaLabel={`도시 홀로그램. 안정된 위기 ${stabilizedCount}곳, 남은 위기 ${3 - stabilizedCount}곳`} />
+            <div className="p08-crisis-layer" aria-label="위기 카드">
+              {CRISES.map((crisis) => {
+                const value = state.gauges[crisis.id];
+                const stabilized = value <= 0;
+                const jobs = state.assigned[crisis.id];
+                return (
+                  <article
+                    key={crisis.id}
+                    className={`p08-crisis-card${stabilized ? ' is-stable' : value >= 70 ? ' is-critical' : ''}${selectedJob ? ' is-target' : ''}`}
+                    onDragOver={(event) => { if (!stabilized) event.preventDefault(); }}
+                    onDrop={(event) => dropJob(event, crisis.id)}
+                  >
+                    <button
+                      className="p08-crisis-head"
+                      disabled={stabilized || !selectedJob}
+                      onClick={() => { if (selectedJob) assign(selectedJob, crisis.id); }}
+                      aria-label={`${crisis.title}, 위기 ${Math.max(0, value)}%.${selectedJob ? ` ${JOB_LABELS[selectedJob]} 배치` : ''}`}
+                    >
+                      <strong>{crisis.title}</strong>
+                      <span className="p08-crisis-gauge">{stabilized ? '안정' : `위기 ${value}%`}</span>
+                    </button>
+                    <ProgressBar value={Math.max(0, value)} label={`${crisis.title} 위기 게이지`} compact />
+                    <p className="p08-crisis-symptom">{crisis.symptom}</p>
+                    <ul className="p08-crisis-hints" aria-label="필요한 힘">
+                      {crisis.hints.map((hint) => <li key={hint}><SparkIcon />{hint}</li>)}
+                    </ul>
+                    <div className="p08-crisis-slots">
+                      {[0, 1].map((slot) => {
+                        const job = jobs[slot];
+                        return job
+                          ? <button key={slot} className="p08-slot is-filled" onClick={() => assign(job, crisis.id)} aria-label={`${JOB_LABELS[job]} 떼기`}><img src={BADGE_IMAGE[job]} alt="" /><span>{JOB_LABELS[job]}</span></button>
+                          : <span key={slot} className="p08-slot">{stabilized ? <CheckIcon /> : '배지 자리'}</span>;
+                      })}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <Panel kicker="AMMO CARDS" title="내가 만든 카드" className="p08-cards-panel">
+            <p className="p08-cards-note">앞에서 만든 결과가 배지의 힘이 돼. 카드가 좋을수록 위기가 더 크게 줄어.</p>
+            <ul className="p08-card-list">
+              {cards.map((card) => (
+                <li key={card.job}>
+                  <img src={BADGE_IMAGE[card.job]} alt="" />
+                  <div><strong>{card.label}</strong><span className="p08-quality-chip">{card.chip}</span></div>
+                  <b>힘 {card.power}</b>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </div>
+      )}
+
+      {!finished && (
+        <section className="p08-job-deck" aria-labelledby="p08-job-title">
+          <div className="p08-job-heading"><div><span>1 배지 고르기 → 2 위기 카드 누르기 (또는 끌어다 놓기)</span><h2 id="p08-job-title">어떤 힘을 어디에 붙일까?</h2></div>{selectedJob && <p role="status">{JOB_LABELS[selectedJob]} 선택 · 위기 카드를 눌러</p>}</div>
+          <div className="p08-job-grid">
+            {JOB_ORDER.map((job) => {
+              const available = isAvailable(state, job);
+              const placedAt = CRISES.find((crisis) => state.assigned[crisis.id].includes(job));
+              const status = !available ? '쉬는 중 (1턴)' : placedAt ? `${placedAt.title}에 배치` : '쓸 수 있어';
               return (
                 <button
-                  key={region.id}
-                  className={`p08-region-target is-${regionRuntime.state}${selectedRegion === region.id ? ' is-selected' : ''}`}
-                  style={{ '--region-x': `${region.x}%`, '--region-y': `${region.y}%` } as CSSProperties}
-                  onClick={() => chooseRegion(region.id)}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={(event) => dropJob(event, region.id)}
-                  aria-label={`${region.label}, ${REGION_LABEL[regionRuntime.state]}. ${selectedJob ? `${runtime.jobs[selectedJob].label} 배치` : '상세 보기'}`}
+                  key={job}
+                  className={`p08-job-card${!available ? ' is-cooldown' : ''}${placedAt ? ' is-placed' : ''}${selectedJob === job ? ' is-selected' : ''}`}
+                  draggable={available}
+                  disabled={!available || briefing}
+                  onDragStart={(event) => { event.dataTransfer.setData('text/future-job', job); setSelectedJob(job); }}
+                  onClick={() => setSelectedJob((current) => current === job ? null : job)}
+                  aria-pressed={selectedJob === job}
+                  aria-label={`${JOB_LABELS[job]} 배지. ${status}`}
                 >
-                  <span>{region.label}</span><strong>{REGION_LABEL[regionRuntime.state]}</strong>
+                  <span className="p08-job-grip" aria-hidden="true"><GripIcon /></span>
+                  <img src={BADGE_IMAGE[job]} alt="" />
+                  <span className="p08-job-copy"><strong>{JOB_LABELS[job]}</strong></span>
+                  <span className="p08-job-state">{status}</span>
                 </button>
               );
             })}
           </div>
         </section>
-
-        <Panel kicker="REGION EVIDENCE" title={activeRegion.label} className="p08-evidence-panel">
-          <span className={`status-chip status-chip--${activeRegion.state === 'restored' ? 'success' : activeRegion.state === 'critical' ? 'danger' : 'warning'}`}>{REGION_LABEL[activeRegion.state]}</span>
-          <h3>{activeRegion.incident.title}</h3>
-          <p className="p08-symptom">{activeRegion.incident.symptom}</p>
-          <div className="p08-clue"><strong>어떤 힘이 필요할까?</strong><p>{activeRegion.incident.clue}</p></div>
-          <div className="p08-contributors">
-            <strong>지금 돕는 직업</strong>
-            {activeRegion.contributors.length
-              ? <ul>{activeRegion.contributors.map((jobId) => <li key={jobId}>{runtime.jobs[jobId].label}</li>)}</ul>
-              : <p>아직 고른 직업이 없어.</p>}
-          </div>
-        </Panel>
-      </div>
-
-      <section className="p08-job-deck" aria-labelledby="p08-job-title">
-        <div className="p08-job-heading"><div><span>1 직업 고르기 → 2 지도 누르기</span><h2 id="p08-job-title">어떤 직업이 도울 수 있을까?</h2></div>{selectedJob && <p role="status">{runtime.jobs[selectedJob].label} 선택 · 지도에서 한 곳을 눌러</p>}</div>
-        <div className="p08-job-grid">
-          {JOBS.map((job) => {
-            const state = runtime.jobs[job.id];
-            const cooldownLeft = state.status === 'cooldown' ? Math.max(0, (state.readyAt ?? elapsedMs) - elapsedMs) : 0;
-            return (
-              <button
-                key={job.id}
-                className={`p08-job-card is-${state.status}${selectedJob === job.id ? ' is-selected' : ''}`}
-                draggable={state.status === 'ready' && phase === 'running'}
-                disabled={state.status !== 'ready' || phase !== 'running'}
-                onDragStart={(event) => { event.dataTransfer.setData('text/future-job', job.id); setSelectedJob(job.id); }}
-                onClick={() => setSelectedJob((current) => current === job.id ? null : job.id)}
-                aria-pressed={selectedJob === job.id}
-                aria-label={`${job.label}. ${job.skill}. ${JOB_STATUS_LABEL[state.status]}`}
-              >
-                <span className="p08-job-grip" aria-hidden="true"><GripIcon /></span>
-                <img src={pageAsset(8, job.slot)} alt="" />
-                <span className="p08-job-copy"><strong>{job.label}</strong></span>
-                <span className="p08-job-state">{state.status === 'cooldown' ? `${JOB_STATUS_LABEL[state.status]} ${Math.ceil(cooldownLeft / 1000)}초` : JOB_STATUS_LABEL[state.status]}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {phase === 'briefing' && (
-        <Modal title="직업의 힘을 이어 보자" actions={<><button className="button button--ghost" onClick={() => startRun(32_000)}>32초로 해 보기</button><button className="button button--primary" onClick={() => startRun(80_000)}>80초로 시작</button></>}>
-          <p>{incidentSet.briefing}</p>
-          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>직업 카드 고르기</span><i>→</i><b>2</b><span>지도에서 한 곳 누르기</span></div>
-          <p className="modal-note">한 곳에는 서로 다른 직업 두 명의 힘이 필요해.</p>
-        </Modal>
       )}
 
-      {pausedByUser && phase === 'running' && (
-        <Modal title="도시 문제 풀이가 멈췄어" actions={<button className="button button--primary" onClick={() => { setPausedByUser(false); audioService.unlock(); }}>계속하기</button>}>
-          <p>지역 상태와 카드 대기 시간도 함께 멈춰 있어. 준비되면 이어서 해 보자.</p>
-        </Modal>
-      )}
-
-      {phase === 'result' && result && (
-        <Modal title={result.success ? '직업의 힘을 연결했어' : '한 번 더 연결해 보자'} actions={<><button className={result.success ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다른 연결로 다시 하기</button>{result.success && <button className="button button--primary" onClick={() => onNavigate(10)}>나의 일하기 지도 보기</button>}</>}>
-          <p>{resultMessage}</p>
-          <ul className="p08-result-list">
-            {result.restored.map((region) => (
-              <li key={region.id}><span><CheckIcon /></span><div><strong>{region.label} · {region.incident.title}</strong><p>{region.resolvedBy?.map((jobId) => runtime.jobs[jobId].label).join(' + ')}의 힘을 연결했어.</p></div></li>
-            ))}
-            {result.unresolved.map((region) => <li key={region.id} className="is-pending"><span /><div><strong>{region.label} · 더 살펴볼 수 있어</strong><p>{region.incident.clue}</p></div></li>)}
-          </ul>
-          <p className="p08-disclaimer">이 결과는 한 번의 전략 기록이야. 어떤 직업이 더 높거나 낮다는 뜻이 아니고, 다시 연결하면 다른 결과를 만들 수 있어.</p>
+      {briefing && (
+        <Modal title="네 직업의 힘을 짝지어 보자" actions={<button className="button button--primary" onClick={() => { setBriefing(false); audioService.unlock(); audioService.playSfx('tap'); }}>작전 시작</button>}>
+          <p>위기 세 개가 한꺼번에 왔어. 카드에는 직업 이름이 없고 "무엇이 필요한지"만 써 있어. 힌트에 맞는 배지 두 개를 붙여야 위기가 줄어.</p>
+          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>위기 카드 힌트 읽기</span><i>→</i><b>2</b><span>배지 두 개 붙이고 턴 진행</span></div>
+          <p className="modal-note">턴마다 아무도 없는 위기는 더 번져. 쓴 배지는 한 턴 쉬어야 하니 순서를 잘 정해 봐.</p>
         </Modal>
       )}
     </GameShell>

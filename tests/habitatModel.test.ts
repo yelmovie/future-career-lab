@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateHabitat, HABITAT_STRATEGIES, type HabitatPlacement } from '../src/pages/habitatModel';
+import {
+  checkConditions,
+  conditionsFromCareLog,
+  evaluateHabitat,
+  evaluateSimulation,
+  HABITAT_STRATEGIES,
+  type HabitatPlacement,
+} from '../src/pages/habitatModel';
+
+const BOTH = { dehydrated: true, stressed: true };
 
 describe('page 6 habitat rules', () => {
   it.each(HABITAT_STRATEGIES)('accepts the $name strategy without rewarding item count alone', (strategy) => {
@@ -32,5 +41,36 @@ describe('page 6 habitat rules', () => {
     expect(result.noCollisions).toBe(false);
     expect(result.entranceClear).toBe(false);
     expect(result.valid).toBe(false);
+  });
+});
+
+describe('page 6 bird conditions from care log', () => {
+  it('derives conditions from the care log and defaults to both when empty', () => {
+    expect(conditionsFromCareLog([])).toEqual(BOTH);
+    expect(conditionsFromCareLog([{ bird: 'red', issue: '탈수', treatment: '물·전해질' }])).toEqual({ dehydrated: true, stressed: false });
+    expect(conditionsFromCareLog([{ bird: 'green', issue: '스트레스', treatment: '은신처·조용한 곳' }])).toEqual({ dehydrated: false, stressed: true });
+  });
+
+  it('dehydrated bird needs water near a rest spot; stressed bird needs a shelter away from the loud band', () => {
+    const farWater: HabitatPlacement[] = [
+      { instanceId: 'p', itemId: 'natural-perch', x: 40, y: 55, rotation: 0 },
+      { instanceId: 'w', itemId: 'raised-water', x: 90, y: 15, rotation: 0 },
+      { instanceId: 'h', itemId: 'quiet-hideout', x: 40, y: 12, rotation: 0 },
+    ];
+    expect(checkConditions(farWater, BOTH)).toEqual({ waterNearRest: false, shelterQuiet: false });
+    expect(checkConditions(farWater, { dehydrated: false, stressed: false })).toEqual({ waterNearRest: true, shelterQuiet: true });
+    const quietLoop = HABITAT_STRATEGIES.find((s) => s.id === 'quiet-loop')!.placements;
+    expect(checkConditions(quietLoop, BOTH)).toEqual({ waterNearRest: true, shelterQuiet: true });
+  });
+
+  it('counts stars from the three observed behaviours', () => {
+    const quietLoop = HABITAT_STRATEGIES.find((s) => s.id === 'quiet-loop')!.placements;
+    expect(evaluateSimulation(quietLoop, BOTH).stars).toBe(3);
+    // 은신처가 없는 전략은 스트레스 개체가 쉬지 못한다
+    const levels = HABITAT_STRATEGIES.find((s) => s.id === 'forage-levels')!.placements;
+    const result = evaluateSimulation(levels, BOTH);
+    expect(result.behaviors).toEqual({ eat: true, play: true, rest: false });
+    expect(result.stars).toBe(2);
+    expect(evaluateSimulation(levels, { dehydrated: true, stressed: false }).stars).toBe(3);
   });
 });

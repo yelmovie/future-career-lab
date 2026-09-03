@@ -1,347 +1,271 @@
-import Phaser from 'phaser';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { GameShell, MissionGuide, Panel } from '../components/GameShell';
-import { PhaserStage } from '../components/PhaserStage';
-import { ProgressBar } from '../components/ProgressBar';
+import { SearchIcon } from '../components/Icons';
+import { Modal } from '../components/Modal';
 import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
-import { CANVAS_FONT } from '../shared/constants';
-import type { PageNumber } from '../shared/types';
+import type { CauseId, PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
-  MYSTERY_CANDIDATES,
-  MYSTERY_CLUES,
-  coreMysteryLinkKeys,
-  normalizedPair,
-  validMysteryLinkKeys,
-  type CameraId,
+  BINS,
+  FACT_CARDS,
+  HYPOTHESES,
+  IRRELEVANT_CARD,
+  LINKS_TO_UNLOCK,
+  PHOTO_DETAILS,
+  hitDetail,
+  isValidLink,
+  linkKey,
+  photoCards,
+  type BinId,
+  type DetailId,
+  type EvidenceCard,
+  type FactId,
 } from './stage1-2-content';
 import './stage1-2.css';
 
-const CAMERA_LABELS: Record<CameraId, string> = {
-  'cam-a': 'A · 들어가는 곳',
-  'cam-b': 'B · 준비하는 곳',
-  'cam-c': 'C · 찍는 곳',
-};
+const DETAIL_IDS = new Set<string>(PHOTO_DETAILS.map((detail) => detail.id));
+const BIN_IDS = new Set<string>(BINS.map((bin) => bin.id));
+const DRAG_TYPE = 'text/evidence-card';
 
-function stringList(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+function detailList(value: unknown): DetailId[] {
+  return Array.isArray(value) ? value.filter((item): item is DetailId => typeof item === 'string' && DETAIL_IDS.has(item)) : [];
+}
+function binMap(value: unknown): Record<string, BinId> {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter((entry): entry is [string, BinId] => typeof entry[1] === 'string' && BIN_IDS.has(entry[1])));
+}
+function linkList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.includes('::')) : [];
 }
 
-class MysteryCameraScene extends Phaser.Scene {
-  private activeCamera: CameraId = 'cam-a';
-  private collected = new Set<string>();
-  private ready = false;
-  private readonly findClue: (id: string) => void;
-
-  constructor(findClue: (id: string) => void) {
-    super({ key: `MysteryCamera-${Date.now()}-${Math.round(performance.now())}` });
-    this.findClue = findClue;
-  }
-
-  preload() {
-    this.load.image('mystery-cam-a', pageAsset(3, 1));
-    this.load.image('mystery-cam-b', pageAsset(3, 4));
-    this.load.image('mystery-cam-c', pageAsset(3, 7));
-  }
-
-  create() {
-    this.ready = true;
-    this.drawCamera();
-    this.scale.on(Phaser.Scale.Events.RESIZE, this.drawCamera, this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.scale.off(Phaser.Scale.Events.RESIZE, this.drawCamera, this);
-      this.ready = false;
-    });
-  }
-
-  setCamera(camera: CameraId) {
-    this.activeCamera = camera;
-    if (this.ready) this.drawCamera();
-  }
-
-  setCollected(ids: readonly string[]) {
-    this.collected = new Set(ids);
-    if (this.ready) this.drawCamera();
-  }
-
-  private drawCamera() {
-    if (!this.ready) return;
-    this.tweens.killAll();
-    this.children.removeAll(true);
-    const width = Math.max(320, this.scale.width);
-    const height = Math.max(300, this.scale.height);
-    const texture = `mystery-${this.activeCamera}`;
-    const background = this.add.image(width / 2, height / 2, texture).setDisplaySize(width, height).setAlpha(.72);
-    background.setTint(0x8fc9cd);
-    this.add.rectangle(width / 2, height / 2, width, height, 0x03101e, .28);
-
-    const frame = this.add.graphics();
-    frame.lineStyle(2, 0xf1cf83, .7).strokeRoundedRect(14, 14, width - 28, height - 28, 16);
-    frame.lineStyle(1, 0x54d7d0, .32);
-    for (let x = 0; x < width; x += 64) frame.lineBetween(x, 0, x, height);
-    for (let y = 0; y < height; y += 64) frame.lineBetween(0, y, width, y);
-
-    this.add.text(28, 25, CAMERA_LABELS[this.activeCamera], {
-      fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.body, fontStyle: 'bold', color: '#f7e9c9',
-      backgroundColor: '#061426cc', padding: { x: 10, y: 7 },
-    });
-    this.add.text(width - 28, 31, '지금 보기 · 단서 찾기', {
-      fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#8af2e8',
-    }).setOrigin(1, 0);
-
-    MYSTERY_CLUES.filter((clue) => clue.camera === this.activeCamera).forEach((clue, index) => {
-      const x = clue.x * width;
-      const y = clue.y * height;
-      const found = this.collected.has(clue.id);
-      const ring = this.add.circle(x, y, found ? 25 : 31, found ? 0x3ab76b : 0xe4a63c, found ? .82 : .25)
-        .setStrokeStyle(found ? 3 : 4, found ? 0xa9f2c1 : 0xffd37b, 1);
-      this.add.text(x, y, found ? '확인' : `${index + 1}`, {
-        fontFamily: 'Pretendard, sans-serif', fontSize: found ? CANVAS_FONT.cap : CANVAS_FONT.body, fontStyle: 'bold',
-        color: found ? '#061426' : '#fff5dd',
-      }).setOrigin(.5);
-      if (!found) {
-        ring.setInteractive({ useHandCursor: true });
-        ring.on(Phaser.Input.Events.POINTER_DOWN, () => this.findClue(clue.id));
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          this.tweens.add({ targets: ring, scale: 1.18, alpha: .65, duration: 900, yoyo: true, repeat: -1 });
-        }
-      }
-    });
-  }
-}
+interface Line { key: string; x1: number; y1: number; x2: number; y2: number; wrong: boolean }
 
 export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, completePage, logEvent, setPageData, addJobCard } = useGame();
-  const [camera, setCamera] = useState<CameraId>('cam-a');
-  const [clueIds, setClueIds] = useState<string[]>(() => stringList(save.pageData.p3Clues));
-  const [links, setLinks] = useState<string[]>(() => stringList(save.pageData.p3Links));
-  const [candidate, setCandidate] = useState(() => typeof save.pageData.p3Candidate === 'string' ? save.pageData.p3Candidate : '');
-  const [gates, setGates] = useState<string[]>(() => stringList(save.pageData.p3Gates));
-  const [firstLink, setFirstLink] = useState('');
-  const [secondLink, setSecondLink] = useState('');
-  const [hint, setHint] = useState('화면을 바꾸며 서로 다른 종류의 단서를 모아 봐.');
-  const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(3));
-  const clueRef = useRef<(id: string) => void>(() => undefined);
-  const scene = useMemo(() => new MysteryCameraScene((id) => clueRef.current(id)), []);
+  const { save, completePage, logEvent, setPageData, setArtifacts } = useGame();
+  const cards = useMemo<EvidenceCard[]>(() => [...photoCards(save.artifacts.photos), ...FACT_CARDS], [save.artifacts.photos]);
+  const [found, setFound] = useState<DetailId[]>(() => detailList(save.pageData.p4Details));
+  const [bins, setBins] = useState<Record<string, BinId>>(() => binMap(save.pageData.p4Bins));
+  const [links, setLinks] = useState<string[]>(() => linkList(save.pageData.p4Links));
+  const [hypothesis, setHypothesis] = useState<CauseId | null>(save.artifacts.hypothesis);
+  const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(4));
+  const [openPhoto, setOpenPhoto] = useState<PhotoId | null>(null);
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [pendingDetail, setPendingDetail] = useState<DetailId | null>(null);
+  const [wrongLink, setWrongLink] = useState<string | null>(null);
+  const [hint, setHint] = useState('사진을 탭해 확대하고, 숨은 세부를 찾아 봐. 찾은 세부만 선으로 이을 수 있어.');
+  const linkArea = useRef<HTMLDivElement>(null);
+  const chipRefs = useRef(new Map<string, HTMLButtonElement>());
+  const [lines, setLines] = useState<Line[]>([]);
 
-  const collectedClues = MYSTERY_CLUES.filter((clue) => clueIds.includes(clue.id));
-  const typeCount = new Set(collectedClues.map((clue) => clue.type)).size;
-  const coreLinkCount = links.filter((link) => coreMysteryLinkKeys.has(link)).length;
+  const factCards = cards.filter((card) => card.kind === 'fact' && bins[card.id] !== 'none');
+  const foundDetails = PHOTO_DETAILS.filter((detail) => found.includes(detail.id));
+  const allSorted = cards.every((card) => bins[card.id]);
+  const irrelevantOk = bins[IRRELEVANT_CARD] === 'none';
+  const canChoose = links.length >= LINKS_TO_UNLOCK && allSorted && irrelevantOk;
 
-  const findClue = (id: string) => {
-    if (clueIds.includes(id)) return;
-    const clue = MYSTERY_CLUES.find((item) => item.id === id);
-    if (!clue) return;
+  useLayoutEffect(() => {
+    const measure = () => {
+      const host = linkArea.current?.getBoundingClientRect();
+      if (!host) return;
+      const centre = (id: string, side: 'right' | 'left') => {
+        const rect = chipRefs.current.get(id)?.getBoundingClientRect();
+        if (!rect) return null;
+        return { x: (side === 'right' ? rect.right : rect.left) - host.left, y: rect.top + rect.height / 2 - host.top };
+      };
+      const keys = wrongLink ? [...links, wrongLink] : links;
+      setLines(keys.flatMap((key) => {
+        const [detail, fact] = key.split('::');
+        const a = centre(`d-${detail}`, 'right'); const b = centre(`f-${fact}`, 'left');
+        return a && b ? [{ key, x1: a.x, y1: a.y, x2: b.x, y2: b.y, wrong: key === wrongLink }] : [];
+      }));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [links, wrongLink, found, bins]);
+
+  const inspect = (event: MouseEvent<HTMLImageElement>) => {
+    if (!openPhoto) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const detail = hitDetail(openPhoto, (event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height);
+    const meta = PHOTO_DETAILS.find((item) => item.photo === openPhoto)!;
+    if (!detail) { setHint(meta.hint); audioService.playSfx('tap'); return; }
+    if (found.includes(detail)) return;
+    const next = [...found, detail];
+    setFound(next);
+    setPageData('p4Details', next);
+    setHint(`"${meta.label}" 을 찾았어! 이제 증거판에서 사실 카드와 이을 수 있어.`);
     audioService.playSfx('clue');
-    const next = [...clueIds, id];
-    setClueIds(next);
-    setPageData('p3Clues', next);
-    logEvent({
-      page: 4, type: 'evidence-found', contextRef: `clue-${id}`,
-      summary: `${clue.type} 근거 “${clue.title}”을 찾았어.`,
-      tags: ['근거', clue.type, id], traits: { exploration: 1, analysis: 1 },
-    });
-    setHint(`${clue.type} 단서를 기록했어. 다른 화면의 단서와 이어 볼 수 있을까?`);
+    logEvent({ page: 4, type: 'detail-found', contextRef: `detail-${detail}`, summary: `사진을 확대해 ${meta.label}을 찾았어.`, tags: ['관찰', detail], traits: { exploration: 1, analysis: 1 } });
   };
-  clueRef.current = findClue;
 
-  useEffect(() => { scene.setCamera(camera); }, [camera, scene]);
-  useEffect(() => { scene.setCollected(clueIds); }, [clueIds, scene]);
+  const placeCard = (cardId: string, bin: BinId) => {
+    const next = { ...bins, [cardId]: bin };
+    setBins(next);
+    setPageData('p4Bins', next);
+    setSelectedCard(null);
+    audioService.playSfx('drop');
+    if (cardId === IRRELEVANT_CARD && bin !== 'none') setHint('도시 야경이 숲 사건과 이어질까? 한 번 더 생각해 봐.');
+    else if (cardId !== IRRELEVANT_CARD && bin === 'none') setHint('이 카드가 정말 사건과 상관없을까? 사진 속 세부와 비교해 봐.');
+    else setHint(`${BINS.find((item) => item.id === bin)!.label} 칸에 놓았어.`);
+  };
 
-  const addLink = () => {
-    if (!firstLink || !secondLink || firstLink === secondLink) {
-      setHint('서로 다른 단서 두 개를 골라 이어 봐.');
-      return;
-    }
-    const key = normalizedPair(firstLink, secondLink);
-    if (!validMysteryLinkKeys.has(key)) {
+  const onDrop = (event: DragEvent<HTMLElement>, bin: BinId) => {
+    event.preventDefault();
+    const id = event.dataTransfer.getData(DRAG_TYPE);
+    if (id) placeCard(id, bin);
+  };
+
+  const connect = (fact: FactId) => {
+    if (!pendingDetail) { setHint('먼저 왼쪽에서 찾은 세부를 고르고, 오른쪽 사실 카드를 눌러 이어.'); return; }
+    const key = linkKey(pendingDetail, fact);
+    setPendingDetail(null);
+    if (links.includes(key)) { setHint('이미 이은 연결이야.'); return; }
+    if (!isValidLink(pendingDetail, fact)) {
+      setWrongLink(key);
+      window.setTimeout(() => setWrongLink(null), 700);
+      setHint('이 연결을 뒷받침하는 사진은 어느 거야? 세부가 찍힌 사진과 사실이 같은 장소를 가리켜야 해.');
       audioService.playSfx('warning');
-      setHint('두 단서가 같은 일의 흐름을 보여 주는지 다시 살펴봐.');
-      return;
-    }
-    if (links.includes(key)) {
-      setHint('이미 기록한 연결이야. 다른 흐름을 한 번 더 찾아보자.');
       return;
     }
     const next = [...links, key];
     setLinks(next);
-    setPageData('p3Links', next);
-    audioService.playSfx('drop');
-    const isCore = coreMysteryLinkKeys.has(key);
-    setHint(isCore ? '목적과 결과가 이어지는 중요한 흐름을 찾았어.' : '안전한 준비 흐름을 잘 연결했어.');
-    setFirstLink('');
-    setSecondLink('');
+    setPageData('p4Links', next);
+    audioService.playSfx('clue');
+    setHint(next.length >= LINKS_TO_UNLOCK ? '연결 2개! 카드 분류를 마치면 가설을 고를 수 있어.' : '좋은 연결이야. 하나 더 이어 봐.');
   };
 
-  const toggleGate = (gate: string) => {
-    const next = gates.includes(gate) ? gates.filter((item) => item !== gate) : [...gates, gate];
-    setGates(next);
-    setPageData('p3Gates', next);
+  const choose = (id: CauseId) => {
+    setHypothesis(id);
+    setArtifacts({ hypothesis: id });
+    setPageData('p4Hypothesis', id);
+    const label = HYPOTHESES.find((item) => item.id === id)!.label;
+    logEvent({ page: 4, type: 'hypothesis', contextRef: `hypothesis-${id}`, summary: `증거판을 보고 "${label}" 가설을 세웠어.`, tags: ['가설', id], traits: { analysis: 2 } });
+    if (!completed) { setCompleted(true); completePage(4); audioService.playSfx('success'); } else audioService.playSfx('tap');
+    setHint(`가설 카드 "${label}" 를 받았어. 맞는지는 숲 생태 조사에서 확인해. 바꿔도 돼.`);
   };
 
-  const testHypothesis = () => {
-    if (clueIds.length < 4 || typeCount < 3) {
-      setHint('한 화면에 머물지 말고 영상·소리·도구처럼 다른 종류의 단서를 더 찾아봐.');
-      return;
-    }
-    if (links.length < 2 || coreLinkCount < 1) {
-      setHint('준비에서 결과까지 이어지는 흐름과, 목적이 결과물로 이어지는 흐름을 각각 찾아봐.');
-      return;
-    }
-    if (!candidate) {
-      setHint('세 직업 중 지금까지 찾은 단서와 가장 잘 맞는 직업을 골라 봐.');
-      return;
-    }
-    if (gates.length < 3) {
-      setHint('누구를 위한 일인지, 무엇을 남기는지, 어떻게 안전을 지켰는지 모두 확인해 봐.');
-      return;
-    }
-    if (candidate !== 'drone-filmmaker') {
-      audioService.playSfx('warning');
-      setHint('도구 하나만 보지 말고 음성 지시와 완성된 결과물이 함께 가리키는 일을 다시 생각해 봐.');
-      return;
-    }
-    setCompleted(true);
-    completePage(4);
-    addJobCard('드론 영상 촬영가');
-    setPageData('p3Candidate', candidate);
-    logEvent({
-      page: 4, type: 'career-hypothesis', contextRef: 'p3-final-hypothesis',
-      summary: '여러 종류의 근거와 업무 흐름을 연결해 드론 영상 촬영가를 찾아냈어.',
-      tags: ['드론 영상 촬영가', '목적', '결과물', '안전'], traits: { analysis: 2, collaboration: 1 },
-    });
-    audioService.playSfx('success');
-    setHint('단서가 네 생각을 잘 뒷받침해. 숨은 직업을 찾았어.');
-  };
+  const cardName = (id: string) => cards.find((card) => card.id === id)?.title ?? id;
+  const renderCard = (card: EvidenceCard) => (
+    <article
+      key={card.id}
+      className={`evidence-card${selectedCard === card.id ? ' is-selected' : ''}`}
+      draggable
+      onDragStart={(event) => { event.dataTransfer.setData(DRAG_TYPE, card.id); setSelectedCard(card.id); }}
+    >
+      <button className="evidence-card__pick" aria-pressed={selectedCard === card.id} onClick={() => { setSelectedCard(selectedCard === card.id ? null : card.id); audioService.playSfx('tap'); }}>
+        <img src={card.image} alt="" draggable={false} />
+        <strong>{card.title}</strong>
+        <p>{card.note}</p>
+      </button>
+      {card.kind === 'photo' && (
+        <button className="evidence-card__zoom" onClick={() => { setOpenPhoto(card.id as PhotoId); audioService.playSfx('tap'); }} aria-label={`${card.title} 확대 관찰`}>
+          <SearchIcon />{found.some((id) => PHOTO_DETAILS.find((detail) => detail.id === id)?.photo === card.id) ? '세부 찾음' : '확대'}
+        </button>
+      )}
+    </article>
+  );
 
-  const selectCandidate = (id: string) => {
-    setCandidate(id);
-    setPageData('p3Candidate', id);
-  };
-
-  const linkName = (key: string) => {
-    const [a, b] = key.split('::');
-    const first = MYSTERY_CLUES.find((item) => item.id === a)?.title ?? a;
-    const second = MYSTERY_CLUES.find((item) => item.id === b)?.title ?? b;
-    return `${first} ↔ ${second}`;
-  };
+  const openMeta = openPhoto ? PHOTO_DETAILS.find((item) => item.photo === openPhoto)! : null;
 
   return (
     <GameShell
       page={4}
-      eyebrow="STAGE 2 · 단서 조사"
+      eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
-      footer={completed ? (
-        <StageComplete
-          title="숨은 직업을 찾았어"
-          message="도구만 보지 않고 일의 목적·결과·안전까지 연결했어."
-          nextLabel="드론 촬영 현장으로"
-          onNext={() => onNavigate(5)}
-        />
-      ) : undefined}
+      footer={completed ? <StageComplete title="가설 카드를 얻었어" message="구조된 앵무새를 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="앵무새 살피러 가기" onNext={() => onNavigate(5)} /> : undefined}
     >
       <div className="game-grid game-grid--wide-center mystery-layout">
-        <Panel title="이번에 할 일" kicker="SECURITY CAM">
+        <Panel title="이번 미션" kicker="EVIDENCE BOARD">
           <MissionGuide
-            image={pageAsset(3, 10)}
-            imageAlt="단서를 모으는 탐정 가방"
-            action="단서를 모아 직업을 찾아요"
-            goals={['단서 4개 찾기', '두 쌍 이어 보기', '직업 고르기']}
+            image={pageAsset(3, 5)}
+            imageAlt="증거판"
+            action="사진 속 세부를 찾아 사실과 이어"
+            goals={['사진 3장 확대해 숨은 세부 찾기', '카드를 확실·의심·무관으로 나누기', '세부 ↔ 사실 2개 잇고 가설 고르기', '끝내면: 가설 카드 (숲 조사에서 검증)']}
           />
-          <div className="camera-tabs" role="tablist" aria-label="조사 카메라">
-            {(Object.keys(CAMERA_LABELS) as CameraId[]).map((id) => (
-              <button
-                key={id}
-                role="tab"
-                aria-selected={camera === id}
-                className={camera === id ? 'is-active' : ''}
-                onClick={() => { setCamera(id); audioService.playSfx('tap'); }}
-              >{CAMERA_LABELS[id]}</button>
-            ))}
-          </div>
-          <ProgressBar value={(clueIds.length / 6) * 100} label={`단서 ${clueIds.length} / 6 · 종류 ${typeCount} / 3`} />
-          <details className="keyboard-hotspots" aria-label="현재 화면의 단서 위치">
-            <summary>표시를 못 찾겠어요</summary>
-            {MYSTERY_CLUES.filter((clue) => clue.camera === camera).map((clue, index) => (
-              <button key={clue.id} className="button button--ghost" disabled={clueIds.includes(clue.id)} onClick={() => findClue(clue.id)}>
-                {clueIds.includes(clue.id) ? `${clue.title} 찾음` : `${index + 1}번 표시 누르기`}
-              </button>
-            ))}
-          </details>
+          <ul className="board-steps" aria-label="진행">
+            <li className={found.length === PHOTO_DETAILS.length ? 'is-done' : ''}><b>1</b>세부 {found.length} / {PHOTO_DETAILS.length}</li>
+            <li className={allSorted && irrelevantOk ? 'is-done' : ''}><b>2</b>분류 {Object.keys(bins).filter((id) => cards.some((card) => card.id === id)).length} / {cards.length}</li>
+            <li className={links.length >= LINKS_TO_UNLOCK ? 'is-done' : ''}><b>3</b>연결 {links.length} / {LINKS_TO_UNLOCK}</li>
+          </ul>
+          <div className="replay-goal" role="note"><strong>갱신 목표</strong><span>다른 가설을 골라 숲 조사에서 다시 검증하기</span></div>
+          <div className="toast" role="status">{hint}</div>
         </Panel>
 
-        <div className="mystery-center stack">
-          <div className="scene-card mystery-scene">
-            <PhaserStage scene={scene} ariaLabel="세 화면을 바꾸며 조사하는 현장. 반짝이는 원을 누르면 단서를 찾을 수 있어." />
-          </div>
-          <Panel className="evidence-tray" title="찾은 단서" kicker="EVIDENCE BOARD">
-            {collectedClues.length === 0 ? <p className="empty-copy">화면의 반짝이는 표시를 눌러 첫 단서를 찾아 봐.</p> : (
-              <div className="evidence-chip-grid">
-                {collectedClues.map((clue) => (
-                  <article key={clue.id} className="evidence-chip">
-                    <span>{clue.type}</span><strong>{clue.title}</strong>
-                  </article>
-                ))}
-              </div>
-            )}
+        <div className="stack">
+          <Panel title="단서 카드" kicker="CARDS">
+            <p className="empty-copy">카드를 끌어 아래 칸에 놓거나, 카드를 누른 뒤 칸의 버튼을 눌러.</p>
+            <div className="evidence-card-grid">{cards.filter((card) => !bins[card.id]).map(renderCard)}</div>
           </Panel>
+          <div className="evidence-bins">
+            {BINS.map((bin) => (
+              <section key={bin.id} className={`evidence-bin is-${bin.id}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => onDrop(event, bin.id)} aria-label={`${bin.label} 칸`}>
+                <header>
+                  <h3>{bin.label}</h3>
+                  <button className="button button--ghost" disabled={!selectedCard} onClick={() => selectedCard && placeCard(selectedCard, bin.id)}>{selectedCard ? `${cardName(selectedCard)} 여기에` : '카드 고른 뒤'}</button>
+                </header>
+                <div className="evidence-card-grid evidence-card-grid--bin">{cards.filter((card) => bins[card.id] === bin.id).map(renderCard)}</div>
+              </section>
+            ))}
+          </div>
         </div>
 
-        <Panel title="내 생각 확인" kicker="CONNECT & CHECK">
-          {clueIds.length < 4 || typeCount < 3 ? (
-            <div className="mystery-next-step" role="status"><b>1</b><strong>먼저 단서 4개를 찾아 줘</strong><span>서로 다른 색의 단서를 찾아 봐.</span></div>
-          ) : (
-            <div className={`hypothesis-section${links.length >= 2 ? ' is-done' : ''}`}>
-              <strong><b>{links.length >= 2 ? '✓' : '1'}</b> 단서 두 쌍 잇기</strong>
-              {links.length < 2 && <>
-                <select aria-label="첫 번째 단서" value={firstLink} onChange={(event) => setFirstLink(event.target.value)}>
-                  <option value="">첫 단서 고르기</option>
-                  {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
-                </select>
-                <select aria-label="두 번째 단서" value={secondLink} onChange={(event) => setSecondLink(event.target.value)}>
-                  <option value="">둘째 단서 고르기</option>
-                  {collectedClues.map((clue) => <option key={clue.id} value={clue.id}>{clue.title}</option>)}
-                </select>
-                <button className="button button--teal button--block" onClick={addLink}>두 단서 잇기</button>
-              </>}
-              <ul className="evidence-links">
-                {links.map((link) => <li key={link}>{linkName(link)}<span>{coreMysteryLinkKeys.has(link) ? '중요한 연결' : '준비 연결'}</span></li>)}
-              </ul>
+        <Panel title="선잇기" kicker="CONNECT">
+          <div className="link-area" ref={linkArea}>
+            <svg className="link-lines" aria-hidden="true">
+              {lines.map((line) => <line key={line.key} className={line.wrong ? 'is-wrong' : ''} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />)}
+            </svg>
+            <div className="link-column">
+              <strong>찾은 세부</strong>
+              {foundDetails.length === 0 && <p className="empty-copy">사진을 확대해 세부를 찾으면 여기 생겨.</p>}
+              {foundDetails.map((detail) => (
+                <button key={detail.id} ref={(el) => { if (el) chipRefs.current.set(`d-${detail.id}`, el); else chipRefs.current.delete(`d-${detail.id}`); }}
+                  className={`link-chip${pendingDetail === detail.id ? ' is-pending' : ''}${links.some((key) => key.startsWith(`${detail.id}::`)) ? ' is-linked' : ''}`}
+                  aria-pressed={pendingDetail === detail.id} onClick={() => { setPendingDetail(pendingDetail === detail.id ? null : detail.id); audioService.playSfx('tap'); }}>
+                  {detail.label}
+                </button>
+              ))}
             </div>
-          )}
-
-          {links.length >= 2 && (
-            <div className="hypothesis-section">
-              <strong><b>2</b> 직업 하나 고르기</strong>
-              <div className="candidate-list" role="radiogroup" aria-label="알맞은 직업">
-                {MYSTERY_CANDIDATES.map((item) => (
-                  <button key={item.id} role="radio" aria-checked={candidate === item.id} className={candidate === item.id ? 'is-selected' : ''} onClick={() => selectCandidate(item.id)}>
-                    <strong>{item.name}</strong>
-                  </button>
-                ))}
-              </div>
+            <div className="link-column link-column--facts">
+              <strong>관찰 사실</strong>
+              {factCards.map((card) => (
+                <button key={card.id} ref={(el) => { if (el) chipRefs.current.set(`f-${card.id}`, el); else chipRefs.current.delete(`f-${card.id}`); }}
+                  className={`link-chip${links.some((key) => key.endsWith(`::${card.id}`)) ? ' is-linked' : ''}`} disabled={!pendingDetail} onClick={() => connect(card.id as FactId)}>
+                  {card.title}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          {candidate && (
-            <div className="hypothesis-section">
-              <strong><b>3</b> 세 가지 모두 누르기</strong>
-              <div className="gate-list">
-                {([
-                  ['purpose', '누구를 돕지?'], ['result', '무엇을 만들지?'], ['safety', '어떻게 안전할까?'],
-                ] as const).map(([id, label]) => (
-                  <button key={id} aria-pressed={gates.includes(id)} className={gates.includes(id) ? 'is-checked' : ''} onClick={() => toggleGate(id)}>{label}</button>
-                ))}
-              </div>
+          <div className={`hypothesis-section${hypothesis ? ' is-done' : ''}`}>
+            <strong><b>{hypothesis ? '✓' : '4'}</b> 가설 고르기</strong>
+            {!canChoose && <p className="empty-copy">{links.length < LINKS_TO_UNLOCK ? `연결 ${LINKS_TO_UNLOCK}개가 필요해.` : !allSorted ? '카드를 모두 칸에 넣어 줘.' : '무관한 카드가 다른 칸에 있어. 다시 봐.'}</p>}
+            <div className="candidate-list" role="radiogroup" aria-label="가설">
+              {HYPOTHESES.map((item) => (
+                <button key={item.id} role="radio" aria-checked={hypothesis === item.id} className={hypothesis === item.id ? 'is-selected' : ''} disabled={!canChoose} onClick={() => choose(item.id)}>
+                  <strong>{item.label}</strong><small>{item.note}</small>
+                </button>
+              ))}
             </div>
-          )}
-
-          <div className="toast" role="status">{hint}</div>
-          {candidate && <button className="button button--primary button--large button--block" onClick={testHypothesis} disabled={completed}>이 직업이 맞는지 보기</button>}
+          </div>
         </Panel>
       </div>
+
+      {openPhoto && openMeta && (
+        <Modal title={`${cardName(openPhoto)} 확대 관찰`} onClose={() => setOpenPhoto(null)} actions={<button className="button button--primary" onClick={() => setOpenPhoto(null)}>닫기</button>}>
+          <p className="zoom-hint">{found.includes(openMeta.id) ? `찾은 세부: ${openMeta.label}` : '사진에서 이상한 부분을 눌러 봐.'}</p>
+          <div className="zoom-frame">
+            <img src={cards.find((card) => card.id === openPhoto)!.image} alt={`${cardName(openPhoto)} 확대`} onClick={inspect} />
+            {found.includes(openMeta.id) && (
+              <span className="zoom-mark" style={{ left: `${openMeta.rect.x * 100}%`, top: `${openMeta.rect.y * 100}%`, width: `${openMeta.rect.width * 100}%`, height: `${openMeta.rect.height * 100}%` }}>
+                {openMeta.label}
+              </span>
+            )}
+          </div>
+        </Modal>
+      )}
     </GameShell>
   );
 }

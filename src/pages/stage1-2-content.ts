@@ -1,191 +1,130 @@
-import type { TraitKey } from '../shared/types';
+import { backgroundFor, pageAsset, v2Asset } from '../shared/assets';
+import { seededShuffle } from '../shared/rng';
+import type { CauseId, PhotoId } from '../shared/types';
 
-export interface WorkStyleOption {
-  id: string;
-  title: string;
-  description: string;
-  traits: Partial<Record<TraitKey, number>>;
-}
-
-export interface WorkStyleScenario {
-  id: string;
-  title: string;
-  prompt: string;
-  imageSlot: number;
-  options: readonly [WorkStyleOption, WorkStyleOption];
-}
-
-export const WORK_STYLE_SCENARIOS: readonly WorkStyleScenario[] = [
-  {
-    id: 'ws01', title: '친구와 다르게 봤어', imageSlot: 1,
-    prompt: '친구와 내가 본 것이 달라. 어떻게 해 볼까?',
-    options: [
-      { id: 'share_compare', title: '친구와 같이 보기', description: '서로 본 것을 말하고 같은 점을 찾아.', traits: { collaboration: 2, care: 1 } },
-      { id: 'trace_pattern', title: '차례대로 정리하기', description: '언제 어디서 봤는지 차례대로 놓아 봐.', traits: { analysis: 2, execution: 1 } },
-    ],
-  },
-  {
-    id: 'ws02', title: '처음 찍는 영상', imageSlot: 2,
-    prompt: '처음 찍는 영상이야. 무엇부터 할까?',
-    options: [
-      { id: 'new_move', title: '먼저 움직여 보기', description: '짧게 움직이며 멋진 화면을 찾아.', traits: { creation: 2, exploration: 1 } },
-      { id: 'known_checklist', title: '준비부터 확인하기', description: '안전과 준비물을 보고 시작해.', traits: { execution: 2, analysis: 1 } },
-    ],
-  },
-  {
-    id: 'ws03', title: '가끔 울리는 알림', imageSlot: 3,
-    prompt: '알림이 가끔만 울려. 어떻게 알아볼까?',
-    options: [
-      { id: 'history_test', title: '울린 때를 적어 보기', description: '언제 울렸는지 모아 하나씩 살펴.', traits: { analysis: 2, exploration: 1 } },
-      { id: 'safe_detour', title: '안전한 길 먼저 만들기', description: '위험을 피할 길부터 친구와 정해.', traits: { execution: 2, collaboration: 1 } },
-    ],
-  },
-  {
-    id: 'ws04', title: '새 놀이 기구', imageSlot: 4,
-    prompt: '동물에게 새 놀이 기구를 주려고 해. 무엇부터 할까?',
-    options: [
-      { id: 'watch_together', title: '함께 천천히 살피기', description: '돌보는 사람과 멀리서 반응을 봐.', traits: { care: 2, collaboration: 1 } },
-      { id: 'prototype_first', title: '작게 만들어 보기', description: '작게 만들고 시험한 뒤 고쳐.', traits: { creation: 2, execution: 1 } },
-    ],
-  },
-  {
-    id: 'ws05', title: '나뭇잎 색이 달라졌어', imageSlot: 5,
-    prompt: '강가 나뭇잎 색이 달라졌어. 어떻게 알아볼까?',
-    options: [
-      { id: 'survey_marks', title: '직접 다니며 찍기', description: '여러 곳을 돌며 사진을 남겨.', traits: { exploration: 2, analysis: 1 } },
-      { id: 'people_records', title: '사람들에게 물어보기', description: '사람들의 이야기를 모아 지도를 만들어.', traits: { collaboration: 2, care: 1 } },
-    ],
-  },
-  {
-    id: 'ws06', title: '어려운 설명', imageSlot: 6,
-    prompt: '설명이 어려워서 친구들이 그냥 지나가. 어떻게 바꿀까?',
-    options: [
-      { id: 'co_make_route', title: '친구와 체험 만들기', description: '묻고 만져 보는 놀이로 만들어.', traits: { creation: 2, collaboration: 1 } },
-      { id: 'sort_evidence', title: '중요한 말만 남기기', description: '꼭 필요한 말을 쉬운 차례로 놓아.', traits: { analysis: 2, execution: 1 } },
-    ],
-  },
-  {
-    id: 'ws07', title: '보기 힘든 화면', imageSlot: 7,
-    prompt: '글씨와 버튼이 작아서 쓰기 어려워. 무엇을 할까?',
-    options: [
-      { id: 'rearrange_now', title: '크고 보기 좋게 바꾸기', description: '가장 불편한 곳부터 크게 바꿔.', traits: { care: 2, execution: 1 } },
-      { id: 'try_new_display', title: '새 표시를 써 보기', description: '소리와 모양과 색을 함께 써 봐.', traits: { exploration: 2, creation: 1 } },
-    ],
-  },
-  {
-    id: 'ws08', title: '처음 온 곳', imageSlot: 8,
-    prompt: '처음 온 곳에서 일을 해야 해. 어떻게 익힐까?',
-    options: [
-      { id: 'walk_and_sketch', title: '걸으며 지도 그리기', description: '직접 둘러보고 중요한 곳을 그려.', traits: { exploration: 2, creation: 1 } },
-      { id: 'listen_then_plan', title: '설명 듣고 나누기', description: '조심할 점을 듣고 역할을 나눠.', traits: { care: 2, collaboration: 1 } },
-    ],
-  },
-] as const;
-
-export type CameraId = 'cam-a' | 'cam-b' | 'cam-c';
-export type ClueType = '영상' | '공간' | '도구' | '음성' | '결과물' | '행동';
-
-export interface MysteryClue {
-  id: string;
-  camera: CameraId;
-  type: ClueType;
-  title: string;
-  note: string;
-  x: number;
-  y: number;
-}
-
-export const MYSTERY_CLUES: readonly MysteryClue[] = [
-  { id: 'route-video', camera: 'cam-a', type: '영상', title: '날아갈 길', note: '촬영 전에 날아갈 길과 막힌 곳을 먼저 확인했어.', x: .28, y: .42 },
-  { id: 'brief-permit', camera: 'cam-a', type: '공간', title: '들어가도 된다는 표', note: '사람이 많은 곳을 피해 들어가도 되는 곳을 표시했어.', x: .72, y: .68 },
-  { id: 'shared-kit', camera: 'cam-b', type: '도구', title: '촬영 도구 상자', note: '드론과 여분 배터리를 함께 확인했어.', x: .33, y: .69 },
-  { id: 'director-audio', camera: 'cam-b', type: '음성', title: '찍어 달라는 말', note: '“강가의 저녁 모습이 이어지게 찍어 주세요.”', x: .7, y: .35 },
-  { id: 'shot-list', camera: 'cam-c', type: '결과물', title: '찍을 장면 목록', note: '다리와 사람과 강가 모습에 완료 표시가 있어.', x: .3, y: .35 },
-  { id: 'retake-behavior', camera: 'cam-c', type: '행동', title: '다시 찍는 모습', note: '화면이 흔들리자 같은 길을 더 안정되게 다시 날렸어.', x: .73, y: .66 },
-] as const;
-
-export const MYSTERY_CANDIDATES = [
-  { id: 'drone-filmmaker', name: '드론 영상 촬영가', description: '목적에 맞는 항공 영상을 안전하게 계획하고 촬영해.' },
-  { id: 'drone-inspector', name: '드론 시설 살피는 사람', description: '높거나 위험한 시설을 찍어 살펴.' },
-  { id: 'field-researcher', name: '자연을 살피는 연구원', description: '자연을 보고 자료를 모아.' },
-] as const;
-
-export const VALID_MYSTERY_LINKS = [
-  ['route-video', 'brief-permit'],
-  ['director-audio', 'shot-list'],
-  ['retake-behavior', 'shot-list'],
-  ['shared-kit', 'route-video'],
-] as const;
-
-export const CORE_MYSTERY_LINKS = [
-  ['director-audio', 'shot-list'],
-  ['retake-behavior', 'shot-list'],
-] as const;
-
-export function normalizedPair(first: string, second: string): string {
-  return [first, second].sort().join('::');
-}
-
-export const validMysteryLinkKeys = new Set(VALID_MYSTERY_LINKS.map(([a, b]) => normalizedPair(a, b)));
-export const coreMysteryLinkKeys = new Set(CORE_MYSTERY_LINKS.map(([a, b]) => normalizedPair(a, b)));
+/* ---------- S1-a 드론 정찰 (게임 페이지 3) ---------- */
 
 export interface DronePoint { x: number; y: number }
+export interface DroneRect { x: number; y: number; width: number; height: number }
 
-export const DRONE_TARGETS = [
-  { id: 'bridge', name: '다리 전경', x: .77, y: .26 },
-  { id: 'interview', name: '인터뷰 대상', x: .32, y: .38 },
-  { id: 'river', name: '강변 분위기', x: .58, y: .72 },
-] as const;
+export const DRONE_START: DronePoint = { x: .08, y: .5 };
+/** 촬영 목표 3곳. 원 안에 들어오면 REC 창이 열린다. */
+export const DRONE_TARGETS: readonly { id: PhotoId; name: string; x: number; y: number }[] = [
+  { id: 'logging', name: '벌목지', x: .3, y: .28 },
+  { id: 'stream', name: '막힌 물길', x: .6, y: .72 },
+  { id: 'construction', name: '공사장', x: .82, y: .3 },
+];
+export const REC_RADIUS = .12;
+export const REC_CENTER_RATIO = .45;
 
-export const DRONE_PRESETS = [
-  { id: 'interview', name: '인터뷰 지점', x: .32, y: .38 },
-  { id: 'bridge', name: '다리 전경 지점', x: .77, y: .26 },
-  { id: 'river', name: '강변 촬영 지점', x: .58, y: .72 },
-  { id: 'trees', name: '나무길 대기 지점', x: .19, y: .67 },
-] as const;
+export type WindDirection = 'head' | 'side' | 'tail';
+export interface WindZone extends DroneRect { id: string; name: string; direction: WindDirection }
+const WIND_RECTS: readonly DroneRect[] = [
+  { x: .16, y: .1, width: .26, height: .3 },
+  { x: .42, y: .5, width: .34, height: .3 },
+  { x: .66, y: .1, width: .3, height: .28 },
+];
+const WIND_LABEL: Record<WindDirection, string> = { head: '맞바람', side: '옆바람', tail: '뒷바람' };
+/** 바람 방향은 세션 시드로 섞인다. 맞바람은 배터리 2배, 뒷바람은 오히려 덜 든다. */
+export function windZonesFor(seed: number): WindZone[] {
+  const directions = seededShuffle<WindDirection>(['head', 'side', 'tail'], seed);
+  return WIND_RECTS.map((rect, index) => ({ ...rect, id: `wind-${index}`, direction: directions[index]!, name: WIND_LABEL[directions[index]!] }));
+}
+export const DRAIN_MULTIPLIER: Record<WindDirection, number> = { head: 2, side: 1.3, tail: .7 };
+export const BASE_DRAIN_PER_SECOND = 2.1;
+export const NUDGE_DRAIN = .3;
 
-export const DRONE_NO_FLY_ZONES = [
-  { id: 'bridge-deck', name: '다리 위 통행 구역', x: .68, y: .41, width: .24, height: .13 },
-  { id: 'crowd', name: '관람객 밀집 구역', x: .17, y: .15, width: .19, height: .13 },
-  { id: 'backstage', name: '행사 장비 구역', x: .08, y: .76, width: .2, height: .14 },
-] as const;
+export function pointInRect(point: DronePoint, rect: DroneRect): boolean {
+  return point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height;
+}
+export function distance(a: DronePoint, b: DronePoint): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+export function batteryDrain(point: DronePoint, zones: readonly WindZone[], seconds: number): number {
+  const zone = zones.find((item) => pointInRect(point, item));
+  return BASE_DRAIN_PER_SECOND * (zone ? DRAIN_MULTIPLIER[zone.direction] : 1) * seconds;
+}
+/** REC 창 판정. 원 밖이면 null, 중앙 45% 안이면 center, 그 외 edge. */
+export function recQuality(dist: number): 'center' | 'edge' | null {
+  if (dist > REC_RADIUS) return null;
+  return dist <= REC_RADIUS * REC_CENTER_RATIO ? 'center' : 'edge';
+}
 
-export const DRONE_WIND_ZONES = [
-  { id: 'river-wind', name: '강바람', x: .45, y: .53, width: .32, height: .29 },
-  { id: 'tree-gust', name: '나무 돌풍', x: .08, y: .48, width: .2, height: .23 },
-] as const;
-
-export interface DroneReview {
-  purpose: number;
-  safety: number;
-  framing: number;
-  battery: number;
-  total: number;
-  coveredTargets: string[];
-  violations: number;
+export interface DronePhoto { id: PhotoId; quality: 'center' | 'edge' }
+export interface DroneResult {
+  photos: DronePhoto[];
   batteryRemaining: number;
+  passes: number;
+  drainByZone: Record<string, number>;
   passed: boolean;
+  precision: boolean;
+}
+export const PRECISION_BATTERY = 30;
+export function evaluateFlight(input: { photos: DronePhoto[]; batteryRemaining: number; passes: number; drainByZone: Record<string, number> }): DroneResult {
+  const passed = input.photos.length === DRONE_TARGETS.length;
+  const precision = passed && input.batteryRemaining >= PRECISION_BATTERY && input.photos.every((photo) => photo.quality === 'center');
+  return { ...input, passed, precision };
+}
+export function photoAsset(id: PhotoId): string {
+  return v2Asset(`photo-${id}`);
 }
 
-export function scoreDroneFlight(input: {
-  coveredTargets: number;
-  violations: number;
-  stableRecordSeconds: number;
-  batteryRemaining: number;
-}): DroneReview {
-  const purposePct = Math.min(100, Math.round((input.coveredTargets / 3) * 100));
-  const safetyPct = Math.max(0, 100 - input.violations * 35);
-  const framingPct = Math.min(100, Math.round((input.stableRecordSeconds / 4.5) * 100));
-  const batteryPct = Math.min(100, Math.round((input.batteryRemaining / 35) * 100));
-  const purpose = Math.round(purposePct * .35);
-  const safety = Math.round(safetyPct * .30);
-  const framing = Math.round(framingPct * .20);
-  const battery = Math.round(batteryPct * .15);
-  const total = purpose + safety + framing + battery;
-  return {
-    purpose, safety, framing, battery, total,
-    coveredTargets: [], violations: input.violations,
-    batteryRemaining: input.batteryRemaining,
-    passed: total >= 70 && purposePct >= 65 && safetyPct >= 60,
-  };
+/* ---------- S1-b 증거판 (게임 페이지 4) ---------- */
+
+export type BinId = 'sure' | 'doubt' | 'none';
+export const BINS: readonly { id: BinId; label: string }[] = [
+  { id: 'sure', label: '확실' },
+  { id: 'doubt', label: '의심' },
+  { id: 'none', label: '무관' },
+];
+
+export type DetailId = 'stump' | 'dam' | 'noise-sign';
+export interface PhotoDetail { id: DetailId; photo: PhotoId; label: string; hint: string; rect: DroneRect }
+/** 숨은 세부 핫스팟. rect 는 사진 크기에 대한 비율. */
+export const PHOTO_DETAILS: readonly PhotoDetail[] = [
+  { id: 'stump', photo: 'logging', label: '톱 자국 그루터기', hint: '갈색 땅 가운데를 잘 봐. 나무가 어떻게 잘렸지?', rect: { x: .14, y: .28, width: .32, height: .36 } },
+  { id: 'dam', photo: 'stream', label: '물길 막은 자재', hint: '물이 끊긴 자리에 무엇이 놓여 있지?', rect: { x: .24, y: .34, width: .5, height: .28 } },
+  { id: 'noise-sign', photo: 'construction', label: '소음 작업 표지', hint: '공사장 울타리 안, 동그란 표지판을 찾아 봐.', rect: { x: .5, y: .54, width: .12, height: .16 } },
+];
+export function hitDetail(photo: PhotoId, fx: number, fy: number): DetailId | null {
+  const detail = PHOTO_DETAILS.find((item) => item.photo === photo && pointInRect({ x: fx, y: fy }, item.rect));
+  return detail?.id ?? null;
 }
+
+export type FactId = 'cctv' | 'footprint' | 'silence' | 'city-night';
+export interface EvidenceCard { id: PhotoId | FactId; kind: 'photo' | 'fact'; title: string; note: string; image: string }
+export const FACT_CARDS: readonly EvidenceCard[] = [
+  { id: 'cctv', kind: 'fact', title: 'CCTV 클립', note: '밤마다 큰 트럭이 숲길로 들어갔다 나와.', image: pageAsset(3, 4) },
+  { id: 'footprint', kind: 'fact', title: '발자국 단서', note: '큰 부츠 자국이 물가까지 이어져.', image: pageAsset(3, 7) },
+  { id: 'silence', kind: 'fact', title: '녹음기 기록', note: '앵무새 울음이 일주일 전부터 안 들려.', image: pageAsset(3, 8) },
+  { id: 'city-night', kind: 'fact', title: '도시 야경', note: '도시 불빛이 예쁘게 찍혔어.', image: backgroundFor(9) },
+];
+export const IRRELEVANT_CARD: FactId = 'city-night';
+export function photoCards(photos: readonly DronePhoto[]): EvidenceCard[] {
+  const ids = photos.length ? photos.map((photo) => photo.id) : DRONE_TARGETS.map((target) => target.id);
+  return ids.map((id) => ({
+    id, kind: 'photo', image: photoAsset(id),
+    title: `${DRONE_TARGETS.find((target) => target.id === id)?.name ?? id} 사진`,
+    note: photos.find((photo) => photo.id === id)?.quality === 'edge' ? '가장자리에 찍혔어. 확대해서 살펴봐.' : '탭해서 확대하면 숨은 세부가 보여.',
+  }));
+}
+
+/** 세부 ↔ 관찰 사실. 여기 없는 조합은 뒷받침하는 사진이 없는 연결이다. */
+export const VALID_LINKS: readonly [DetailId, FactId][] = [
+  ['stump', 'cctv'],
+  ['dam', 'footprint'],
+  ['noise-sign', 'silence'],
+];
+export function linkKey(detail: DetailId, fact: FactId): string {
+  return `${detail}::${fact}`;
+}
+export function isValidLink(detail: DetailId, fact: FactId): boolean {
+  return VALID_LINKS.some(([d, f]) => d === detail && f === fact);
+}
+export const LINKS_TO_UNLOCK = 2;
+
+export const HYPOTHESES: readonly { id: CauseId; label: string; note: string }[] = [
+  { id: 'logging', label: '벌목 때문', note: '나무가 잘려 살 곳과 먹이가 사라졌어.' },
+  { id: 'noise', label: '소음 때문', note: '공사 소리에 놀라 멀리 떠났어.' },
+  { id: 'water', label: '물 때문', note: '물길이 막혀 마실 물이 없어졌어.' },
+];

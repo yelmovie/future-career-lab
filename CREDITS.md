@@ -25,3 +25,16 @@ License: https://pixabay.com/service/license-summary/
 | `stage-success-chime.mp3` | UI Success Chime | SoundShelfStudio | https://pixabay.com/sound-effects/technology-ui-success-chime-513565/ |
 | `final-reward.mp3` | Success/Finish UI sound effect | Nomagician | https://pixabay.com/sound-effects/technology-successfinish-ui-sound-effect-467873/ |
 
+
+## v2 추가 효과음 (2026-09-04, Mixkit Sound Effects Free License — 표기 불필요, 상업 이용 가능)
+
+| 파일 | 원본 | 출처 | 라이선스 | 가공 |
+|---|---|---|---|---|
+| `public/audio/v2/parrot-call.mp3` | Tropical bird squeak (#27) | https://mixkit.co/free-sound-effects/bird/ | Mixkit Sound Effects Free License | 1.3초 트림, 페이드, 라우드니스 정규화 |
+| `public/audio/v2/parrot-alarm.mp3` | Hawk call squawk (#1277) | https://mixkit.co/free-sound-effects/bird/ | Mixkit Sound Effects Free License | 2.2초 트림, 페이드, 정규화 |
+| `public/audio/v2/chainsaw-far.mp3` | Cutting trees with chainsaw ambiance and axe hits (#796) | https://mixkit.co/free-sound-effects/chainsaw/ | Mixkit Sound Effects Free License | 4초 지점부터 2.6초, 페이드 인/아웃, 정규화 |
+| `public/audio/v2/drone-loop.mp3` | Tactical drone ambience (#2744) | https://mixkit.co/free-sound-effects/drone/ | Mixkit Sound Effects Free License | 10초 지점부터 3초 루프, 정규화 |
+
+## v2 추가 이미지 (2026-09-04)
+
+`public/assets/v2/*.webp` 14장은 생성형 AI(Google Imagen)로 제작한 자체 에셋이다. 원본 PNG는 `_unused/v2-originals/` 에 보존. 프롬프트는 `docs/IMAGEN_PROMPTS_v2.md`.

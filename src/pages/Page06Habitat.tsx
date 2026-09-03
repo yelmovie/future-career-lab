@@ -5,16 +5,21 @@ import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, GripIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
+import { STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { HabitatScene } from './HabitatScene';
 import {
+  BEHAVIOR_LABELS,
+  checkConditions,
+  conditionsFromCareLog,
   evaluateHabitat,
   HABITAT_ITEM_IDS,
   HABITAT_ITEMS,
   HABITAT_STRATEGIES,
   layoutSignature,
-  recommendedItemsFor,
+  WATER_REACH,
+  type Behavior,
   type HabitatItemId,
   type HabitatPlacement,
   type HabitatSimulationResult,
@@ -25,11 +30,15 @@ interface PageProps {
   onNavigate: (page: PageNumber) => void;
 }
 
-function readHandoffFlags(value: unknown): string[] {
-  if (!value || typeof value !== 'object') return [];
-  const flags = (value as { flags?: unknown }).flags;
-  return Array.isArray(flags) ? flags.filter((flag): flag is string => typeof flag === 'string') : [];
-}
+type Prediction = Behavior | 'none';
+const PREDICTIONS: { id: Prediction; label: string }[] = [
+  { id: 'eat', label: '먹기가 안 보일 거야' },
+  { id: 'play', label: '놀기가 안 보일 거야' },
+  { id: 'rest', label: '쉬기가 안 보일 거야' },
+  { id: 'none', label: '셋 다 보일 거야' },
+];
+const isPrediction = (value: unknown): value is Prediction => value === 'eat' || value === 'play' || value === 'rest' || value === 'none';
+const STAGE = STAGE_META[1]!;
 
 function readDraftPlacements(value: unknown): HabitatPlacement[] {
   if (!value || typeof value !== 'object') return [];
@@ -47,6 +56,11 @@ function readDraftPlacements(value: unknown): HabitatPlacement[] {
   });
 }
 
+function readStoredPrediction(value: unknown): Prediction | null {
+  const candidate = value && typeof value === 'object' ? (value as { prediction?: unknown }).prediction : null;
+  return isPrediction(candidate) ? candidate : null;
+}
+
 const KEEP_REASONS = [
   '출입 동선과 각 활동 지점 사이에 충분한 간격이 있어.',
   '휴식·활동·급수 선택지가 서로 겹치지 않고 이어져.',
@@ -54,9 +68,11 @@ const KEEP_REASONS = [
 ] as const;
 
 export default function Page06Habitat({ onNavigate }: PageProps) {
-  const { save, completePage, logEvent, setPageData, addBadge, addJobCard } = useGame();
+  const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
   const storedDraft = useMemo(() => readDraftPlacements(save.pageData.page06Draft), []);
   const [placements, setPlacements] = useState<HabitatPlacement[]>(storedDraft);
+  const [prediction, setPrediction] = useState<Prediction | null>(() => readStoredPrediction(save.pageData.page06Draft));
+  const conditions = useMemo(() => conditionsFromCareLog(save.artifacts.careLog), [save.artifacts.careLog]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [simulating, setSimulating] = useState(false);
   const [simulation, setSimulation] = useState<HabitatSimulationResult | null>(null);
@@ -69,7 +85,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   changeHandler.current = (next) => {
     setPlacements(next);
     setKeepReason(null);
-    setPageData('page06Draft', { placements: next });
+    setPageData('page06Draft', { placements: next, prediction });
   };
   selectionHandler.current = setSelectedId;
 
@@ -83,12 +99,11 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   }, [scene, storedDraft]);
 
   const evaluation = useMemo(() => evaluateHabitat(placements), [placements]);
+  const conditionCheck = useMemo(() => checkConditions(placements, conditions), [placements, conditions]);
   const currentSignature = useMemo(() => layoutSignature(placements), [placements]);
   const redesigned = Boolean(simulation) && currentSignature !== simulationSnapshot;
   const canFinish = Boolean(simulation) && evaluation.valid && (redesigned || Boolean(keepReason));
   const selected = placements.find((placement) => placement.instanceId === selectedId) ?? null;
-  const handoffFlags = useMemo(() => readHandoffFlags(save.pageData.page05Handoff), [save.pageData.page05Handoff]);
-  const recommendations = useMemo(() => recommendedItemsFor(handoffFlags), [handoffFlags]);
   const placedIds = new Set(placements.map((placement) => placement.itemId));
 
   const loadStrategy = (strategyId: (typeof HABITAT_STRATEGIES)[number]['id']) => {
@@ -103,28 +118,33 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     audioService.playSfx('drop');
   };
 
+  const choosePrediction = (next: Prediction) => {
+    setPrediction(next);
+    setPageData('page06Draft', { placements, prediction: next });
+    audioService.playSfx('tap');
+  };
+
   const startSimulation = async () => {
-    if (!evaluation.valid || simulating) return;
+    if (!evaluation.valid || simulating || !prediction) return;
     setSimulating(true);
     setKeepReason(null);
     setSimulationSnapshot(currentSignature);
     audioService.playSfx('record');
-    const result = await scene.runSimulation();
+    const result = await scene.runSimulation(conditions);
     setSimulation(result);
     setSimulating(false);
-    audioService.playSfx('success');
+    setArtifacts({ habitatStars: result.stars });
+    audioService.playSfx(result.stars === 3 ? 'success' : 'warning');
   };
+
+  const missingBehaviors = simulation ? (Object.keys(simulation.behaviors) as Behavior[]).filter((key) => !simulation.behaviors[key]) : [];
+  const actual: Prediction = missingBehaviors[0] ?? 'none';
+  const predictionHit = Boolean(simulation) && prediction === actual;
 
   const finishMission = () => {
     if (!canFinish || !simulation) return;
     const revisionChoice = redesigned ? '시험해 본 뒤 배치를 실제로 다시 조정했어.' : `배치를 그대로 둔 까닭: ${keepReason}`;
-    setPageData('page06Design', {
-      placements,
-      evaluation,
-      simulation,
-      revisionChoice,
-      sourceHandoffFlags: handoffFlags,
-    });
+    setPageData('page06Design', { placements, evaluation, simulation, revisionChoice, prediction, conditions });
     logEvent({
       page: 6,
       type: 'habitat-layout-strategy',
@@ -136,10 +156,10 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     logEvent({
       page: 6,
       type: 'habitat-simulation',
-      summary: `동선 ${simulation.route}, 편안함 ${simulation.comfort}, 안전 ${simulation.safety}. ${simulation.summary}`,
-      tags: ['시험해 보기', '근거 확인'],
+      summary: `만족도 ${simulation.stars}별. 예측(${PREDICTIONS.find((item) => item.id === prediction)?.label ?? '없음'})은 ${predictionHit ? '맞았어' : '빗나갔어'}. ${simulation.summary}`,
+      tags: ['시험해 보기', '예측 검증'],
       traits: { analysis: 2, care: 1 },
-      contextRef: 'first-environment-simulation',
+      contextRef: `simulation-${simulation.stars}-stars`,
     });
     logEvent({
       page: 6,
@@ -149,25 +169,27 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       traits: redesigned ? { creation: 2, execution: 1 } : { analysis: 1, execution: 1 },
       contextRef: redesigned ? `redesign-${currentSignature}` : 'keep-with-evidence',
     });
+    setArtifacts({ habitatStars: simulation.stars });
     completePage(6);
-    addBadge('안전한 생활 공간 설계자');
-    addJobCard('동물 생활 공간 설계가');
+    addBadge(STAGE.badgeName);
+    addJobCard(STAGE.jobTitle);
     setCompleted(true);
     audioService.playSfx('reward');
   };
 
   const footer = completed ? (
     <StageComplete
-      title="앵무새 생활 공간을 완성했어"
-      message="앞에서 살핀 기록을 공간 만들기와 다시 확인하기까지 이어 갔어."
-      nextLabel="중요한 일 먼저 하기"
+      title={simulation?.stars === 3 ? '만족도 3별! 회복 공간 완성' : '회복 공간을 완성했어'}
+      message={simulation?.stars === 3 ? `${STAGE.badgeName}를 얻었어. 두 마리 모두 먹고 놀고 쉬었어.` : `${STAGE.badgeName}를 얻었어. 3별을 노린다면 배치를 바꿔 다시 시험해 봐.`}
+      nextLabel="숲 생태 조사로 가기"
       onNext={() => onNavigate(7)}
     />
   ) : (
     <div className="p6-footer" aria-live="polite">
-      <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '집 만들기 ✓' : '집 만들기'}</span>
-      <span className={simulation ? 'is-ready' : ''}>{simulation ? '길 보기 ✓' : '길 보기'}</span>
-      <span className={redesigned || keepReason ? 'is-ready' : ''}>{redesigned || keepReason ? '다시 생각하기 ✓' : '다시 생각하기'}</span>
+      <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '집 만들기 완료' : '집 만들기'}</span>
+      <span className={prediction ? 'is-ready' : ''}>{prediction ? '예측 완료' : '예측하기'}</span>
+      <span className={simulation ? 'is-ready' : ''}>{simulation ? `만족도 ${simulation.stars}/3별` : '시험하기'}</span>
+      <span className={redesigned || keepReason ? 'is-ready' : ''}>{redesigned || keepReason ? '다시 생각하기 완료' : '다시 생각하기'}</span>
       <button className="button button--primary button--large" type="button" disabled={!canFinish} onClick={finishMission}>
         생활 공간 완성
         <CheckIcon />
@@ -183,28 +205,35 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     { label: '물건 겹치지 않기', ready: evaluation.noCollisions },
     { label: '모든 곳을 오가는 길 만들기', ready: evaluation.connected },
   ];
+  const birdRows = [
+    ...(conditions.dehydrated ? [{ label: `빨강(탈수): 물그릇을 쉬는 곳에서 ${WATER_REACH}칸 안에`, ready: conditionCheck.waterNearRest }] : []),
+    ...(conditions.stressed ? [{ label: '초록(스트레스): 숨을 곳을 놓고, 시끄러운 위쪽에서 떨어뜨리기', ready: conditionCheck.shelterQuiet }] : []),
+  ];
 
   return (
-    <GameShell page={6} eyebrow="STAGE 3 · HABITAT DESIGN" onNavigate={onNavigate} footer={footer} className="p6-shell">
+    <GameShell page={6} eyebrow="STAGE 2 · HABITAT DESIGN" onNavigate={onNavigate} footer={footer} className="p6-shell">
       <div className="p6-layout">
         <Panel title="이번에 할 일" kicker="BUILD KIT" className="p6-palette-panel">
           <MissionGuide
             image={pageAsset(6, 1)}
             imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
-            action="앵무새 집을 다시 만들어요"
-            goals={['물건 3~4개 놓기', '앵무새 길 보기', '고치거나 까닭 고르기']}
+            action="두 마리에 맞는 회복 공간을 만들어요"
+            goals={['물건 3~4개 놓고 개체 조건 채우기', '안 보일 행동 예측하고 시험하기', '고치거나 까닭 고르기']}
           />
+          <div className="p6-reward">
+            <span>끝내면 얻는 것</span>
+            <strong>{STAGE.reward}</strong>
+            <small>갱신 목표: 먹기·놀기·쉬기 다 보이는 만족도 3별</small>
+          </div>
           <div className="p6-budget" aria-label={`예산 ${evaluation.budget} / 8, 물체 ${evaluation.count} / 4`}>
             <div><span>쓴 힘</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
             <div><span>놓은 물건</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
           </div>
 
-          {recommendations.length > 0 && (
-            <div className="p6-handoff">
-              <strong>앞에서 찾은 필요한 물건</strong>
-              <p>{recommendations.map((id) => HABITAT_ITEMS[id].shortName).join(' · ')}</p>
-            </div>
-          )}
+          <div className="p6-handoff">
+            <strong>돌봄 기록에서 온 조건</strong>
+            <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '초록' : '빨강'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
+          </div>
 
           <div className="p6-item-palette" aria-label="배치할 물체">
             {HABITAT_ITEM_IDS.map((itemId) => {
@@ -272,6 +301,13 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                 </li>
               ))}
             </ul>
+            <ul className="p6-rule-list p6-rule-list--bird" aria-label="개체별 조건">
+              {birdRows.map((rule) => (
+                <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
+                  <span>{rule.ready ? '충족' : '확인'}</span><strong>{rule.label}</strong>
+                </li>
+              ))}
+            </ul>
             {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
             <div className="p6-strategy-result">
               <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong><small>물건을 많이 놓기보다 필요한 물건을 잘 이어 주는 게 중요해.</small>
@@ -281,18 +317,29 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
           <Panel title="앵무새 길 보기" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
             {!simulation ? (
               <>
-                <p>앵무새가 오가는 모습을 본 뒤, 배치를 고치거나 그대로 둘 까닭을 골라.</p>
-                <button className="button button--teal button--large button--block" type="button" disabled={!evaluation.valid || simulating} onClick={startSimulation}>
-                  {simulating ? '이동 경로를 보는 중…' : '생활 공간 시험하기'}
+                <p>시험하기 전에 예측해. 지금 배치에서 어떤 행동이 안 보일까?</p>
+                <div className="p6-predictions" role="group" aria-label="예측 고르기">
+                  {PREDICTIONS.map((item) => (
+                    <button key={item.id} type="button" className={prediction === item.id ? 'is-selected' : ''} onClick={() => choosePrediction(item.id)} aria-pressed={prediction === item.id}>{item.label}</button>
+                  ))}
+                </div>
+                <button className="button button--teal button--large button--block" type="button" disabled={!evaluation.valid || simulating || !prediction} onClick={startSimulation}>
+                  {simulating ? '앵무새를 보는 중…' : '회복 공간 시험하기'}
                 </button>
                 {!evaluation.valid && <small className="p6-sim-hint">왼쪽 완료 조건을 모두 채우면 시험할 수 있어.</small>}
+                {evaluation.valid && !prediction && <small className="p6-sim-hint">먼저 예측을 하나 골라.</small>}
               </>
             ) : (
               <div className="p6-simulation-result" aria-live="polite">
-                <div className="p6-sim-metrics">
-                  <span>오가는 길 <strong>{simulation.route}</strong></span>
-                  <span>편안함 <strong>{simulation.comfort}</strong></span>
-                  <span>안전 <strong>{simulation.safety}</strong></span>
+                <div className="p6-stars" aria-label={`만족도 ${simulation.stars}점 만점 3점`}>
+                  {(['eat', 'play', 'rest'] as const).map((key) => (
+                    <span key={key} className={simulation.behaviors[key] ? 'is-on' : ''}>{BEHAVIOR_LABELS[key]}</span>
+                  ))}
+                  <strong>{simulation.stars}/3별</strong>
+                </div>
+                <div className={`toast ${predictionHit ? 'toast--success' : 'toast--warning'}`}>
+                  {predictionHit ? '예측이 맞았어. ' : '예측과 달랐어. 무엇이 달랐을까? '}
+                  실제로 {actual === 'none' ? '셋 다 보였어.' : `${BEHAVIOR_LABELS[actual]}가 안 보였어.`}
                 </div>
                 <p>{simulation.summary}</p>
                 {redesigned ? (
@@ -305,6 +352,11 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                     ))}
                   </div>
                 )}
+                <div className="p6-predictions" role="group" aria-label="다시 예측하기">
+                  {PREDICTIONS.map((item) => (
+                    <button key={item.id} type="button" className={prediction === item.id ? 'is-selected' : ''} onClick={() => choosePrediction(item.id)} aria-pressed={prediction === item.id}>{item.label}</button>
+                  ))}
+                </div>
                 <button className="button button--ghost button--block" type="button" disabled={simulating || !evaluation.valid} onClick={startSimulation}>현재 배치 다시 시험하기</button>
               </div>
             )}

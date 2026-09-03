@@ -1,5 +1,12 @@
+@font-face { font-family: Pretendard; font-weight: 400; font-display: swap; src: url("/assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: Pretendard; font-weight: 700; font-display: swap; src: url("/assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+@font-face { font-family: Pretendard; font-weight: 800 900; font-display: swap; src: url("/assets/fonts/Pretendard-ExtraBold.woff2") format("woff2"); }
+@font-face { font-family: Jua; font-weight: 400; font-display: swap; src: url("/assets/fonts/Jua-Regular.ttf") format("truetype"); }
+
 :root {
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-display: Jua, Pretendard, "Malgun Gothic", sans-serif;
+  --font-body: Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
   color: #f7ebcb;
   background: #04101d;
   font-synthesis: none;
@@ -94,7 +101,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   display: block; margin-bottom: var(--space-4); color: var(--teal-bright); font-size: var(--fs-cap);
   font-weight: 900; letter-spacing: .18em;
 }
-.title-lockup h1 { margin: 0; color: var(--cream); font-size: var(--fs-title); font-weight: 900; letter-spacing: -.035em; line-height: 1.2; }
+.title-lockup h1 { margin: 0; color: var(--cream); font-family: var(--font-display); font-size: var(--fs-title); font-weight: 400; letter-spacing: -.035em; line-height: 1.2; }
 .topbar-progress { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-8) var(--space-16); border: 1px solid rgb(241 207 131 / 35%); border-radius: var(--radius-md); background: rgb(5 18 33 / 62%); }
 .topbar-progress span { font-size: var(--fs-cap); color: rgb(var(--cream-rgb) / 75%); }
 .topbar-progress b { color: var(--gold-pale); font-size: var(--fs-body); font-variant-numeric: tabular-nums; }
@@ -107,6 +114,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .stage-rail li.is-done:not(:last-child)::after { background: #4fc7a2; }
 .stage-rail li > span { position: relative; z-index: 1; display: grid; place-items: center; width: 38px; height: 38px; border: 2px solid rgb(241 207 131 / 52%); border-radius: 50%; background: #0a2038; color: var(--cream); font-size: 18px; font-weight: 900; }
 .stage-rail li.is-done > span { border-color: #72ddb1; background: #116748; color: #fff; }
+.stage-rail li > span svg { width: 20px; height: 20px; }
 .stage-rail li.is-current > span { border: 4px solid #ffe19b; background: #e4a63c; color: #1d1507; transform: scale(1.08); }
 .stage-rail small { font-size: 16px; font-weight: 850; }
 .stage-rail li.is-current small { color: #ffe19b; }
@@ -144,7 +152,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .panel--cream { color: var(--ink); background: linear-gradient(145deg, var(--cream-2), #ebd8af); border-color: var(--gold-pale); }
 .panel--transparent { background: rgb(5 20 37 / 70%); backdrop-filter: blur(3px); }
 .panel-header { margin-bottom: var(--space-16); }
-.panel-header h2 { margin: 0; color: var(--cream); font-size: var(--fs-head); line-height: 1.3; }
+.panel-header h2 { margin: 0; color: var(--cream); font-family: var(--font-display); font-size: var(--fs-head); font-weight: 400; line-height: 1.3; }
 .panel--cream .panel-header h2 { color: var(--ink); }
 .panel p { line-height: 1.62; }
 

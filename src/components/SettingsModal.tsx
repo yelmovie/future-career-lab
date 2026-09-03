@@ -34,13 +34,13 @@ const STANDARDS: { code: string; subject: string; text: string }[] = [
 ];
 
 const STANDARD_MAP: { section: string; focus: string; codes: string }[] = [
-  { section: 'Stage 1 · 일하는 방식 선택', focus: '흥미와 적성, 선호하는 일하는 방식', codes: '[6실01-07], [6도01-03]' },
-  { section: 'Stage 2 · 직업 미스터리', focus: '근거와 추론으로 실제 업무 이해하기', codes: '[6실01-07]' },
-  { section: 'Stage 2 · 드론 촬영 미션', focus: '기술을 활용한 직업 체험', codes: '[6과16-02]' },
-  { section: 'Stage 3 · 앵무새 돌봄과 서식지', focus: '책임, 관찰, 동물 복지, 생명과학 연결', codes: '[6도01-03], [6과16-02]' },
-  { section: 'Stage 4 · 중요한 일 먼저 하기', focus: '책임감, 우선순위, 결정의 결과', codes: '[6실01-07], [6도01-03]' },
-  { section: 'Stage 5 · 도시 문제 함께 풀기', focus: '미래 사회 문제 해결과 직업 간 협업', codes: '[6과16-01], [6과16-02]' },
-  { section: 'Page 9 · 나의 일하기 지도', focus: '자기 이해와 계속되는 진로 탐색', codes: '[6실01-07], [6도01-03]' },
+  { section: '브리핑 · 사건 접수', focus: '네 직업의 도구와 하는 일 알기, 나에게 맞을 직업 예측', codes: '[6실01-07], [6도01-03]' },
+  { section: 'Stage 1 · 드론 현장가', focus: '제약(바람·배터리) 속 계획·실행, 사진을 근거로 잇기', codes: '[6과16-02], [6실01-07]' },
+  { section: 'Stage 2 · 동물돌봄 전문가', focus: '관찰·기록, 개체마다 다른 돌봄, 생명 존중', codes: '[6도01-03], [6과16-02]' },
+  { section: 'Stage 3 · 생태연구가', focus: '변인을 하나씩 바꿔 원인 찾기(과학 탐구)', codes: '[6과16-02], [6과16-01]' },
+  { section: 'Stage 4 · 방송기술자', focus: '정보의 출처와 정확성 판단, 우선순위', codes: '[6실01-07], [6도01-03]' },
+  { section: 'Stage 5 · 네 직업 연합', focus: '미래 사회 문제 해결과 직업 간 협업', codes: '[6과16-01], [6과16-02]' },
+  { section: '돌아보기 · 수료증', focus: '예측과 실제 비교, 능력 진술로 자기 이해', codes: '[6실01-07], [6도01-03]' },
 ];
 
 const CREDIT_SFX: { title: string; creator: string }[] = [
@@ -52,6 +52,10 @@ const CREDIT_SFX: { title: string; creator: string }[] = [
   { title: 'UI Data Processing Beep', creator: 'SoundShelfStudio' },
   { title: 'UI Success Chime', creator: 'SoundShelfStudio' },
   { title: 'Success/Finish UI sound effect', creator: 'Nomagician' },
+  { title: 'Tropical bird squeak (Mixkit)', creator: 'Mixkit' },
+  { title: 'Hawk call squawk (Mixkit)', creator: 'Mixkit' },
+  { title: 'Cutting trees with chainsaw ambiance (Mixkit)', creator: 'Mixkit' },
+  { title: 'Tactical drone ambience (Mixkit)', creator: 'Mixkit' },
 ];
 
 export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: PageNumber) => void }) {
@@ -134,9 +138,9 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
         <details className="settings-block">
           <summary>학생용 게임 방법</summary>
           <ol className="settings-play-steps">
-            <li><b>1</b><span>그림에서 숫자나 빛나는 곳을 눌러.</span></li>
-            <li><b>2</b><span>마음에 드는 방법 하나를 골라.</span></li>
-            <li><b>3</b><span>초록색 완료가 뜨면 다음으로 가.</span></li>
+            <li><b>1</b><span>미션 카드에서 "지금 할 일"과 "끝내면 얻는 것"을 먼저 읽어.</span></li>
+            <li><b>2</b><span>화면을 잘 보고 직접 해 봐. 틀려도 벌칙은 없고 힌트가 나와.</span></li>
+            <li><b>3</b><span>앞에서 얻은 사진·기록·그래프가 다음 미션에서 쓰여. 초록 완료가 뜨면 다음으로 가.</span></li>
           </ol>
           <p className="settings-hint">막히면 화면 위 물음표를 눌러 전체 길을 다시 볼 수 있어.</p>
         </details>
@@ -145,17 +149,18 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
           <summary>교사용 가이드</summary>
           <p><b>수업 35분 운영 예시</b></p>
           <ul className="settings-list">
-            <li>도입 5분 — 전자칠판으로 홈 화면을 함께 보고, 이름을 적고 지금 할 일을 확인합니다.</li>
-            <li>전개 25분 — Stage 1~5를 순서대로 진행합니다. 한 스테이지에 4~6분이 걸립니다.</li>
-            <li>정리 5분 — 9쪽 &lt;나의 일하기 지도&gt;를 함께 읽고, 10쪽 수료증을 확인합니다.</li>
+            <li>도입 5분 — 전자칠판으로 홈과 브리핑을 함께 보고, 학생이 이름과 "잘 맞을 것 같은 직업"을 예측합니다.</li>
+            <li>전개 25분 — Stage 1~5를 순서대로 진행합니다. 한 스테이지에 5~8분이 걸리며, 2차시로 나눌 때는 Stage 2와 3 사이에서 끊습니다(이어하기 지원).</li>
+            <li>정리 5분 — 돌아보기 화면에서 예측과 실제를 비교하고, "나는 이제 ~할 수 있다" 문장을 고른 뒤 수료증을 확인합니다.</li>
           </ul>
           <p><b>5개 스테이지가 하는 일</b></p>
           <ul className="settings-list">
-            <li>Stage 1 — 상황 선택으로 자신이 선호하는 일하는 방식을 기록합니다.</li>
-            <li>Stage 2 — 단서를 모아 직업을 추론하고, 드론으로 촬영 미션을 수행합니다.</li>
-            <li>Stage 3 — 앵무새를 관찰·기록하고 서식지를 다시 설계합니다.</li>
-            <li>Stage 4 — 제한된 시간과 힘 안에서 중요한 일의 순서를 정합니다.</li>
-            <li>Stage 5 — 여러 직업이 협력해 도시 문제를 해결합니다.</li>
+            <li>Stage 1 드론 현장가 — 바람과 배터리를 고려해 경로를 짜고 숲을 촬영한 뒤, 사진을 증거판에 이어 원인을 가설로 세웁니다.</li>
+            <li>Stage 2 동물돌봄 전문가 — 상태가 다른 앵무새 두 마리를 따로 살피고, 기록에 맞는 회복 공간을 설계합니다.</li>
+            <li>Stage 3 생태연구가 — 숲에서 흔적을 모으고, 조건을 하나씩 바꾸는 실험으로 원인을 확인합니다.</li>
+            <li>Stage 4 방송기술자 — 출처 있는 자막만 골라 생방송을 완성하고 돌발 사고를 우선순위로 복구합니다.</li>
+            <li>Stage 5 네 직업 연합 — 위기마다 필요한 능력을 읽고 직업을 짝지어 숲과 도시를 지킵니다.</li>
+            <li>스테이지 산출물(사진·기록·그래프·클립)이 다음 스테이지의 재료가 되므로 순서대로 진행하도록 안내합니다.</li>
           </ul>
           <p><b>준비물</b></p>
           <ul className="settings-list">
@@ -192,7 +197,7 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
 
         <details className="settings-block">
           <summary>효과음 크레딧</summary>
-          <p className="settings-hint">Pixabay Content License · 라이선스 요약: pixabay.com/service/license-summary/</p>
+          <p className="settings-hint">Pixabay Content License · Mixkit Sound Effects Free License (표기 불필요, 상업 이용 가능)</p>
           <ul className="settings-list">
             {CREDIT_SFX.map((item) => (
               <li key={item.title}>{item.title} — {item.creator}</li>
@@ -203,7 +208,7 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
         <section className="settings-block">
           <h3>앱 정보</h3>
           <ul className="settings-list">
-            <li>미래 직업실 · v0.1.0</li>
+            <li>미래 직업실 · v2.0.0</li>
             <li>기획·제작 옐쌤</li>
             <li>제공 issamGPT AI Mart</li>
           </ul>
@@ -232,7 +237,7 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
           <p>기획·제작: 옐쌤<br />제공: issamGPT AI Mart<br />ⓒ 2026 옐쌤</p>
           <p>이 앱의 화면 캡처, 자체 제작 일러스트와 음원은 무단 복제·재배포·상업적 이용을 금합니다.</p>
           <p>이 앱의 일러스트는 생성형 AI로 제작했습니다.</p>
-          <p>효과음의 저작권은 각 저작권자에게 있으며 Pixabay Content License를 따릅니다.</p>
+          <p>효과음의 저작권은 각 저작권자에게 있으며 Pixabay Content License 및 Mixkit Sound Effects Free License를 따릅니다.</p>
           <p>교육 내용 출처: 교육부 2022 개정 교육과정 (ncic.re.kr)</p>
           <p>이용 조건은 issamGPT AI Mart 이용약관을 따릅니다.</p>
         </section>

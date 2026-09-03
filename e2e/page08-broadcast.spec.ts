@@ -2,18 +2,35 @@ import { expect, test } from '@playwright/test';
 
 test.use({ channel: 'chrome' });
 
-test('page 8 runs the accelerated priority loop and spends AP once', async ({ page }) => {
+test('page 8 airs the opening segment from the cue sheet without a timer', async ({ page }) => {
   const runtimeErrors: string[] = [];
   page.on('pageerror', (error) => runtimeErrors.push(error.message));
   page.on('response', (response) => { if (response.status() >= 400) runtimeErrors.push(`${response.status()} ${response.url()}`); });
   await page.goto('/#/page/8');
-  await expect(page.getByRole('heading', { name: '일의 순서를 정해 보자' })).toBeVisible();
-  await page.getByRole('button', { name: '30초로 해 보기' }).click();
-  await expect(page.getByRole('timer')).toContainText('00:');
-  await expect(page.locator('.p07-scene canvas')).toBeVisible();
-  await expect(page.getByRole('heading', { name: '앵무새가 달라 보여' })).toBeVisible();
-  await page.getByRole('button', { name: /먹는 모습과 깃털 적기/ }).click();
-  await expect(page.getByLabel(/남은 힘 9/)).toBeVisible();
-  await expect(page.getByRole('button', { name: /앵무새가 달라 보여/ })).toContainText('완료');
+  await expect(page.getByRole('heading', { name: '오프닝 준비' })).toBeVisible();
+  await expect(page.getByRole('timer')).toHaveCount(0);
+  await expect(page.getByTestId('trust-text')).toHaveText('신뢰 100점 · 정정 0회');
+
+  const air = page.getByRole('button', { name: '송출' });
+  await expect(air).toBeDisabled();
+
+  // 1. 잘못된 소스 → 힌트, 맞는 소스 → 힌트 사라짐
+  await page.getByRole('button', { name: '드론 사진' }).click();
+  await expect(page.getByRole('alert')).toContainText('스튜디오 카메라');
+  await page.getByRole('button', { name: '스튜디오 카메라' }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+
+  // 2. 출처 있는 자막 (키보드 대안 경로)
+  await page.getByRole('button', { name: /조사 그래프/ }).first().click();
+  await page.getByRole('button', { name: '자막 올리기' }).click();
+  await expect(page.locator('.preview-caption')).toContainText('조사 그래프');
+
+  // 3. 오디오 레벨을 초록 구간으로
+  await page.getByRole('slider', { name: '오디오 레벨' }).fill('55');
+  await expect(air).toBeEnabled();
+  await air.click();
+
+  await expect(page.getByRole('heading', { name: '현장 상황 준비' })).toBeVisible();
+  await expect(page.getByTestId('trust-text')).toHaveText('신뢰 100점 · 정정 0회');
   expect(runtimeErrors).toEqual([]);
 });

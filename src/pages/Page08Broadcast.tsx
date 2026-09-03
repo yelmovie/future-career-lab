@@ -1,378 +1,308 @@
-import Phaser from 'phaser';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState, type DragEvent } from 'react';
 import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
-import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
-import { CheckIcon, ClockIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { pageAsset } from '../shared/assets';
-import { CANVAS_FONT } from '../shared/constants';
-import type { PageNumber, TraitKey } from '../shared/types';
+import { pageAsset, v2Asset } from '../shared/assets';
+import { STAGE_META } from '../shared/constants';
+import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
-  advanceWorkEvents,
-  createWorkEvents,
-  isWorkEventActionable,
-  isWorkOutcomeComplete,
-  resolveWorkEvent,
-  workOutcome,
-  type WorkActionDefinition,
-  type WorkEventRuntime,
-} from './page07LiveWorkModel';
-import './page07-08.css';
+  AUDIO_BAND,
+  CORRECTION_SEGMENT,
+  INCIDENTS,
+  SEGMENTS,
+  SOURCE_LABEL,
+  airBlock,
+  airSegment,
+  audioZone,
+  buildCaptionCards,
+  clipResult,
+  createBroadcast,
+  currentSegment,
+  isFinished,
+  photoIds,
+  resolveIncident,
+  restoreBroadcast,
+  type AirBlock,
+  type BroadcastState,
+  type SourceId,
+} from './page08BroadcastModel';
+import './page08-broadcast.css';
 
 interface PageProps { onNavigate: (page: PageNumber) => void }
-type RunPhase = 'briefing' | 'running' | 'result';
-type WorkResult = ReturnType<typeof workOutcome>;
 
-const STATUS_LABEL: Record<WorkEventRuntime['status'], string> = {
-  queued: '대기',
-  active: '지금 하기',
-  expired: '시간 놓침',
-  recovery: '다시 하기',
-  resolved: '완료',
+const SAVE_KEY = 'p8Broadcast';
+const SOURCES: SourceId[] = ['drone', 'studio', 'reporter'];
+const STAGE = STAGE_META[3]!;
+const WAVE_BARS = [.35, .7, 1, .55, .85, .45, .95, .6, .8, .4, 1, .65, .5, .9, .3];
+
+const BLOCK_HINT: Record<AirBlock, string> = {
+  source: '먼저 어떤 화면을 내보낼지 골라.',
+  'wrong-source': '이 세그먼트에 맞는 화면이 아니야. 큐시트의 설명을 다시 봐.',
+  caption: '자막 카드를 송출 화면으로 끌어다 놓거나, 카드를 고르고 "자막 올리기"를 눌러.',
+  audio: '오디오 레벨을 초록 구간에 맞춰. 빨간 구간은 소리가 찢어져.',
+  incident: '돌발 사고부터 처리해야 해.',
+  finished: '방송이 끝났어.',
 };
 
-const STATUS_COLOR: Record<WorkEventRuntime['status'], number> = {
-  queued: 0x577087,
-  active: 0xf1b84a,
-  expired: 0xd85245,
-  recovery: 0xc47ce2,
-  resolved: 0x45c879,
-};
-
-interface LiveSceneSnapshot {
-  events: readonly WorkEventRuntime[];
-  remainingRatio: number;
-  ap: number;
-}
-
-let liveSceneSequence = 0;
-
-class LiveWorkScene extends Phaser.Scene {
-  private snapshot: LiveSceneSnapshot = { events: [], remainingRatio: 1, ap: 12 };
-  private ready = false;
-
-  constructor() { super(`page07-live-${++liveSceneSequence}`); }
-
-  preload() {
-    for (const slot of [4, 5, 6, 7, 8, 9, 10]) this.load.image(`work-${slot}`, pageAsset(7, slot));
-  }
-
-  create() {
-    this.ready = true;
-    this.scale.on('resize', this.redraw, this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.redraw, this));
-    this.redraw();
-  }
-
-  setSnapshot(snapshot: LiveSceneSnapshot) {
-    this.snapshot = snapshot;
-    if (this.ready) this.redraw();
-  }
-
-  private redraw() {
-    if (!this.ready) return;
-    this.children.removeAll(true);
-    const { width, height } = this.scale.gameSize;
-    if (width < 40 || height < 40) return;
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x061426, 0.88).fillRoundedRect(10, 10, width - 20, height - 20, 24);
-    graphics.lineStyle(2, 0xe6b85c, 0.55).strokeRoundedRect(10, 10, width - 20, height - 20, 24);
-
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const taskWheel = this.add.image(centerX, centerY, 'work-10').setDisplaySize(Math.min(132, width * 0.22), Math.min(132, height * 0.3));
-    taskWheel.setAlpha(0.9);
-    graphics.lineStyle(5, 0x173b58, 0.95).strokeCircle(centerX, centerY, Math.min(84, width * 0.15));
-    graphics.lineStyle(6, this.snapshot.remainingRatio < 0.2 ? 0xe35d50 : 0x40c9bd, 1);
-    graphics.beginPath();
-    graphics.arc(centerX, centerY, Math.min(84, width * 0.15), -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * this.snapshot.remainingRatio, false);
-    graphics.strokePath();
-    this.add.text(centerX, centerY + Math.min(95, width * 0.17), `남은 힘 ${this.snapshot.ap}`, {
-      color: '#f7e9c9', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.label, fontStyle: 'bold',
-      backgroundColor: '#0a2038', padding: { x: 9, y: 5 },
-    }).setOrigin(0.5);
-
-    const positions = [
-      [0.18, 0.25], [0.5, 0.18], [0.82, 0.25],
-      [0.18, 0.75], [0.5, 0.82], [0.82, 0.75],
-    ] as const;
-
-    this.snapshot.events.forEach((event, index) => {
-      const position = positions[index];
-      if (!position) return;
-      const x = width * position[0];
-      const y = height * position[1];
-      graphics.lineStyle(2, STATUS_COLOR[event.status], event.status === 'queued' ? 0.25 : 0.68);
-      graphics.lineBetween(centerX, centerY, x, y);
-      graphics.fillStyle(0xf8efdd, event.status === 'queued' ? 0.5 : 0.97).fillRoundedRect(x - 72, y - 54, 144, 108, 16);
-      graphics.lineStyle(event.status === 'active' ? 4 : 2, STATUS_COLOR[event.status], 1).strokeRoundedRect(x - 72, y - 54, 144, 108, 16);
-      this.add.image(x - 46, y - 8, `work-${event.iconSlot}`).setDisplaySize(48, 48).setAlpha(event.status === 'queued' ? 0.5 : 1);
-      this.add.text(x - 16, y - 34, event.title, {
-        color: '#092139', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
-        wordWrap: { width: 82 }, align: 'center',
-      }).setOrigin(0, 0);
-      this.add.text(x, y + 38, STATUS_LABEL[event.status], {
-        color: event.status === 'queued' ? '#39556c' : '#092139', fontFamily: 'Pretendard, sans-serif', fontSize: CANVAS_FONT.cap, fontStyle: 'bold',
-      }).setOrigin(0.5);
-    });
-  }
-}
-
-function formatTime(milliseconds: number): string {
-  const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
-  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-}
-
-function traitsForApproach(approach: string): Partial<Record<TraitKey, number>> {
-  if (approach.includes('관찰') || approach.includes('근거')) return { analysis: 1, care: 1 };
-  if (approach.includes('협업') || approach.includes('공유') || approach.includes('인계')) return { collaboration: 1, execution: 1 };
-  if (approach.includes('계획') || approach.includes('준비')) return { execution: 1, creation: 1 };
-  return { care: 1, execution: 1 };
+function dropId(event: DragEvent) {
+  return event.dataTransfer.getData('text/broadcast-caption');
 }
 
 export default function Page08Broadcast({ onNavigate }: PageProps) {
-  const { completePage, logEvent, setPageData, addBadge, addJobCard, grantReward } = useGame();
-  const [phase, setPhase] = useState<RunPhase>('briefing');
-  const [durationMs, setDurationMs] = useState(90_000);
-  const [remainingMs, setRemainingMs] = useState(90_000);
-  const [events, setEvents] = useState<WorkEventRuntime[]>(createWorkEvents);
-  const [ap, setAp] = useState(12);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [result, setResult] = useState<WorkResult | null>(null);
-  const [runId, setRunId] = useState(0);
-  const [hidden, setHidden] = useState(document.hidden);
-  const [pausedByUser, setPausedByUser] = useState(false);
-  const finalizedRuns = useRef(new Set<number>());
-  const scene = useMemo(() => new LiveWorkScene(), [runId]);
+  const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
+  const cards = useMemo(() => buildCaptionCards(save.artifacts), [save.artifacts]);
+  const photos = useMemo(() => photoIds(save.artifacts.photos), [save.artifacts.photos]);
+  const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast());
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
-  const elapsedRatio = Math.min(1, Math.max(0, 1 - remainingMs / durationMs));
-  const paused = hidden || pausedByUser;
-  const actionable = events.filter(isWorkEventActionable);
-  const selected = events.find((event) => event.id === selectedId && isWorkEventActionable(event)) ?? actionable[0];
+  const commit = useCallback((next: BroadcastState) => {
+    setState(next);
+    setPageData(SAVE_KEY, next);
+  }, [setPageData]);
 
-  useEffect(() => {
-    const onVisibility = () => setHidden(document.hidden);
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
+  const segment = currentSegment(state);
+  const finished = isFinished(state);
+  const block = airBlock(state, cards);
+  const zone = audioZone(state.draft.level);
+  const caption = cards.find((card) => card.id === state.draft.captionId) ?? null;
+  const incident = INCIDENTS.find((item) => item.id === state.pendingIncident) ?? null;
+  const result = clipResult(state);
+  const clean = finished && state.corrections === 0;
 
-  useEffect(() => {
-    if (phase !== 'running' || paused) return;
-    let previous = performance.now();
-    const timer = window.setInterval(() => {
-      const now = performance.now();
-      const delta = Math.min(500, now - previous);
-      previous = now;
-      setRemainingMs((current) => Math.max(0, current - delta));
-    }, 200);
-    return () => window.clearInterval(timer);
-  }, [phase, paused]);
+  const setDraft = (patch: Partial<BroadcastState['draft']>) => commit({ ...state, draft: { ...state.draft, ...patch } });
 
-  useEffect(() => {
-    if (phase !== 'running') return;
-    setEvents((current) => {
-      const next = advanceWorkEvents(current, elapsedRatio);
-      return next.every((event, index) => event === current[index]) ? current : next;
-    });
-  }, [elapsedRatio, phase]);
-
-  useEffect(() => {
-    scene.setSnapshot({ events, remainingRatio: remainingMs / durationMs, ap });
-  }, [ap, durationMs, events, remainingMs, scene]);
-
-  const startRun = (milliseconds: number) => {
-    audioService.playSfx('tap');
-    setDurationMs(milliseconds);
-    setRemainingMs(milliseconds);
-    setEvents(createWorkEvents());
-    setAp(12);
-    setSelectedId(null);
-    setResult(null);
-    setPausedByUser(false);
-    setPhase('running');
+  const pickSource = (source: SourceId) => { audioService.playSfx('tap'); setDraft({ source }); };
+  const putCaption = (captionId: string) => {
+    if (!cards.some((card) => card.id === captionId)) return;
+    audioService.playSfx('drop');
+    setDraft({ captionId });
+    setSelectedCard(null);
   };
 
-  const chooseAction = (event: WorkEventRuntime, action: WorkActionDefinition) => {
-    if (phase !== 'running' || action.cost > ap || !isWorkEventActionable(event)) return;
-    setAp((current) => current - action.cost);
-    setEvents((current) => resolveWorkEvent(current, event.id, action));
-    setSelectedId(null);
-    audioService.playSfx(event.status === 'recovery' ? 'tap' : 'drop');
+  const air = () => {
+    if (block || !segment || !caption) return;
+    const next = airSegment(state, cards);
+    audioService.playSfx(caption.sourced ? 'success' : 'warning');
+    if (!caption.sourced) {
+      logEvent({ page: 8, type: 'broadcast-unsourced', summary: `"${caption.text}" 자막을 출처 없이 내보내 정정 방송을 하게 됐어.`, tags: ['출처 판단', segment.title], traits: { analysis: -1 }, contextRef: `p8:${segment.id}` });
+    }
+    if (isFinished(next)) finish(next);
+    commit(next);
+  };
+
+  const finish = (final: BroadcastState) => {
+    const clip = clipResult(final);
+    setArtifacts({ clip });
+    completePage(8);
+    addBadge(STAGE.badgeName);
+    addJobCard(STAGE.jobTitle);
     logEvent({
       page: 8,
-      type: event.status === 'recovery' ? 'work-recovery' : 'work-priority',
-      summary: `${event.title}: ${action.evidence}`,
-      tags: [event.title, action.approach, `행동력 ${action.cost}`],
-      traits: traitsForApproach(action.approach),
-      contextRef: `${event.id}:${action.id}`,
+      type: clip.corrections === 0 ? 'broadcast-clean' : 'broadcast-done',
+      summary: `생방송 6개 세그먼트를 마쳤어. 시청자 신뢰 ${clip.trust}점, 정정 ${clip.corrections}회.`,
+      tags: ['방송기술자', '출처 판단', clip.corrections === 0 ? '클린 방송' : '정정 방송'],
+      traits: { execution: 2, analysis: clip.corrections === 0 ? 2 : 1, collaboration: 1 },
+      contextRef: `p8:trust-${clip.trust}`,
     });
+    audioService.playSfx('reward');
   };
 
-  const finishRun = useCallback((snapshot: WorkEventRuntime[]) => {
-    if (finalizedRuns.current.has(runId)) return;
-    finalizedRuns.current.add(runId);
-    const outcome = workOutcome(snapshot);
-    const completedTasks = outcome.handled.length + outcome.recovered.length;
-    const success = isWorkOutcomeComplete(outcome);
-    setResult(outcome);
-    setPhase('result');
-    if (success) {
-      completePage(8);
-      addJobCard('생태 현장 운영 조정가');
-      grantReward('stage4-live-work-record');
-      if (outcome.handled.length >= 3) addBadge('중요한 일을 고른 현장가');
-    }
-    setPageData('page07', {
-      handled: outcome.handled.map((event) => ({ id: event.id, action: event.resolvedWith?.id })),
-      recovered: outcome.recovered.map((event) => event.id),
-      pending: outcome.pending.map((event) => event.id),
-      evidenceScore: outcome.evidenceScore,
-      apLeft: ap,
-      duration: durationMs,
-      success,
-    });
-    if (completedTasks > 0) {
-      logEvent({
-        page: 8,
-        type: 'work-result',
-        summary: `한꺼번에 들어온 일 중 ${outcome.handled.length}개를 바로 하고 ${outcome.recovered.length}개를 다시 이어 했어.`,
-        tags: ['우선순위', '시간 관리', '다시 하기'],
-        traits: { execution: 1, collaboration: 1 },
-        contextRef: `run-${runId}`,
-      });
-    }
-    audioService.playSfx(success ? 'reward' : 'warning');
-  }, [addBadge, addJobCard, ap, completePage, durationMs, grantReward, logEvent, runId, setPageData]);
-
-  useEffect(() => {
-    if (phase !== 'running') return;
-    const allResolved = events.every((event) => event.status === 'resolved');
-    if (remainingMs <= 0 || (allResolved && elapsedRatio >= 0.6)) finishRun(events);
-  }, [elapsedRatio, events, finishRun, phase, remainingMs]);
-
-  const retry = () => {
-    setRunId((current) => current + 1);
-    setPhase('briefing');
-    setResult(null);
+  const handleIncident = (actionId: string) => {
+    const next = resolveIncident(state, actionId);
+    if (next === state) return;
+    audioService.playSfx(next.trust < state.trust ? 'warning' : 'success');
+    commit(next);
   };
 
-  const resultMessage = result
-    ? `바로 한 일 ${result.handled.length}개, 다시 이어 한 일 ${result.recovered.length}개, 남은 일 ${result.pending.length}개야.`
-    : '';
-  const resultPassed = Boolean(result && isWorkOutcomeComplete(result));
+  const replay = () => { audioService.playSfx('tap'); setSelectedCard(null); commit(createBroadcast()); };
+
+  const onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    setDragOver(false);
+    if (!finished) putCaption(dropId(event));
+  };
 
   return (
     <GameShell
       page={8}
-      eyebrow="STAGE 4 · PRIORITY LAB"
+      eyebrow="STAGE 4 · ON AIR"
       onNavigate={onNavigate}
-      className="page07"
-      footer={phase === 'result' && resultPassed
-        ? <StageComplete title="중요한 일 세 가지를 해냈어" message={resultMessage} nextLabel="도시 문제 풀기로" onNext={() => onNavigate(9)} />
-        : undefined}
+      className="broadcast-page"
+      footer={finished ? (
+        <StageComplete
+          title={clean ? '클린 방송 성공' : '생방송 완료'}
+          message={`시청자 신뢰 ${result.trust}점 · 정정 ${result.corrections}회. ${clean ? '출처 없는 자막이 한 번도 안 나갔어. 방송 클립이 카드로 저장됐어.' : '정정 0회에 다시 도전하면 "클린 방송" 도장을 받을 수 있어.'}`}
+          nextLabel="연합 작전으로"
+          onNext={() => onNavigate(9)}
+        />
+      ) : undefined}
     >
-      <div className="game-grid game-grid--wide-center p07-layout">
-        <Panel kicker="MISSION" title="이번에 할 일">
+      <div className="game-grid broadcast-grid">
+        <aside className="stack">
           <MissionGuide
-            image={pageAsset(7, 10)}
-            imageAlt="관찰과 청소와 안내와 기록을 보여 주는 그림"
-            action="중요한 일 3개를 먼저 해요"
-            goals={['세 가지 끝내기', '놓친 일도 다시 하기']}
+            image={pageAsset(3, 3)}
+            imageAlt="방송 멘토"
+            action="큐시트 6개를 순서대로 송출해"
+            goals={['세그먼트에 맞는 화면 고르기', '출처 있는 자막만 올리기', '오디오를 초록 구간에 맞추기', `끝내면: ${STAGE.reward}`]}
           />
-          <div className="p07-ap" aria-label={`남은 힘 ${ap} / 12`}>
-            <span>남은 힘</span><strong>{ap}<small>/12</small></strong>
-            <ProgressBar value={ap} max={12} label="남은 힘" compact />
-          </div>
-          {phase === 'running' && (
-            <button className="button button--ghost button--block" onClick={() => setPausedByUser(true)}><ClockIcon />잠시 멈춤</button>
-          )}
-        </Panel>
+          <Panel title="큐시트" kicker="CUE SHEET" className="cue-panel">
+            <ol className="cue-list" aria-label="큐시트">
+              {SEGMENTS.map((item, index) => {
+                const done = index < state.index;
+                const current = index === state.index;
+                const corrected = state.correctionAt.includes(index);
+                const shown = corrected ? CORRECTION_SEGMENT : item;
+                return (
+                  <li key={item.id} className={`cue-item${current ? ' is-current' : ''}${done ? ' is-done' : ''}${corrected ? ' is-correction' : ''}`} aria-current={current ? 'step' : undefined}>
+                    <b>{done ? <CheckIcon /> : index + 1}</b>
+                    <div>
+                      <strong>{shown.title}</strong>
+                      {current && <small>{shown.need} · {SOURCE_LABEL[shown.requiredSource]}</small>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </Panel>
+        </aside>
 
-        <section className="scene-card p07-scene" aria-labelledby="p07-scene-title">
-          <h2 id="p07-scene-title" className="sr-only">여러 일이 들어오는 흐름 지도</h2>
-          <div className={`p07-central-timer${remainingMs < durationMs * 0.2 ? ' is-urgent' : ''}`} role="timer" aria-live={remainingMs < durationMs * 0.2 ? 'polite' : 'off'}>
-            <span>남은 시간</span><strong>{formatTime(remainingMs)}</strong>
-            {paused && <small>시간 멈춤</small>}
+        <div className="stack broadcast-center">
+          <div
+            className={`scene-card broadcast-preview${dragOver ? ' is-drop' : ''}${finished ? ' is-off' : ''}`}
+            onDragOver={(event) => { if (!finished) { event.preventDefault(); setDragOver(true); } }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            aria-label="송출 화면 미리보기"
+          >
+            <span className={`on-air${finished ? ' is-off' : ''}`} role="status">{finished ? 'OFF AIR' : 'ON AIR'}</span>
+            <span className="preview-slot">{segment ? `${state.index + 1}/${SEGMENTS.length} ${segment.title}` : '방송 종료'}</span>
+            {state.draft.source === 'drone' && (
+              <div className="preview-photos" aria-label="드론 사진">
+                {photos.map((id) => <img key={id} src={v2Asset(`photo-${id}`)} alt={`드론 사진 ${id}`} />)}
+              </div>
+            )}
+            {state.draft.source === 'studio' && <img className="preview-single" src={pageAsset(4, 5)} alt="스튜디오 카메라 화면" />}
+            {state.draft.source === 'reporter' && <img className="preview-single" src={v2Asset('reporter')} alt="현장 리포터" />}
+            {!state.draft.source && !finished && <p className="preview-empty">아래에서 화면 소스를 골라. 자막 카드는 여기로 끌어다 놔.</p>}
+            {finished && <p className="preview-empty">방송이 끝났어. 시청자 신뢰 {result.trust}점.</p>}
+            {segment && state.draft.source && block === 'wrong-source' && (
+              <p className="preview-mismatch" role="alert">{segment.title}에는 {SOURCE_LABEL[segment.requiredSource]}이(가) 필요해. 지금 화면은 {SOURCE_LABEL[state.draft.source]}야.</p>
+            )}
+            <div className={`preview-caption${caption ? '' : ' is-empty'}${caption && !caption.sourced ? ' is-unsourced' : ''}`} aria-live="polite">
+              {caption ? <><span>{caption.origin || '출처 없음'}</span>{caption.text}</> : '자막 자리'}
+            </div>
           </div>
-          <PhaserStage scene={scene} ariaLabel={`업무 흐름 지도. 현재 처리할 수 있는 사건 ${actionable.length}개, 기록 완료 ${events.filter((event) => event.status === 'resolved').length}개`} />
-          <div className="p07-event-strip" aria-label="업무 선택">
-            {events.map((event) => (
-              <button
-                key={event.id}
-                className={`p07-event-chip is-${event.status}${selected?.id === event.id ? ' is-selected' : ''}`}
-                disabled={!isWorkEventActionable(event)}
-                onClick={() => setSelectedId(event.id)}
-                aria-pressed={selected?.id === event.id}
-              >
-                <span>{STATUS_LABEL[event.status]}</span>{event.title}
+
+          {!finished && segment && (
+            <Panel title={segment.id === 'correction' ? '정정 방송 준비' : `${segment.title} 준비`} kicker="CONTROL" className="control-panel">
+              <div className="control-block">
+                <strong className="control-label"><b>1</b>화면 소스</strong>
+                <div className="source-tabs" role="group" aria-label="화면 소스 선택">
+                  {SOURCES.map((source) => (
+                    <button key={source} type="button" className={`source-tab${state.draft.source === source ? ' is-active' : ''}`} aria-pressed={state.draft.source === source} onClick={() => pickSource(source)}>
+                      <img src={source === 'drone' ? v2Asset(`photo-${photos[0] ?? 'logging'}`) : source === 'studio' ? pageAsset(4, 5) : v2Asset('reporter')} alt="" />
+                      <span>{SOURCE_LABEL[source]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="control-block">
+                <strong className="control-label"><b>2</b>자막 카드 <small>끌어다 놓거나 고른 뒤 올리기</small></strong>
+                <div className="caption-cards" aria-label="자막 카드">
+                  {cards.map((card) => {
+                    const onAir = card.id === state.draft.captionId;
+                    const selected = selectedCard === card.id;
+                    return (
+                      <button
+                        key={card.id}
+                        type="button"
+                        className={`caption-card${selected ? ' is-selected' : ''}${onAir ? ' is-on-air' : ''}`}
+                        draggable
+                        aria-pressed={selected}
+                        onDragStart={(event) => { event.dataTransfer.setData('text/broadcast-caption', card.id); setSelectedCard(card.id); }}
+                        onClick={() => { audioService.playSfx('tap'); setSelectedCard(selected ? null : card.id); }}
+                      >
+                        <GripIcon />
+                        <span>{card.text}</span>
+                        <small>{card.origin ? `출처: ${card.origin}` : '출처 표시 없음'}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="row">
+                  <button type="button" className="button button--ghost" disabled={!selectedCard} onClick={() => selectedCard && putCaption(selectedCard)}>자막 올리기</button>
+                  {caption && <button type="button" className="button button--ghost" onClick={() => { audioService.playSfx('tap'); setDraft({ captionId: null }); }}>자막 내리기</button>}
+                </div>
+              </div>
+
+              <div className="control-block">
+                <strong className="control-label"><b>3</b>오디오 레벨 <small>초록 구간 {AUDIO_BAND.low}~{AUDIO_BAND.high}</small></strong>
+                <div className={`audio-meter is-${zone}`} aria-hidden="true">
+                  <span className="audio-band" />
+                  {WAVE_BARS.map((height, index) => <i key={index} style={{ height: `${Math.round(height * state.draft.level)}%` }} />)}
+                </div>
+                <label className="audio-slider">
+                  <span className="sr-only">오디오 레벨</span>
+                  <input type="range" min={0} max={100} step={1} value={state.draft.level} aria-valuetext={`${state.draft.level}, ${zone === 'ok' ? '알맞음' : zone === 'clip' ? '소리 찢어짐' : '너무 작음'}`} onChange={(event) => setDraft({ level: Number(event.target.value) })} />
+                  <output>{state.draft.level}</output>
+                </label>
+                <span className={`status-chip status-chip--${zone === 'ok' ? 'success' : zone === 'clip' ? 'danger' : 'warning'}`}>{zone === 'ok' ? '알맞은 소리' : zone === 'clip' ? '소리가 찢어져' : '소리가 너무 작아'}</span>
+              </div>
+
+              <div className="air-row">
+                <p className="air-hint" aria-live="polite">{block ? BLOCK_HINT[block] : '준비 끝. 송출하면 이 세그먼트는 되돌릴 수 없어.'}</p>
+                <button type="button" className="button button--primary button--large air-button" disabled={Boolean(block)} onClick={air}>송출</button>
+              </div>
+            </Panel>
+          )}
+
+          {finished && (
+            <Panel title="방송 기록" kicker="LOG">
+              <ol className="air-log">
+                {state.log.map((entry, index) => {
+                  const card = cards.find((item) => item.id === entry.captionId);
+                  return <li key={`${entry.segmentId}-${index}`} className={entry.sourced ? 'is-ok' : 'is-bad'}><strong>{entry.title}</strong><span>{SOURCE_LABEL[entry.source]} · {card?.text ?? ''} {entry.sourced ? '' : '(출처 없음)'}</span></li>;
+                })}
+              </ol>
+              <button type="button" className="button button--ghost" onClick={replay}>{clean ? '다시 방송하기' : '정정 0회에 도전하기'}</button>
+            </Panel>
+          )}
+        </div>
+
+        <aside className="stack">
+          <Panel title="시청자 신뢰" kicker="TRUST">
+            <ProgressBar value={state.trust} label="신뢰 게이지" />
+            <p className="trust-copy" data-testid="trust-text">신뢰 {state.trust}점 · 정정 {state.corrections}회</p>
+            <div className="metric-row">
+              <span className="status-chip status-chip--info">남은 AP {state.ap}</span>
+              <span className={`status-chip ${clean ? 'status-chip--success' : 'status-chip--warning'}`}><SparkIcon /> 갱신 목표: 클린 방송(정정 0회)</span>
+            </div>
+          </Panel>
+          <Panel title="멘토 한마디" kicker="MENTOR" className="mentor-panel">
+            <img src={pageAsset(3, 3)} alt="" className="mentor-art" />
+            <p>{segment?.id === 'correction' ? '틀린 건 바로잡으면 돼. 이번엔 출처를 꼭 확인하자.' : state.corrections > 0 ? '출처가 없는 말은 생방송에 못 올려. 카드 아래 출처 표시를 봐.' : '빠른 것보다 정확한 게 먼저야. 출처 없는 자막은 내보내지 마.'}</p>
+          </Panel>
+        </aside>
+      </div>
+
+      {incident && (
+        <Modal title={`돌발 사고: ${incident.title}`}>
+          <p className="incident-signal">{incident.signal}</p>
+          <p className="incident-ap">남은 AP <b>{state.ap}</b> · 힘을 어디에 쓸지 골라. 사고는 두 번 나.</p>
+          <div className="incident-actions">
+            {incident.actions.map((action) => (
+              <button key={action.id} type="button" className="button button--ghost incident-action" disabled={action.cost > state.ap} onClick={() => handleIncident(action.id)}>
+                <span>{action.label}</span>
+                <small>AP {action.cost}{action.trustDelta ? ` · 신뢰 ${action.trustDelta}` : ' · 신뢰 유지'}</small>
               </button>
             ))}
           </div>
-        </section>
-
-        <Panel kicker="ACTION CARDS" title={selected ? selected.title : '새 일을 기다리는 중'} className="p07-action-panel">
-          {selected ? (
-            <>
-              <div className={`status-chip status-chip--${selected.status === 'active' ? 'warning' : 'info'}`}>{STATUS_LABEL[selected.status]}</div>
-              <p className="p07-signal">{selected.signal}</p>
-              <div className="p07-reason"><strong>왜 살펴야 할까?</strong><span>{selected.priorityReason}</span></div>
-              <div className="p07-actions">
-                {(selected.status === 'recovery' ? [selected.recovery] : selected.actions).map((action) => (
-                  <button key={action.id} className="p07-action-card" onClick={() => chooseAction(selected, action)} disabled={action.cost > ap}>
-                    <span className="p07-action-cost">필요한 힘 {action.cost}</span>
-                    <strong>{action.label}</strong>
-                    <small>{action.cost > ap ? '힘이 부족해' : action.approach}</small>
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="p07-waiting" role="status">
-              <img src={pageAsset(7, 5)} alt="업무 기록판 샘플 이미지" />
-              <p>{phase === 'running' ? '새 일이 열리면 여기에 방법이 나타나.' : '시작하면 여섯 가지 일이 차례로 들어와.'}</p>
-            </div>
-          )}
-        </Panel>
-      </div>
-
-      {phase === 'briefing' && (
-        <Modal
-          title="일의 순서를 정해 보자"
-          actions={<>
-            <button className="button button--ghost" onClick={() => startRun(30_000)}>30초로 해 보기</button>
-            <button className="button button--primary" onClick={() => startRun(90_000)}>90초로 시작</button>
-          </>}
-        >
-          <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>할 일 고르기</span><i>→</i><b>2</b><span>방법 고르기</span></div>
-          <p className="modal-note">중요한 일 세 가지를 끝내면 돼. 놓친 일도 다시 할 수 있어.</p>
-        </Modal>
-      )}
-
-      {pausedByUser && phase === 'running' && (
-        <Modal title="업무 시간이 멈췄어" actions={<button className="button button--primary" onClick={() => { setPausedByUser(false); audioService.unlock(); }}>계속하기</button>}>
-          <p>지금까지의 선택은 그대로 보관돼. 준비되면 계속하기를 눌러 줘.</p>
-        </Modal>
-      )}
-
-      {phase === 'result' && result && (
-        <Modal
-          title={resultPassed ? '중요한 일을 골라 해냈어' : '한 번 더 하면 해낼 수 있어'}
-          actions={<>
-            <button className={resultPassed ? 'button button--ghost' : 'button button--primary'} onClick={retry}>다시 해 보기</button>
-            {resultPassed && <button className="button button--primary" onClick={() => onNavigate(9)}>다음 단계로</button>}
-          </>}
-        >
-          <p>{resultMessage} {resultPassed ? '완료 조건인 세 가지를 채웠어.' : '완료하려면 바로 하거나 다시 이어 한 일이 모두 세 가지 이상이어야 해.'}</p>
-          <ul className="p07-result-list">
-            {events.filter((event) => event.resolvedWith).map((event) => (
-              <li key={event.id}><span><CheckIcon /></span><div><strong>{event.title} · {event.resolvedWith?.approach}</strong><p>{event.resolvedWith?.evidence}</p></div></li>
-            ))}
-            {result.pending.map((event) => <li key={event.id} className="is-pending"><span /><div><strong>{event.title} · 다음 근무자 확인</strong><p>{event.priorityReason}</p></div></li>)}
-          </ul>
         </Modal>
       )}
     </GameShell>
