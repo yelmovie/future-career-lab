@@ -241,7 +241,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   return (
     <GameShell page={7} eyebrow="STAGE 3 · ECOLOGY" onNavigate={onNavigate} footer={footer} className="p7-shell">
       <div className="p7-layout">
-        <Panel title="이번에 할 일" kicker="MISSION" className="p7-mission">
+        <Panel title="이번 미션" kicker="MISSION" className="p7-mission">
           <MissionGuide image={pageAsset(7, 1)} imageAlt="카키색 옷을 입은 생태 연구원" action="흔적을 모으고 조건을 하나씩 바꿔 봐" goals={['지점 A·B·C에서 흔적 찾기', '태블릿에서 튀는 값 고르기', '슬라이더 하나씩 바꿔 실험 3번']} />
           <p className="p7-reward">끝내면 얻는 것 · {META.reward}</p>
           <ol className="p7-steps" aria-label="진행 단계">

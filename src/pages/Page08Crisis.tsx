@@ -211,7 +211,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
         </section>
       ) : (
         <div className="p08-layout">
-          <Panel kicker="ALLIANCE BRIEFING" title="이번에 할 일" className="p08-brief-panel">
+          <Panel kicker="ALLIANCE BRIEFING" title="이번 미션" className="p08-brief-panel">
             <MissionGuide
               image={pageAsset(8, 10)}
               imageAlt="네 직업의 힘을 모으는 연합 엠블럼"

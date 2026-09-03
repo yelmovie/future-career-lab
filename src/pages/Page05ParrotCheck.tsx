@@ -227,7 +227,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   return (
     <GameShell page={5} eyebrow="STAGE 2 · CARE LAB" onNavigate={onNavigate} footer={footer} className="p5-shell">
       <div className="p5-layout">
-        <Panel title="이번에 할 일" kicker="MISSION" className="p5-mission-panel">
+        <Panel title="이번 미션" kicker="MISSION" className="p5-mission-panel">
           <MissionGuide
             image={pageAsset(5, 9)}
             imageAlt="돌봄 기록용 태블릿"

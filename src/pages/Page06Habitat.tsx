@@ -213,13 +213,27 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   return (
     <GameShell page={6} eyebrow="STAGE 2 · HABITAT DESIGN" onNavigate={onNavigate} footer={footer} className="p6-shell">
       <div className="p6-layout">
-        <Panel title="이번에 할 일" kicker="BUILD KIT" className="p6-palette-panel">
+        <Panel title="이번 미션" kicker="BUILD KIT" className="p6-palette-panel">
           <MissionGuide
             image={pageAsset(6, 1)}
             imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
             action="두 마리에 맞는 회복 공간을 만들어요"
             goals={['물건 3~4개 놓고 개체 조건 채우기', '안 보일 행동 예측하고 시험하기', '고치거나 까닭 고르기']}
           />
+          <div className="p6-item-palette" aria-label="배치할 물체">
+            {HABITAT_ITEM_IDS.map((itemId) => {
+              const item = HABITAT_ITEMS[itemId];
+              const alreadyPlaced = placedIds.has(itemId);
+              const unavailable = alreadyPlaced || placements.length >= 4 || evaluation.budget + item.cost > 8;
+              return (
+                <button key={itemId} type="button" disabled={unavailable} onClick={() => addItem(itemId)} aria-label={`${item.name}, 비용 ${item.cost}${alreadyPlaced ? ', 이미 배치됨' : ''}`}>
+                  <img src={item.image} alt="" />
+                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}</small></span>
+                  <b>{alreadyPlaced ? '배치됨' : '추가'}</b>
+                </button>
+              );
+            })}
+          </div>
           <div className="p6-reward">
             <span>끝내면 얻는 것</span>
             <strong>{STAGE.reward}</strong>
@@ -235,20 +249,6 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '초록' : '빨강'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
           </div>
 
-          <div className="p6-item-palette" aria-label="배치할 물체">
-            {HABITAT_ITEM_IDS.map((itemId) => {
-              const item = HABITAT_ITEMS[itemId];
-              const alreadyPlaced = placedIds.has(itemId);
-              const unavailable = alreadyPlaced || placements.length >= 4 || evaluation.budget + item.cost > 8;
-              return (
-                <button key={itemId} type="button" disabled={unavailable} onClick={() => addItem(itemId)} aria-label={`${item.name}, 비용 ${item.cost}${alreadyPlaced ? ', 이미 배치됨' : ''}`}>
-                  <img src={item.image} alt="" />
-                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}</small></span>
-                  <b>{alreadyPlaced ? '배치됨' : '추가'}</b>
-                </button>
-              );
-            })}
-          </div>
         </Panel>
 
         <section className="p6-workbench" aria-labelledby="p6-board-title">
