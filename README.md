@@ -1,4 +1,4 @@
-# 미래 직업실 v3
+# 미래 직업실 v4
 
 초등 5–6학년을 위한 체험형 진로교육 게임입니다. 설문이나 적성 단정 대신 **하나의 사건**을 네 직업의 도구로 직접 다루고, 마지막에 네 직업을 한 팀으로 묶어 해결합니다.
 
@@ -58,6 +58,7 @@ node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 →
 - localStorage `future-career-lab.save.v1` (schema v2, v1 자동 이행), 세션 시드로 결정적 랜덤
 - 서비스워커 `public/sw.js`: 정적 자원 캐시 우선, HTML 네트워크 우선 → 교실 와이파이가 끊겨도 진행
 - 글꼴 셀프호스팅(Jua·Pretendard, OFL). 외부 요청 0
+- 화면 v4: 모든 미션 화면은 `src/components/v4/StepShell`(점·지시 한 줄·무대·멘토 말풍선·다음 버튼) 위에 있다. 새 화면은 `docs/GAME_DESIGN_v4.md` 규격대로 StepShell+PictureChoice+SlotBoard 로 만든다
 - 디자인 v3: 밝은 파스텔 토큰(`src/styles/index.css` 상단 `--color-*`), 3D 엣지 버튼, 16px 글자 하한. 배경은 흰색 워시로 파스텔화
 - 신규 그림 자리 `public/assets/v3/` (`v3Asset()` + `fallbackTo()`, 파일 없으면 v2 그림) — 프롬프트는 `docs/ASSET_REQUEST_v3.md`
 - 정적 배포: Vercel + GitHub

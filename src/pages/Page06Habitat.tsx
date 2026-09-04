@@ -1,197 +1,97 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
-import { PhaserStage } from '../components/PhaserStage';
-import { StageComplete } from '../components/StageComplete';
-import { CheckIcon, GripIcon } from '../components/Icons';
+import { useEffect, useRef, useState } from 'react';
+import { StepShell } from '../components/v4/StepShell';
+import { SlotBoard } from '../components/v4/SlotBoard';
 import { audioService } from '../services/audioService';
-import { pageAsset } from '../shared/assets';
+import { pageAsset, sample3d } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
-import { HabitatScene } from './HabitatScene';
-import {
-  BEHAVIOR_LABELS,
-  checkConditions,
-  conditionsFromCareLog,
-  evaluateHabitat,
-  HABITAT_ITEM_IDS,
-  HABITAT_ITEMS,
-  HABITAT_STRATEGIES,
-  layoutSignature,
-  WATER_REACH,
-  type Behavior,
-  type HabitatItemId,
-  type HabitatPlacement,
-  type HabitatSimulationResult,
-} from './habitatModel';
+import { gardenStars, placedCount, readGarden, type GardenItem, type GardenPlaced, type GardenResult, type GardenSlot } from './gardenModel';
 import './page06.css';
 
-interface PageProps {
-  onNavigate: (page: PageNumber) => void;
-}
+interface PageProps { onNavigate: (page: PageNumber) => void }
 
-type Prediction = Behavior | 'none';
-const PREDICTIONS: { id: Prediction; label: string }[] = [
-  { id: 'eat', label: '먹기가 안 보일 거야' },
-  { id: 'play', label: '놀기가 안 보일 거야' },
-  { id: 'rest', label: '쉬기가 안 보일 거야' },
-  { id: 'none', label: '셋 다 보일 거야' },
-];
-const isPrediction = (value: unknown): value is Prediction => value === 'eat' || value === 'play' || value === 'rest' || value === 'none';
 const STAGE = STAGE_META[1]!;
-
-function readDraftPlacements(value: unknown): HabitatPlacement[] {
-  if (!value || typeof value !== 'object') return [];
-  const candidate = (value as { placements?: unknown }).placements;
-  if (!Array.isArray(candidate)) return [];
-  return candidate.slice(0, 4).filter((item): item is HabitatPlacement => {
-    if (!item || typeof item !== 'object') return false;
-    const placement = item as Partial<HabitatPlacement>;
-    return typeof placement.instanceId === 'string'
-      && typeof placement.itemId === 'string'
-      && HABITAT_ITEM_IDS.includes(placement.itemId as HabitatItemId)
-      && typeof placement.x === 'number' && Number.isFinite(placement.x)
-      && typeof placement.y === 'number' && Number.isFinite(placement.y)
-      && typeof placement.rotation === 'number' && Number.isFinite(placement.rotation);
-  });
-}
-
-function readStoredPrediction(value: unknown): Prediction | null {
-  const candidate = value && typeof value === 'object' ? (value as { prediction?: unknown }).prediction : null;
-  return isPrediction(candidate) ? candidate : null;
-}
-
-/** 3별일 때만 고를 수 있는 "그대로 두는 까닭". 3별 미만은 배치를 실제로 옮겨야 끝난다. */
-const KEEP_REASONS = [
-  '출입 동선과 각 활동 지점 사이에 충분한 간격이 있어.',
-  '휴식·활동·급수 선택지가 서로 겹치지 않고 이어져.',
-  '관찰 결과 안전성과 이동 흐름이 모두 안정적이었어.',
+const MENTOR = pageAsset(5, 1);
+const MENTOR_NAME = '사육사 하늘';
+const CHIPS = [
+  { id: 'water', image: sample3d(6), label: '물그릇' },
+  { id: 'hideout', image: sample3d(5), label: '숨숨 상자' },
+  { id: 'rope', image: sample3d(4), label: '놀이 로프' },
+  { id: 'feeder', image: sample3d(3), label: '먹이 나무' },
+] as const satisfies readonly { id: GardenItem; image: string; label: string }[];
+const SLOTS = [
+  { id: 'shade', label: '조용한 나무 그늘', capacity: 2 },
+  { id: 'perch', label: '쉬는 횃대', capacity: 2 },
+  { id: 'path', label: '관람로 쪽 (시끄러움)', capacity: 2 },
+] as const satisfies readonly { id: GardenSlot; label: string; capacity: number }[];
+const QUESTIONS = [
+  { id: 'ruby', text: '루비(탈수)는 물을 마실까?', check: (result: GardenResult) => result.waterQuiet },
+  { id: 'momo', text: '모모(스트레스)는 쉴까?', check: (result: GardenResult) => result.hideoutQuiet },
 ] as const;
+type QuestionId = (typeof QUESTIONS)[number]['id'];
+type Answers = Partial<Record<QuestionId, boolean>>;
+const INSTRUCTIONS = ['물건을 정원에 놓아 봐', '예측해 봐', '시험해 봐'];
+const BUBBLES = ['어디가 조용하고, 어디가 시끄러울까?', '지금 정원이면 어떻게 될까?', '예측이 맞는지 볼까?'];
+const BIRD_SLOT_X: Record<GardenSlot, string> = { shade: '17%', perch: '50%', path: '83%' };
+
+function readAnswers(value: unknown): Answers {
+  const raw = value && typeof value === 'object' ? (value as { answers?: Record<string, unknown> }).answers : null;
+  const answers: Answers = {};
+  for (const question of QUESTIONS) if (typeof raw?.[question.id] === 'boolean') answers[question.id] = raw[question.id] as boolean;
+  return answers;
+}
 
 export default function Page06Habitat({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
-  const storedDraft = useMemo(() => readDraftPlacements(save.pageData.page06Draft), []);
-  const [placements, setPlacements] = useState<HabitatPlacement[]>(storedDraft);
-  const [prediction, setPrediction] = useState<Prediction | null>(() => readStoredPrediction(save.pageData.page06Draft));
-  const conditions = useMemo(() => conditionsFromCareLog(save.artifacts.careLog), [save.artifacts.careLog]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [simulating, setSimulating] = useState(false);
-  const [simulation, setSimulation] = useState<HabitatSimulationResult | null>(null);
-  const [simulationSnapshot, setSimulationSnapshot] = useState('');
-  const [keepReason, setKeepReason] = useState<string | null>(null);
-  /** 시험 뒤 물건을 하나라도 옮겼는지(누적). 3별 미만이면 이게 있어야 완성. */
-  const [redesignedOnce, setRedesignedOnce] = useState(false);
+  const [placed, setPlaced] = useState<GardenPlaced>(() => readGarden(save.pageData.page06Draft));
+  const [answers, setAnswers] = useState<Answers>(() => readAnswers(save.pageData.page06Draft));
+  const [step, setStep] = useState(1);
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<GardenResult | null>(null);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(6));
-  const changeHandler = useRef<(next: HabitatPlacement[]) => void>(() => undefined);
-  const selectionHandler = useRef<(instanceId: string | null) => void>(() => undefined);
+  const timer = useRef(0);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  changeHandler.current = (next) => {
-    setPlacements(next);
-    setKeepReason(null);
-    setPageData('page06Draft', { placements: next, prediction });
-  };
-  selectionHandler.current = setSelectedId;
+  const count = placedCount(placed);
+  const answered = QUESTIONS.every((question) => answers[question.id] !== undefined);
 
-  const scene = useMemo(() => new HabitatScene({
-    onChange: (next) => changeHandler.current(next),
-    onSelect: (instanceId) => selectionHandler.current(instanceId),
-  }), []);
+  useEffect(() => { setPageData('page06Draft', { ...placed, answers }); }, [placed, answers, setPageData]);
 
-  useEffect(() => {
-    if (storedDraft.length > 0) scene.loadPlacements(storedDraft);
-  }, [scene, storedDraft]);
-
-  const evaluation = useMemo(() => evaluateHabitat(placements), [placements]);
-  const conditionCheck = useMemo(() => checkConditions(placements, conditions), [placements, conditions]);
-  const currentSignature = useMemo(() => layoutSignature(placements), [placements]);
-  const redesigned = Boolean(simulation) && currentSignature !== simulationSnapshot;
-  useEffect(() => { if (redesigned) setRedesignedOnce(true); }, [redesigned]);
-  const perfect = simulation?.stars === 3;
-  /** 완성 조건: 지금 배치로 시험을 마쳤고, 3별이면 (옮겼거나 까닭), 3별 미만이면 옮긴 뒤 다시 시험. */
-  const rethinkDone = perfect ? redesignedOnce || Boolean(keepReason) : redesignedOnce;
-  const canFinish = Boolean(simulation) && evaluation.valid && !redesigned && rethinkDone;
-  const selected = placements.find((placement) => placement.instanceId === selectedId) ?? null;
-  const placedIds = new Set(placements.map((placement) => placement.itemId));
-  const nextTask = !evaluation.valid
-    ? { action: '물건을 3~4개 놓아 오른쪽 조건을 모두 채워', target: '왼쪽 물건 목록' }
-    : !prediction
-      ? { action: '지금 정원에서 안 보일 행동을 먼저 예측해', target: '오른쪽 예측 버튼' }
-      : !simulation
-        ? { action: '예측을 확인하려고 새 정원을 시험해', target: '새 정원 시험하기' }
-        : redesigned
-          ? { action: '배치를 바꿨으니 결과가 달라졌는지 다시 시험해', target: '현재 배치 다시 시험하기' }
-          : perfect && !rethinkDone
-            ? { action: '3별 배치를 그대로 둘 까닭 하나를 골라', target: '오른쪽 까닭 카드' }
-            : canFinish
-              ? { action: '시험과 다시 생각하기 완료! 공간을 완성해', target: '생활 공간 완성', done: true }
-              : { action: '빠진 행동을 보고 물건 하나를 옮겨 다시 설계해', target: '가운데 보드의 물건' };
-
-  const loadStrategy = (strategyId: (typeof HABITAT_STRATEGIES)[number]['id']) => {
-    const strategy = HABITAT_STRATEGIES.find((item) => item.id === strategyId);
-    if (!strategy) return;
-    scene.loadPlacements(strategy.placements);
-    audioService.playSfx('drop');
-  };
-
-  const addItem = (itemId: HabitatItemId) => {
-    scene.addItem(itemId);
-    audioService.playSfx('drop');
-  };
-
-  const choosePrediction = (next: Prediction) => {
-    setPrediction(next);
-    setPageData('page06Draft', { placements, prediction: next });
+  const place = (chip: GardenItem, slot: GardenSlot | null) => setPlaced((current) => {
+    const next: GardenPlaced = { shade: current.shade.filter((id) => id !== chip), perch: current.perch.filter((id) => id !== chip), path: current.path.filter((id) => id !== chip) };
+    if (slot) next[slot] = [...next[slot], chip];
+    return next;
+  });
+  const answer = (id: QuestionId, value: boolean) => {
+    setAnswers((current) => ({ ...current, [id]: value }));
     audioService.playSfx('tap');
   };
 
-  const startSimulation = async () => {
-    if (!evaluation.valid || simulating || !prediction) return;
-    setSimulating(true);
-    setKeepReason(null);
-    setSimulationSnapshot(currentSignature);
+  const runTest = () => {
+    if (testing) return;
+    setTesting(true);
+    setResult(null);
     audioService.playSfx('record');
-    const result = await scene.runSimulation(conditions);
-    setSimulation(result);
-    setSimulating(false);
-    setArtifacts({ habitatStars: result.stars });
-    audioService.playSfx(result.stars === 3 ? 'success' : 'warning');
+    const outcome = gardenStars(placed);
+    timer.current = window.setTimeout(() => {
+      setResult(outcome);
+      setTesting(false);
+      setArtifacts({ habitatStars: outcome.stars });
+      audioService.playSfx(outcome.stars === 3 ? 'success' : 'warning');
+    }, 1400);
   };
 
-  const missingBehaviors = simulation ? (Object.keys(simulation.behaviors) as Behavior[]).filter((key) => !simulation.behaviors[key]) : [];
-  const actualLabel = missingBehaviors.length === 0 ? '셋 다 보였어.' : `${missingBehaviors.map((key) => BEHAVIOR_LABELS[key]).join('·')}가 안 보였어.`;
-  // 빠진 행동이 둘이면 그중 하나만 맞혀도 예측 성공
-  const predictionHit = Boolean(simulation) && prediction !== null
-    && (missingBehaviors.length === 0 ? prediction === 'none' : prediction !== 'none' && missingBehaviors.includes(prediction));
-
-  const finishMission = () => {
-    if (!canFinish || !simulation) return;
-    const revisionChoice = redesignedOnce ? '시험해 본 뒤 배치를 실제로 다시 조정했어.' : `배치를 그대로 둔 까닭: ${keepReason}`;
-    setPageData('page06Design', { placements, evaluation, simulation, revisionChoice, prediction, conditions });
+  const finish = () => {
+    if (!result) return;
+    const hits = QUESTIONS.filter((question) => answers[question.id] === question.check(result)).length;
+    setPageData('page06Design', { placed, result, answers });
     logEvent({
-      page: 6,
-      type: 'habitat-layout-strategy',
-      summary: `${evaluation.strategyName}으로 예산 ${evaluation.budget}/8 안에서 휴식·활동·급수 동선을 설계했어.`,
-      tags: ['동물·생명', '기술·제작', '공간 설계'],
-      traits: { creation: 2, execution: 1 },
-      contextRef: `layout-${evaluation.strategyId}`,
+      page: 6, type: 'habitat-simulation',
+      summary: `만족도 ${result.stars}별. 예측 ${hits}/${QUESTIONS.length} 맞음.`,
+      tags: ['시험해 보기', '예측 검증', '공간 설계'], traits: { analysis: 2, creation: 1, care: 1 }, contextRef: `simulation-${result.stars}-stars`,
     });
-    logEvent({
-      page: 6,
-      type: 'habitat-simulation',
-      summary: `만족도 ${simulation.stars}별. 예측(${PREDICTIONS.find((item) => item.id === prediction)?.label ?? '없음'})은 ${predictionHit ? '맞았어' : '빗나갔어'}. ${simulation.summary}`,
-      tags: ['시험해 보기', '예측 검증'],
-      traits: { analysis: 2, care: 1 },
-      contextRef: `simulation-${simulation.stars}-stars`,
-    });
-    logEvent({
-      page: 6,
-      type: redesignedOnce ? 'habitat-redesign' : 'habitat-keep-with-reason',
-      summary: revisionChoice,
-      tags: ['재설계', '의사결정'],
-      traits: redesignedOnce ? { creation: 2, execution: 1 } : { analysis: 1, execution: 1 },
-      contextRef: redesignedOnce ? `redesign-${currentSignature}` : 'keep-with-evidence',
-    });
-    setArtifacts({ habitatStars: simulation.stars });
+    setArtifacts({ habitatStars: result.stars });
     completePage(6);
     addBadge(STAGE.badgeName);
     addJobCard(STAGE.jobTitle);
@@ -199,201 +99,91 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     audioService.playSfx('reward');
   };
 
-  const footer = completed ? (
-    <StageComplete
-      title={simulation?.stars === 3 ? '만족도 3별! 새 정원 완성' : '새 정원을 다시 만들었어'}
-      message={simulation?.stars === 3 ? `${STAGE.badgeName}를 얻었어. 모모와 루비가 새 정원에서 쉬고 있어. 그런데 사육사 하늘이 물었어: '숲 가장자리엔 왜 새소리가 없었지?'` : `${STAGE.badgeName}를 얻었어. 모모와 루비가 새 정원에서 쉬고 있어. 그런데 사육사 하늘이 물었어: '숲 가장자리엔 왜 새소리가 없었지?' 3별을 노린다면 배치를 바꿔 다시 시험해 봐.`}
-      nextLabel="푸른솔 숲 생태 조사로 가기"
-      onNext={() => onNavigate(7)}
-    />
-  ) : (
-    <div className="p6-footer" aria-live="polite">
-      <TaskCue {...nextTask} />
-      <button className={`button button--primary button--large${canFinish ? ' is-next-action' : ''}`} type="button" disabled={!canFinish} onClick={finishMission}>
-        새 정원 완성
-        <CheckIcon />
-      </button>
-    </div>
-  );
+  const perfect = result?.stars === 3;
+  const next = completed
+    ? { label: '숲 생태 조사로 가기', onClick: () => onNavigate(7) }
+    : step === 1
+      ? { label: '다음', disabled: count < 3, hint: `물건을 ${3 - count}개 더 놓아 봐`, onClick: () => setStep(2) }
+      : step === 2
+        ? { label: '다음', disabled: !answered, hint: '두 질문에 다 답해 봐', onClick: () => setStep(3) }
+        : perfect
+          ? { label: '새 정원 완성', onClick: finish }
+          : { label: result ? '옮겨서 다시' : '시험하기', disabled: testing, hint: '잠깐만, 보는 중이야', onClick: result ? () => { setResult(null); setStep(1); } : runTest };
 
-  const ruleRows = [
-    { label: '물건 3~4개', ready: evaluation.enoughElements && evaluation.withinCount },
-    { label: '힘 8 이하', ready: evaluation.withinBudget },
-    { label: '물·쉼·놀이 모두', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
-    { label: '출입문 앞 비우기', ready: evaluation.entranceClear },
-    { label: '겹치지 않기', ready: evaluation.noCollisions },
-    { label: '오가는 길 잇기', ready: evaluation.connected },
-  ];
-  const birdRows = [
-    ...(conditions.dehydrated ? [{ label: `루비(탈수): 물그릇을 쉬는 곳에서 ${WATER_REACH}칸 안에`, ready: conditionCheck.waterNearRest }] : []),
-    ...(conditions.stressed ? [{ label: '모모(스트레스): 숨을 곳을 놓고, 시끄러운 위쪽에서 떨어뜨리기', ready: conditionCheck.shelterQuiet }] : []),
-  ];
+  /** 시험 화면에서 새가 가는 자리: 루비는 물그릇, 모모는 숨숨 상자를 찾아간다. 없으면 관람로 쪽에서 서성인다. */
+  const slotOf = (item: GardenItem): GardenSlot => (Object.keys(placed) as GardenSlot[]).find((slot) => placed[slot].includes(item)) ?? 'path';
+  const birdX = (item: GardenItem) => (testing || result ? BIRD_SLOT_X[slotOf(item)] : '50%');
 
   return (
-    <GameShell page={6} eyebrow="STAGE 2 · HABITAT DESIGN" onNavigate={onNavigate} footer={footer} className="p6-shell">
-      <div className="p6-layout">
-        <Panel title="이번 미션" kicker="BUILD KIT" className="p6-palette-panel">
-          <MissionGuide
-            image={pageAsset(6, 1)}
-            imageAlt="태블릿으로 모모와 루비의 새 정원을 만드는 어린이"
-            action="찢어진 새 정원을 모모와 루비에 맞게 다시 만들어"
-            goals={['물건 3~4개 놓기', '안 보일 행동 예측하고 시험하기', '3별이 아니면 옮겨서 다시 시험']}
-            goalImages={[pageAsset(6, 9), pageAsset(6, 3), pageAsset(6, 10)]}
-            reward={STAGE.reward}
-            details={
-              <>
-                <div className="p6-handoff">
-                  <strong>돌봄 기록에서 온 조건</strong>
-                  <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '모모' : '루비'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
-                </div>
-                <div className="p6-reward"><span>갱신 목표</span><strong>먹기·놀기·쉬기 다 보이는 만족도 3별</strong></div>
-              </>
-            }
-          />
-          <div className="p6-budget" aria-label={`예산 ${evaluation.budget} / 8, 물체 ${evaluation.count} / 4`}>
-            <div><span>쓴 힘</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
-            <div><span>물건</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
-          </div>
-          <div className="p6-item-palette" aria-label="배치할 물체">
-            {HABITAT_ITEM_IDS.map((itemId) => {
-              const item = HABITAT_ITEMS[itemId];
-              const alreadyPlaced = placedIds.has(itemId);
-              const unavailable = alreadyPlaced || placements.length >= 4 || evaluation.budget + item.cost > 8;
-              return (
-                <button key={itemId} type="button" disabled={unavailable} onClick={() => addItem(itemId)} aria-label={`${item.name}, 비용 ${item.cost}${alreadyPlaced ? ', 이미 배치됨' : ''}`}>
-                  <img src={item.image} alt="" />
-                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}{alreadyPlaced ? ' · 배치됨' : ''}</small></span>
-                  <b>{alreadyPlaced ? '배치됨' : '추가'}</b>
-                </button>
-              );
-            })}
-          </div>
-        </Panel>
+    <StepShell
+      page={6}
+      step={step}
+      steps={3}
+      instruction={completed ? '모모와 루비가 새 정원에서 쉬어' : INSTRUCTIONS[step - 1]!}
+      mentor={MENTOR}
+      mentorName={MENTOR_NAME}
+      bubble={completed ? '그런데 숲 가장자리엔 왜 새소리가 없었지?' : result && !perfect ? '별이 빠진 자리는 어디일까?' : BUBBLES[step - 1]!}
+      status={result ? <span aria-label={`별 ${result.stars}개`}>{'★'.repeat(result.stars)}{'☆'.repeat(3 - result.stars)}</span> : `물건 ${count}/4`}
+      help={<p>물그릇·숨숨 상자·놀이 로프·먹이 나무를 세 구역에 놓아. 관람로 쪽은 시끄러워. 모모와 루비가 편히 지내면 별 3개야. 별이 모자라면 옮겨서 다시 시험하면 돼.</p>}
+      done={completed ? { title: `${STAGE.badgeName}를 얻었어`, message: '모모와 루비가 새 정원에서 쉬고 있어.' } : undefined}
+      next={next}
+      className="p6-page"
+      onNavigate={onNavigate}
+    >
+      <div className="v4-card p6-stage">
+        {step === 1 && (
+          <SlotBoard chips={CHIPS} slots={SLOTS} placed={placed} onPlace={place} chipsLabel="여기서 골라" board={<div className="p6-garden" aria-hidden="true" />} />
+        )}
 
-        <section className="p6-workbench" aria-labelledby="p6-board-title">
-          <header className="p6-workbench__header">
-            <h2 id="p6-board-title">정원에 물건 놓기</h2>
-            <div className="p6-strategies" aria-label="빠르게 시작할 수 있는 예시">
-              <span>빠른 시작</span>
-              {HABITAT_STRATEGIES.map((strategy) => (
-                <button key={strategy.id} type="button" onClick={() => loadStrategy(strategy.id)} title={strategy.description}>{strategy.name}</button>
-              ))}
-            </div>
-            <button className="button button--ghost" type="button" disabled={placements.length === 0} onClick={() => scene.clearLayout()}>모두 치우기</button>
-          </header>
-          <div className="p6-board scene-card">
-            <PhaserStage scene={scene} ariaLabel="물건을 끌어 놓아 생활 공간을 만드는 화면. 왼쪽 붉은 곳은 비워야 하는 출입 안전선이야." />
-            <div className="p6-board-hint">물건을 끌어 놓거나 눌러서 선택해.</div>
-          </div>
-
-          <div className="p6-selection-tools" aria-label="선택한 물체 조절">
-            <div className="p6-selected-name">
-              <GripIcon />
-              <span>{selected ? <><small>선택한 물체</small><strong>{HABITAT_ITEMS[selected.itemId].name}</strong></> : <strong>보드나 목록에서 물체를 선택해</strong>}</span>
-            </div>
-            <div className="p6-nudge-pad">
-              <button type="button" disabled={!selected} onClick={() => scene.nudgeSelected(0, -5)} aria-label="선택 물체 위로 5칸 이동">위</button>
-              <button type="button" disabled={!selected} onClick={() => scene.nudgeSelected(-5, 0)} aria-label="선택 물체 왼쪽으로 5칸 이동">왼쪽</button>
-              <button type="button" disabled={!selected} onClick={() => scene.nudgeSelected(5, 0)} aria-label="선택 물체 오른쪽으로 5칸 이동">오른쪽</button>
-              <button type="button" disabled={!selected} onClick={() => scene.nudgeSelected(0, 5)} aria-label="선택 물체 아래로 5칸 이동">아래</button>
-            </div>
-            <button className="button" type="button" disabled={!selected} onClick={() => { scene.rotateSelected(); audioService.playSfx('tap'); }}>90° 회전</button>
-            <button className="button button--danger" type="button" disabled={!selected} onClick={() => { scene.removeSelected(); audioService.playSfx('tap'); }}>선택 삭제</button>
-          </div>
-          {placements.length > 0 && (
-            <div className="p6-placed-row">
-              <span>놓은 물건</span>
-              <div className="p6-placed-list" aria-label="배치된 물체 목록">
-                {placements.map((placement) => (
-                  <button key={placement.instanceId} type="button" className={selectedId === placement.instanceId ? 'is-selected' : ''} onClick={() => scene.selectInstance(placement.instanceId)}>
-                    {HABITAT_ITEMS[placement.itemId].shortName}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-
-        <div className="p6-review-column">
-          <Panel title="다 됐나 보기" kicker="LIVE CHECK" className="p6-rules-panel">
-            <ul className="p6-rule-list">
-              {ruleRows.map((rule) => (
-                <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
-                  <span>{rule.ready ? '충족' : '확인'}</span><strong>{rule.label}</strong>
-                </li>
-              ))}
-            </ul>
-            {simulation ? (
-              <ul className="p6-rule-list p6-rule-list--bird" aria-label="개체별 조건 (시험 결과)">
-                {birdRows.map((rule) => (
-                  <li key={rule.label} className={rule.ready ? 'is-ready' : ''}>
-                    <span>{rule.ready ? '충족' : '확인'}</span><strong>{rule.label}</strong>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="p6-handoff p6-rule-list--bird">
-                <strong>두 마리 조건은 시험해 봐야 알아</strong>
-                <p>{conditions.dehydrated ? '루비(탈수)는 물이 쉬는 곳에서 가까워야 해. ' : ''}{conditions.stressed ? '모모(스트레스)는 조용한 쪽에 숨을 곳이 있어야 해. ' : ''}어디에 놓을지 먼저 예측해.</p>
-              </div>
-            )}
-            {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
-            <div className="p6-strategy-result">
-              <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong>
-            </div>
-          </Panel>
-
-          <Panel title="모모·루비 길 보기" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
-            {!simulation ? (
-              <>
-                <p>시험하기 전에 예측해. 지금 배치에서 어떤 행동이 안 보일까?</p>
-                <div className="p6-predictions" role="group" aria-label="예측 고르기">
-                  {PREDICTIONS.map((item) => (
-                    <button key={item.id} type="button" className={prediction === item.id ? 'is-selected' : ''} onClick={() => choosePrediction(item.id)} aria-pressed={prediction === item.id}>{item.label}</button>
+        {step === 2 && (
+          <div className="p6-predict">
+            {QUESTIONS.map((question) => (
+              <div key={question.id} className="p6-question">
+                <strong>{question.text}</strong>
+                <div className="v4-big-buttons">
+                  {[true, false].map((value) => (
+                    <button key={String(value)} type="button" className={`v4-big-button${answers[question.id] === value ? ' is-selected' : ''}`} aria-pressed={answers[question.id] === value} onClick={() => answer(question.id, value)}>
+                      {value ? '예' : '아니오'}
+                    </button>
                   ))}
                 </div>
-                <button className="button button--teal button--large button--block" type="button" disabled={!evaluation.valid || simulating || !prediction} onClick={startSimulation}>
-                  {simulating ? '모모와 루비를 보는 중…' : '새 정원 시험하기'}
-                </button>
-                {!evaluation.valid && <small className="p6-sim-hint">왼쪽 완료 조건을 모두 채우면 시험할 수 있어.</small>}
-                {evaluation.valid && !prediction && <small className="p6-sim-hint">먼저 예측을 하나 골라.</small>}
-              </>
-            ) : (
-              <div className="p6-simulation-result" aria-live="polite">
-                <div className="p6-stars" aria-label={`만족도 ${simulation.stars}점 만점 3점`}>
-                  {(['eat', 'play', 'rest'] as const).map((key) => (
-                    <span key={key} className={simulation.behaviors[key] ? 'is-on' : ''}>{BEHAVIOR_LABELS[key]}</span>
-                  ))}
-                  <strong>{simulation.stars}/3별</strong>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="p6-test">
+            <div className="p6-garden p6-garden--test">
+              {SLOTS.map((slot) => (
+                <div key={slot.id} className="p6-zone">
+                  <strong>{slot.label}</strong>
+                  <div className="p6-zone__items">{placed[slot.id].map((id) => { const chip = CHIPS.find((item) => item.id === id)!; return <img key={id} src={chip.image} alt={chip.label} />; })}</div>
                 </div>
-                <div className={`toast ${predictionHit ? 'toast--success' : 'toast--warning'}`}>
-                  {predictionHit ? '예측이 맞았어. ' : '예측과 달랐어. 무엇이 달랐을까? '}
-                  실제로 {actualLabel}
-                </div>
-                <p>{simulation.summary}</p>
-                {redesigned ? (
-                  <div className="toast toast--success"><CheckIcon />배치를 바꿨어. 아래에서 다시 시험해 봐.</div>
-                ) : perfect ? (
-                  <div className="p6-keep-reasons">
-                    <strong>그대로 둔다면 까닭을 골라</strong>
-                    {KEEP_REASONS.map((reason) => (
-                      <button key={reason} type="button" className={keepReason === reason ? 'is-selected' : ''} onClick={() => setKeepReason(reason)} aria-pressed={keepReason === reason}>{reason}</button>
-                    ))}
+              ))}
+              <img className={`p6-fly p6-fly--green${testing ? ' is-moving' : ''}`} style={{ left: birdX('hideout') }} src={sample3d(1)} alt="모모" />
+              <img className={`p6-fly p6-fly--red${testing ? ' is-moving' : ''}`} style={{ left: birdX('water') }} src={sample3d(2)} alt="루비" />
+            </div>
+            <div className="p6-result" aria-live="polite">
+              {result ? (
+                <>
+                  <div className="p6-stars" aria-label={`별 ${result.stars}개`}>
+                    {[result.waterQuiet, result.hideoutQuiet, result.pathClear].map((on, index) => <span key={index} className={on ? 'is-on' : ''}>★</span>)}
                   </div>
-                ) : (
-                  <div className="toast toast--warning">3별이 아니야. 물건을 하나라도 옮긴 뒤 다시 시험해야 완성할 수 있어.</div>
-                )}
-                <div className="p6-predictions" role="group" aria-label="다시 예측하기">
-                  {PREDICTIONS.map((item) => (
-                    <button key={item.id} type="button" className={prediction === item.id ? 'is-selected' : ''} onClick={() => choosePrediction(item.id)} aria-pressed={prediction === item.id}>{item.label}</button>
-                  ))}
-                </div>
-                <button className="button button--ghost button--block" type="button" disabled={simulating || !evaluation.valid} onClick={startSimulation}>현재 배치 다시 시험하기</button>
-              </div>
-            )}
-          </Panel>
-        </div>
+                  <ul className="p6-checks">
+                    <li className={result.waterQuiet ? 'is-on' : ''}>루비가 물을 {result.waterQuiet ? '마셨어' : '못 찾았어 (물그릇은 루비가 쉬는 쪽에)'}</li>
+                    <li className={result.hideoutQuiet ? 'is-on' : ''}>모모가 {result.hideoutQuiet ? '조용히 쉬었어' : '못 쉬었어'}</li>
+                    <li className={result.pathClear ? 'is-on' : ''}>관람로 쪽이 {result.pathClear ? '조용해' : '시끄러워'}</li>
+                  </ul>
+                  <p className="p6-hit">{QUESTIONS.map((question) => `${question.id === 'ruby' ? '루비' : '모모'} 예측 ${answers[question.id] === question.check(result) ? '맞음' : '빗나감'}`).join(' · ')}</p>
+                </>
+              ) : (
+                <p className="p6-waiting">{testing ? '모모와 루비를 보는 중…' : '시험하기를 눌러 봐'}</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-    </GameShell>
+    </StepShell>
   );
 }

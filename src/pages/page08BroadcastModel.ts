@@ -21,9 +21,7 @@ export const SEGMENTS: readonly Segment[] = [
   { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '모모·루비 구조 소식과 숲 문제를 소개해', fit: 'any' },
   { id: 'scene', title: '현장 상황', requiredSource: 'drone', need: '숲이 지금 어떤지 보여 줘', fit: 'photo' },
   { id: 'cause', title: '원인 설명', requiredSource: 'studio', need: '숲의 새가 왜 줄었는지 근거로 설명해', fit: 'graph' },
-  { id: 'interview', title: '전문가 인터뷰', requiredSource: 'reporter', need: '전문가가 직접 말해', fit: 'any' },
-  { id: 'action', title: '시민 행동 안내', requiredSource: 'reporter', need: '시민에게 도움을 요청해', fit: 'action' },
-  { id: 'closing', title: '클로징', requiredSource: 'studio', need: '마무리', fit: 'any' },
+  { id: 'action', title: '시민 부탁', requiredSource: 'reporter', need: '시민에게 도움을 요청해', fit: 'action' },
 ];
 
 export const CORRECTION_SEGMENT: Segment = {
@@ -43,8 +41,10 @@ export interface CaptionCard {
   text: string;
   sourced: boolean;
   kind: CardKind;
-  /** 출처 표기 — 출처 없는 카드도 그럴듯한 출처를 단다 (SNS 제보 등) */
+  /** 출처 표기 — 출처 없는 카드도 그럴듯한 출처를 단다 (SNS 제보 등). 학생은 이 글을 읽고 판단한다. */
   origin: string;
+  /** 사진 카드: 카드 그림으로 쓸 드론 사진 */
+  photo?: PhotoId;
 }
 
 const GRAPH_TEXT: Record<CauseId, string> = {
@@ -81,7 +81,7 @@ export function buildCaptionCards(artifacts: Pick<Artifacts, 'graphs' | 'photos'
   const photos = photoIds(artifacts.photos);
   const sourced: CaptionCard[] = [
     ...graphs.map((graph) => ({ id: `graph-${graph.variable}`, text: `${GRAPH_TEXT[graph.variable]} (${VERDICT_TEXT[graph.verdict]})`, sourced: true, kind: 'graph' as const, origin: '조사 그래프' })),
-    ...photos.map((id) => ({ id: `photo-${id}`, text: PHOTO_TEXT[id], sourced: true, kind: 'photo' as const, origin: '드론 사진' })),
+    ...photos.map((id) => ({ id: `photo-${id}`, text: PHOTO_TEXT[id], sourced: true, kind: 'photo' as const, origin: '드론 사진', photo: id })),
     ...ACTION_CARDS,
   ];
   // 카드 순서를 섞되 결정적으로: 근거/출처없음을 번갈아 배치해 위치만으로 못 고르게 한다.
@@ -97,6 +97,21 @@ export function buildCaptionCards(artifacts: Pick<Artifacts, 'graphs' | 'photos'
 export function photoIds(photos: Artifacts['photos']): PhotoId[] {
   const ids = photos.map((photo) => photo.id).filter((id, index, list) => list.indexOf(id) === index);
   return ids.length ? ids : ALL_PHOTOS;
+}
+
+/** v4: 세그먼트마다 자막 카드 3장 — 이 순서에 맞는 근거 2장 + 소문 1장. 순서는 시드로 섞는다. */
+export function segmentCards(cards: readonly CaptionCard[], index: number, seed = 0): CaptionCard[] {
+  const segment = SEGMENTS[index] ?? SEGMENTS[0]!;
+  const fit = cards.filter((card) => card.sourced && captionFits(segment, card));
+  const sourced = [fit[index % fit.length]!, fit[(index + 1) % fit.length]!].filter((card, i, list) => list.indexOf(card) === i);
+  // 맞는 근거가 한 장뿐이면(앞 스테이지 사진이 하나) 소문으로 3장을 채운다
+  const rumors = UNSOURCED_CARDS.slice(index % UNSOURCED_CARDS.length).concat(UNSOURCED_CARDS).slice(0, 3 - sourced.length);
+  return seededShuffle([...sourced, ...rumors], seed + index);
+}
+
+/** v4: 소문 자막을 송출하면 신뢰만 깎이고 같은 세그먼트에 머문다(정정 방송 없음). */
+export function airRumor(state: BroadcastState): BroadcastState {
+  return { ...state, trust: trustAfterCaption(state.trust, false), corrections: state.corrections + 1, draft: { ...state.draft, captionId: null } };
 }
 
 /** 출처 있는 카드가 이 세그먼트에서 할 말인지. 출처 없는 카드는 검사하지 않는다(내보내면 벌점). */
@@ -116,27 +131,16 @@ export function audioZone(level: number): AudioZone {
 export interface IncidentAction { id: string; label: string; cost: number; trustDelta: number; note: string }
 export interface Incident { id: string; title: string; signal: string; actions: readonly IncidentAction[] }
 
-/** 예산 AP 3. 근본 해결(2)을 두 번은 못 하니 어디에 힘을 쓸지 골라야 한다. */
+/** v4: 사고는 마이크 끊김 한 번. 그림 버튼 2개(예비 마이크 / 그대로). */
 export const INCIDENTS: readonly Incident[] = [
   { id: 'mic', title: '마이크 끊김', signal: '리포터 목소리가 갑자기 안 들려.', actions: [
     { id: 'mic-swap', label: '예비 마이크로 바꾸기', cost: 2, trustDelta: 0, note: '소리가 바로 돌아왔어.' },
-    { id: 'mic-caption', label: '자막으로 대신 전하기', cost: 1, trustDelta: -5, note: '소리는 없지만 내용은 전해졌어.' },
     { id: 'mic-ignore', label: '그대로 두기', cost: 0, trustDelta: -15, note: '시청자가 무슨 말인지 몰라 채널을 돌렸어.' },
-  ] },
-  { id: 'delay', title: '영상 지연', signal: '현장 화면이 3초 늦게 들어와.', actions: [
-    { id: 'delay-studio', label: '스튜디오로 잠시 넘기기', cost: 2, trustDelta: 0, note: '진행자가 자연스럽게 시간을 벌었어.' },
-    { id: 'delay-still', label: '사진으로 채우기', cost: 1, trustDelta: -5, note: '화면은 멈췄지만 방송은 이어졌어.' },
-    { id: 'delay-ignore', label: '그대로 두기', cost: 0, trustDelta: -15, note: '화면이 뚝뚝 끊겨 보였어.' },
-  ] },
-  { id: 'tip', title: '잘못된 제보', signal: '"또 다른 앵무새가 학교에 나타났다"는 제보가 왔는데 확인이 안 돼.', actions: [
-    { id: 'tip-verify', label: '확인 전엔 내보내지 않기', cost: 2, trustDelta: 0, note: '확인해 보니 다른 새였어. 잘 참았어.' },
-    { id: 'tip-hedge', label: '"확인 중"이라고 붙여 내보내기', cost: 1, trustDelta: -5, note: '틀린 정보는 아니지만 시청자가 헷갈렸어.' },
-    { id: 'tip-air', label: '바로 속보로 내보내기', cost: 0, trustDelta: -15, note: '틀린 속보였어. 정정이 필요해.' },
   ] },
 ];
 export const AP_BUDGET = 3;
-/** 이 세그먼트 인덱스를 송출한 직후 사고가 난다 (두 번). 어떤 사고인지는 세션 시드로 정한다. */
-export const INCIDENT_SLOTS: readonly number[] = [1, 3];
+/** 이 세그먼트 인덱스를 송출한 직후 사고가 난다 (한 번). */
+export const INCIDENT_SLOTS: readonly number[] = [1];
 export function planIncidents(seed: number): string[] {
   return seededShuffle(INCIDENTS.map((item) => item.id), seed).slice(0, INCIDENT_SLOTS.length);
 }
@@ -222,7 +226,7 @@ export function airSegment(state: BroadcastState, cards: readonly CaptionCard[])
     correctionAt,
     pendingIncident: incidentId && !state.incidentLog.some((entry) => entry.incidentId === incidentId) ? incidentId : null,
     log: [...state.log, { segmentId: segment.id, title: segment.title, source: state.draft.source!, captionId: card.id, sourced: card.sourced }],
-    draft: { ...EMPTY_DRAFT },
+    draft: { ...EMPTY_DRAFT, level: state.draft.level },
   };
 }
 

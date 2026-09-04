@@ -16,7 +16,7 @@ let exitCode = 1;
 try {
   await server.listen();
   exitCode = await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cli, 'test'], {
+    const child = spawn(process.execPath, [cli, 'test', ...process.argv.slice(2)], {
       cwd: root,
       env: process.env,
       stdio: 'inherit',

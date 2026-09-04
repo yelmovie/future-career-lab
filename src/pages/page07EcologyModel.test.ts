@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BASE_LEVELS,
+  FIELD_TRACES,
   TRACES,
   actualDirection,
   buildGraphs,
@@ -10,6 +11,7 @@ import {
   nextPoint,
   population,
   runTrial,
+  subCause,
   visibleTraces,
 } from './page07EcologyModel';
 
@@ -86,6 +88,20 @@ describe('page 7 ecology model', () => {
     expect(visibleTraces('B', false).some((t) => t.hidden)).toBe(false);
     expect(visibleTraces('B', true).some((t) => t.id === 'foot-cat')).toBe(true);
     expect(visibleTraces('C', true).some((t) => t.id === 'sound-alarm')).toBe(true);
+    // v4 현장 흔적은 지점마다 2개
+    expect(FIELD_TRACES).toHaveLength(6);
+    for (const point of ['A', 'B', 'C'] as const) expect(FIELD_TRACES.filter((t) => t.point === point)).toHaveLength(2);
+  });
+
+  it('picks the sub cause from trial effect size', () => {
+    const trials = [
+      { variable: 'logging' as const, from: 5, to: 0, prediction: 'down' as const, before: 40, after: 10 },
+      { variable: 'noise' as const, from: 5, to: 10, prediction: 'down' as const, before: 40, after: 28 },
+      { variable: 'water' as const, from: 5, to: 10, prediction: 'up' as const, before: 40, after: 44 },
+    ];
+    expect(subCause('logging', trials)).toBe('noise');
+    expect(subCause('noise', trials)).toBe('logging');
+    expect(subCause('logging', [])).toBe('noise');
   });
 
   it('navigates points in a loop and finds the point with fewest traces', () => {

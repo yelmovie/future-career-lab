@@ -1,42 +1,37 @@
-.briefing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, .85fr); gap: var(--content-pad); height: 100%; min-height: 0; }
-.briefing-layout > .panel { min-height: 0; overflow: auto; }
-.briefing-jobs { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
-.briefing-keyart { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; border-radius: var(--radius-md); border: 2px solid #fff; background: linear-gradient(180deg, #d6ecff, #fff6dc); box-shadow: var(--shadow-soft); }
-.briefing-dialog { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: var(--space-8); margin-top: var(--space-8); padding: var(--space-8); border-radius: var(--radius-md); background: rgb(255 248 232 / 96%); color: var(--ink); }
-.briefing-dialog > img { width: 56px; height: 56px; object-fit: contain; object-position: top; border-radius: 50%; background: #dceee9; }
-.briefing-dialog span { display: inline-block; font-size: 16px; font-weight: 900; color: #0c6c68; }
-.briefing-dialog p { margin: 3px 0 6px; font-size: var(--fs-body); line-height: 1.45; min-height: 3em; }
-.briefing-dialog .button { min-height: var(--touch-min); }
-.briefing-reward-button { margin-top: var(--space-8); width: 100%; min-height: var(--touch-min); display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--gold-pale); border-radius: var(--radius-md); background: rgb(255 255 255 / 80%); color: var(--gold-pale); font-size: var(--fs-cap); font-weight: 850; cursor: pointer; }
-.briefing-reward-button svg { width: 18px; }
-.briefing-reward ul { display: grid; gap: 6px; margin: 8px 0; padding: 0; list-style: none; font-size: var(--fs-body); }
-.briefing-reward li { display: flex; align-items: center; gap: 10px; }
-.briefing-reward li img { width: 36px; height: 36px; object-fit: contain; }
-.briefing-reward p { margin: 0; font-size: var(--fs-body); color: var(--cream); }
-.briefing-hint { margin: 0 0 var(--space-8); font-size: 16px; color: var(--cream); opacity: .85; }
+/* 페이지 2 · 브리핑 (v4) — 1 사건 · 2 네 직업 · 3 명찰 */
 
-.job-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: var(--space-8); min-height: 0; }
-.job-card { position: relative; min-height: 0; padding: 0; border: 0; background: transparent; perspective: 900px; cursor: pointer; text-align: center; }
-.job-card__face { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 4px; padding: var(--space-8); border: 2px solid var(--panel-border); border-radius: var(--radius-md); backface-visibility: hidden; transition: transform .45s ease; }
-.job-card__front { background: linear-gradient(160deg, var(--navy-700), var(--navy-900)); color: var(--cream); }
-.job-card__front img { width: 88px; height: 88px; object-fit: contain; }
-.job-card__front strong { font-size: var(--fs-body); }
-.job-card__front em { font-size: 16px; font-style: normal; color: var(--gold-pale); }
-.job-card__back { transform: rotateY(180deg); background: var(--cream-2); color: var(--ink); grid-template-columns: 64px minmax(0, 1fr); justify-items: start; text-align: left; }
-.job-card__back img { grid-row: 1 / 4; width: 64px; height: 120px; object-fit: contain; object-position: top; }
-.job-card__back strong { font-size: var(--fs-cap); color: #0c6c68; }
-.job-card__back p { margin: 0; font-size: 16px; line-height: 1.35; }
-.job-card__back ul { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.job-card__back li { padding: 1px 8px; border-radius: 99px; background: #e4a63c; color: #1d1507; font-size: 16px; font-weight: 800; }
-.job-card.is-open .job-card__front { transform: rotateY(180deg); }
-.job-card.is-open .job-card__back { transform: rotateY(0); }
-.job-card:not(.is-open):hover .job-card__front { border-color: var(--gold-pale); }
+/* 1단계: 모모·루비 그림 + 탭하는 말풍선 */
+.brief-story { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 18px; padding: 18px; }
+.brief-story__art { width: 100%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 12px 14px rgb(40 60 90 / 20%)); }
+.brief-line { position: relative; display: grid; gap: 8px; min-height: 60px; padding: 22px 26px; border: 3px solid var(--color-accent); border-radius: 26px; background: var(--color-surface); color: var(--ink); text-align: left; cursor: pointer; box-shadow: 0 6px 0 var(--color-accent-edge); transition: transform .12s ease, box-shadow .12s ease; }
+.brief-line::before { content: ""; position: absolute; left: -24px; top: 44px; border: 12px solid transparent; border-right-color: var(--color-accent); }
+.brief-line:active { transform: translateY(6px); box-shadow: 0 0 0 var(--color-accent-edge); }
+.brief-line.is-last { border-color: var(--color-secondary); box-shadow: 0 6px 0 var(--color-secondary-edge); cursor: default; }
+.brief-line__who { color: var(--color-primary-deep); font-size: 16px; font-weight: 900; }
+.brief-line strong { font-family: var(--font-display); font-size: 26px; font-weight: 400; line-height: 1.35; word-break: keep-all; }
+.brief-line em { color: var(--color-text-sub); font-size: 18px; font-style: normal; font-weight: 800; }
+.brief-line.is-last em { color: var(--color-secondary-edge); }
 
-.briefing-badge.is-waiting .prediction { opacity: .55; }
-.prediction { display: grid; gap: 6px; margin: var(--space-8) 0 0; padding: var(--space-8); border: 1px solid var(--panel-border); border-radius: var(--radius-md); }
-.prediction legend { padding: 0 6px; font-size: var(--fs-cap); font-weight: 900; color: var(--gold-pale); }
-.prediction__option { display: grid; grid-template-columns: 36px minmax(0, 1fr) 22px; align-items: center; gap: 8px; min-height: var(--touch-min); padding: 4px 10px; border: 2px solid rgb(166 186 218 / 70%); border-radius: var(--radius-sm); background: rgb(255 255 255 / 90%); color: var(--cream); font-size: var(--fs-cap); font-weight: 800; text-align: left; cursor: pointer; }
-.prediction__option img { width: 36px; height: 36px; object-fit: contain; }
-.prediction__option.is-selected { border-color: var(--teal-bright); background: rgb(13 158 155 / 35%); }
-.prediction__option svg { width: 22px; color: var(--teal-bright); }
-.briefing-lock { margin: var(--space-8) 0 0; font-size: var(--fs-cap); color: var(--gold-pale); text-align: center; }
+/* 2단계: 캐릭터 4명 + 말풍선·도구 */
+.brief-jobs { display: grid; grid-template-rows: minmax(0, 1.4fr) auto; gap: 12px; height: 100%; min-height: 0; }
+.brief-jobs .v4-choices { padding: 12px 12px 4px; }
+.brief-talk { margin-left: 40px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; min-height: 120px; padding: 12px 24px; }
+.brief-talk.is-empty { grid-template-columns: 1fr; text-align: center; opacity: .8; }
+.brief-talk__says { color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; word-break: keep-all; }
+.brief-tools { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.brief-tools li { display: grid; justify-items: center; gap: 4px; width: 120px; padding: 6px; border: 2px solid var(--color-border-soft); border-radius: 16px; background: var(--color-panel-cream); color: var(--color-text-main); font-size: 16px; font-weight: 850; text-align: center; }
+.brief-tools img { width: 64px; height: 64px; object-fit: contain; }
+
+/* 3단계: 이름 + 직업 아이콘 */
+.brief-badge { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 12px; height: 100%; min-height: 0; }
+.brief-name { display: grid; align-content: start; gap: 10px; height: auto; align-self: start; padding: 16px 20px; }
+.brief-name span { color: var(--color-primary-deep); font-family: var(--font-display); font-size: 24px; }
+.brief-name input { min-height: 60px; padding: 0 18px; border: 3px solid var(--color-border-soft); border-radius: 16px; background: var(--color-surface); color: var(--ink); font-size: 24px; font-weight: 800; }
+.brief-name input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-soft); }
+.brief-badge .v4-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0; }
+
+/* ? 모달: 끝내면 얻는 것 */
+.brief-reward ul { display: grid; gap: 6px; margin: 8px 0; padding: 0; list-style: none; font-size: 18px; }
+.brief-reward li { display: flex; align-items: center; gap: 10px; }
+.brief-reward li img { width: 36px; height: 36px; object-fit: contain; }
+.brief-reward p { margin: 0; font-size: 18px; }

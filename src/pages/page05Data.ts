@@ -187,5 +187,11 @@ export const BIRDS: Bird[] = [
   },
 ];
 
+/** v4 살펴보기: 개체마다 상태를 드러내는 구역 3개만 핫스팟으로 쓴다. */
+export const CARE_ZONES: Record<BirdId, CareZoneId[]> = {
+  green: ['eyes', 'feathers', 'behavior'],
+  red: ['eyes', 'water', 'posture'],
+};
+
 export const getBird = (id: BirdId): Bird => BIRDS.find((bird) => bird.id === id) ?? BIRDS[0]!;
 export const getTreatment = (id: TreatmentId): Treatment => TREATMENTS.find((item) => item.id === id) ?? TREATMENTS[0]!;

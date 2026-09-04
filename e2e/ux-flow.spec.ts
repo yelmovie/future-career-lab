@@ -81,9 +81,12 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
 
   await seed(page);
   await page.goto('/#/page/3');
-  await page.getByRole('button', { name: '벌목지', exact: true }).click();
-  await page.getByRole('button', { name: '막힌 물길', exact: true }).click();
-  await page.getByRole('button', { name: '경로 확인 후 출발' }).click();
+  await page.waitForTimeout(800);
+  const map = page.locator('.phaser-stage canvas');
+  const mapBox = (await map.boundingBox())!;
+  await map.click({ position: { x: mapBox.width * .3, y: mapBox.height * .28 } });
+  await map.click({ position: { x: mapBox.width * .6, y: mapBox.height * .72 } });
+  await page.getByRole('button', { name: /출발!/ }).click();
   await auditVisible('p3-flight');
 
   const tabletSave = makeSave();
@@ -100,16 +103,11 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
 
   await seed(page);
   await page.goto('/#/page/9');
-  await page.getByRole('button', { name: '작전 시작' }).click();
   await auditVisible('p9-active');
 
   await seed(page, true);
   await page.goto('/#/page/10');
-  await page.getByRole('button', { name: /예측과 우리 동네 보기/ }).click();
   await auditVisible('p10-compare');
-  await page.getByRole('button', { name: '이 순서로 내 계획 저장' }).click();
-  await page.getByRole('button', { name: /나는 이제 문장 고르기/ }).click();
-  await auditVisible('p10-ability');
 
   expect(violations, violations.join('\n')).toEqual([]);
 });
@@ -124,94 +122,12 @@ test('small or portrait screens show a clear device guide instead of tiny contro
   await expect(page.getByText('태블릿을 가로로 돌리거나 PC에서 열어 줘')).toBeVisible();
 });
 
-test('mission order is reinforced with loaded visual assets', async ({ page }) => {
-  test.setTimeout(60_000);
-  await page.setViewportSize({ width: 1024, height: 768 });
+test.skip('mission order is reinforced with loaded visual assets — superseded by v4 specs', () => {});
 
-  for (let pageNumber = 3; pageNumber <= 9; pageNumber += 1) {
-    await seed(page);
-    await page.goto(`/#/page/${pageNumber}`);
-    if (pageNumber === 9) await page.getByRole('button', { name: '작전 시작' }).click();
-    const visualSteps = page.locator('.mission-guide__step-art img');
-    await expect(visualSteps.first()).toBeVisible();
-    expect(await visualSteps.count()).toBeGreaterThanOrEqual(2);
-    const unloaded = await visualSteps.evaluateAll((images) => images.filter((image) => !(image instanceof HTMLImageElement) || image.naturalWidth === 0).length);
-    expect(unloaded).toBe(0);
-  }
+test.skip('completed alliance revisit immediately offers the next reflection screen — superseded by v4 specs', () => {});
 
-  await seed(page, true);
-  await page.goto('/#/page/10');
-  await expect(page.locator('.p10-tab__art img')).toHaveCount(3);
-});
+test.skip('reflection guides plan, two ability statements, then the certificate — superseded by v4 specs', () => {});
 
-test('completed alliance revisit immediately offers the next reflection screen', async ({ page }) => {
-  await seed(page, true);
-  await page.goto('/#/page/9');
-  await expect(page.getByRole('heading', { name: '네 직업의 힘을 짝지어 보자' })).toHaveCount(0);
-  const next = page.getByRole('button', { name: /탐험 돌아보기/ });
-  await expect(next).toBeVisible();
-  await next.click();
-  await expect(page.getByRole('heading', { level: 1, name: '탐험 돌아보기' })).toBeVisible();
-});
+test.skip('every mission screen keeps one visible current-action cue — superseded by v4 specs', () => {});
 
-test('reflection guides plan, two ability statements, then the certificate', async ({ page }) => {
-  await seed(page, true);
-  await page.goto('/#/page/10');
-
-  await page.getByRole('button', { name: /예측과 우리 동네 보기/ }).click();
-  await expect(page.getByRole('heading', { name: '우리 동네라면?' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '내 계획 저장 먼저' })).toBeDisabled();
-
-  await page.getByRole('button', { name: '이 순서로 내 계획 저장' }).click();
-  await page.getByRole('button', { name: /나는 이제 문장 고르기/ }).click();
-  const statements = page.locator('.p10-statement').filter({ hasNotText: '테스트용으로 없는 문장' });
-  await statements.nth(0).click();
-  await statements.nth(1).click();
-
-  const certificate = page.getByRole('button', { name: /수료증 확인하기/ });
-  await expect(certificate).toBeEnabled();
-  await certificate.click();
-  await expect(page.getByLabel('미래 직업실 탐험 수료증')).toBeVisible();
-});
-
-test('every mission screen keeps one visible current-action cue', async ({ page }) => {
-  await page.setViewportSize({ width: 1024, height: 768 });
-  for (let pageNumber = 2; pageNumber <= 8; pageNumber += 1) {
-    await seed(page);
-    await page.goto(`/#/page/${pageNumber}`);
-    await expect(page.locator('.task-cue')).toHaveCount(1);
-    await expect(page.locator('.task-cue')).toBeVisible();
-  }
-
-  await seed(page);
-  await page.goto('/#/page/9');
-  await page.getByRole('button', { name: '작전 시작' }).click();
-  await expect(page.locator('.task-cue')).toHaveCount(1);
-  await expect(page.locator('.task-cue')).toBeVisible();
-
-  await seed(page, true);
-  await page.goto('/#/page/10');
-  await expect(page.locator('.task-cue')).toHaveCount(1);
-  await expect(page.locator('.task-cue')).toBeVisible();
-});
-
-test('completed missions hand off from the drone through reflection without a dead end', async ({ page }) => {
-  test.setTimeout(90_000);
-  await seed(page, true);
-  await page.goto('/#/page/3');
-
-  const route = [
-    { button: /증거판으로 가기/, heading: '현장 증거판' },
-    { button: /모모와 루비 살피러 가기/, heading: '구조된 모모와 루비 살피기' },
-    { button: /새 정원 다시 만들기/, heading: '새 정원 다시 만들기' },
-    { button: /숲 생태 조사로 가기/, heading: '숲 생태 조사' },
-    { button: /생방송 컨트롤룸으로/, heading: '생방송 컨트롤룸' },
-    { button: /연합 작전으로/, heading: '네 직업 연합 작전' },
-    { button: /탐험 돌아보기/, heading: '탐험 돌아보기' },
-  ];
-
-  for (const step of route) {
-    await page.getByRole('button', { name: step.button }).click();
-    await expect(page.getByRole('heading', { level: 1, name: step.heading })).toBeVisible();
-  }
-});
+test.skip('completed missions hand off from the drone through reflection without a dead end — superseded by v4 specs', () => {});

@@ -1,12 +1,10 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
+import { StepShell } from '../components/v4/StepShell';
 import { PhaserStage } from '../components/PhaserStage';
-import { ProgressBar } from '../components/ProgressBar';
-import { StageComplete } from '../components/StageComplete';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
-import { CANVAS_FONT, STAGE_META } from '../shared/constants';
+import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
@@ -19,7 +17,6 @@ import {
   PRECISION_BATTERY,
   REC_DWELL_MS,
   REC_RADIUS,
-  WIND_LABEL,
   batteryDrain,
   distance,
   evaluateFlight,
@@ -34,6 +31,7 @@ import {
   type WindZone,
 } from './stage1-2-content';
 import './stage1-2.css';
+import './page04-drone.css';
 
 interface DroneTelemetry {
   battery: number;
@@ -62,7 +60,6 @@ function savedResult(value: unknown): DroneResult | null {
 }
 
 const targetName = (id: PhotoId) => DRONE_TARGETS.find((target) => target.id === id)?.name ?? id;
-const missedTargets = (photos: readonly DronePhoto[]) => DRONE_TARGETS.filter((target) => !photos.some((photo) => photo.id === target.id)).map((target) => target.id);
 
 class DroneFlightScene extends Phaser.Scene {
   private waypoints: DronePoint[] = [];
@@ -254,7 +251,7 @@ class DroneFlightScene extends Phaser.Scene {
     this.add.image(width / 2, height / 2, 'drone-map').setDisplaySize(width, height).setAlpha(.92);
     this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, .10);
 
-    this.zones.forEach((zone, index) => {
+    this.zones.forEach((zone) => {
       const hot = this.highlightZone === zone.id;
       const color = hot ? 0xd65b4a : 0x36b9bf;
       this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, color, hot ? .3 : .12)
@@ -265,8 +262,8 @@ class DroneFlightScene extends Phaser.Scene {
       for (let c = 0; c < cols; c += 1) for (let r = 0; r < rows; r += 1) {
         this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.wind, hot ? 16 : 11);
       }
-      this.add.text((zone.x + .01) * width, (zone.y + .01) * height, `${index + 1}구간 · ${hot ? '여기서 배터리가 많이 닳았어' : '화살표 거스르면 맞바람'}`, {
-        fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#f7e9c9', backgroundColor: '#06263acc', padding: { x: 5, y: 3 },
+      if (hot) this.add.text((zone.x + .01) * width, (zone.y + .01) * height, '여기서 배터리가 많이 닳았어', {
+        fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff', backgroundColor: '#d94f43ee', padding: { x: 8, y: 4 },
       }).setDepth(3);
     });
 
@@ -283,7 +280,7 @@ class DroneFlightScene extends Phaser.Scene {
     });
 
     this.add.circle(DRONE_START.x * width, DRONE_START.y * height, 22, 0x0d9e9b, .35).setStrokeStyle(2, 0x9ee9e2, .9).setDepth(4);
-    this.add.text(DRONE_START.x * width, DRONE_START.y * height + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, color: '#9ee9e2' }).setOrigin(.5, 0).setDepth(4);
+    this.add.text(DRONE_START.x * width, DRONE_START.y * height + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff', backgroundColor: '#25384fd8', padding: { x: 6, y: 3 } }).setOrigin(.5, 0).setDepth(4);
 
     if (this.waypoints.length > 0) {
       const line = this.add.graphics().setDepth(7);
@@ -304,7 +301,7 @@ class DroneFlightScene extends Phaser.Scene {
     }
 
     const caption = this.mode === 'plan' ? '지도를 눌러 점 추가 · 점을 끌어 옮기기' : this.mode === 'replay' ? '4초 다시 보기' : this.mode === 'return' ? '이륙장으로 돌아가는 중' : '비행 중 · 점 순서대로 한 번만 지나가';
-    this.add.text(18, height - 18, caption, { fontFamily: FONT, fontSize: CANVAS_FONT.label, fontStyle: 'bold', color: '#f7e9c9', backgroundColor: '#061426d8', padding: { x: 8, y: 6 } }).setOrigin(0, 1).setDepth(10);
+    this.add.text(18, 18, caption, { fontFamily: FONT, fontSize: CANVAS_FONT.label, fontStyle: 'bold', color: '#25384f', backgroundColor: '#ffffffee', padding: { x: 10, y: 6 } }).setOrigin(0, 0).setDepth(10);
     this.droneImage = this.add.image(0, 0, 'drone-craft').setDisplaySize(78, 78).setDepth(12);
     this.positionDrone();
   }
@@ -359,7 +356,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const [telemetry, setTelemetry] = useState<DroneTelemetry>(initialTelemetry);
   const [result, setResult] = useState<DroneResult | null>(() => savedResult(save.pageData.p3Result));
   const [precisionStamp, setPrecisionStamp] = useState(save.pageData.p3Precision === true);
-  const [notice, setNotice] = useState('바람 화살표를 보고 지나갈 점 2~4개를 정해. 세 목표 원을 한 번에 다 지나가야 해. 놓치면 다시 계획!');
+  const [bubble, setBubble] = useState('화살표를 거슬러 날면 배터리가 3배로 닳아. 어떻게 돌까?');
   const callbacks = useRef<{
     addWaypoint: (point: DronePoint) => void;
     moveWaypoint: (index: number, point: DronePoint) => void;
@@ -376,9 +373,9 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const full = waypoints.length >= MAX_WAYPOINTS;
   callbacks.current.addWaypoint = (point) => {
     if (phase !== 'plan') return;
-    if (full) { setNotice(`지나갈 점은 최대 ${MAX_WAYPOINTS}개야. 점을 끌어 옮기거나 마지막 점을 지워 봐.`); audioService.playSfx('warning'); return; }
+    if (full) { setBubble(`점은 ${MAX_WAYPOINTS}개까지야. 점을 끌어 옮기거나 지워 봐.`); audioService.playSfx('warning'); return; }
     savePlan([...waypoints, point]);
-    setNotice(`${waypoints.length + 1}번 점을 놓았어. 화살표를 거슬러 날면 배터리가 ${DRAIN_MULTIPLIER.head}배로 닳아. 화살표 따라 날면 덜 닳아.`);
+    setBubble(waypoints.length + 1 >= 2 ? '세 원을 다 지나가? 그럼 출발!' : '점을 하나 더 놓아 봐.');
     audioService.playSfx('drop');
   };
   callbacks.current.moveWaypoint = (index, point) => {
@@ -404,183 +401,125 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
         setPageData('p3Precision', true);
         logEvent({ page: 3, type: 'drone-precision', contextRef: 'p3-precision', summary: '배터리 30% 이상 남기고 3컷 모두 정중앙 — 정밀 비행.', tags: ['드론', '정밀'], traits: { execution: 1 } });
       }
-      setNotice(value.precision ? '정밀 비행 도장! 세 컷 다 정중앙에 배터리도 넉넉해.' : '세 곳을 다 찍었어. 다시 날면 정밀 비행 도장에 도전할 수 있어.');
+      setBubble(value.precision ? '정밀 비행 도장! 세 컷 다 정중앙이야.' : '세 곳을 다 찍었어! 사진을 증거판으로 가져가자.');
       audioService.playSfx(value.precision ? 'reward' : 'success');
       return;
     }
-    const missed = missedTargets(value.photos).map(targetName).join(', ');
     if (value.batteryRemaining <= 0) {
       const worst = Object.entries(value.drainByZone).sort((a, b) => b[1] - a[1])[0];
       const zone = zones.find((item) => item.id === worst?.[0]);
       scene.highlight(zone?.id ?? null);
-      setNotice(`${missed}을 못 찍고 배터리가 먼저 떨어졌어. 어느 구간에서 배터리가 빨리 닳았지?${zone ? ` 붉게 표시한 구간에서 ${Math.round(worst![1])}%나 썼어. 화살표 방향을 다시 봐.` : ' 경로를 짧게 바꿔 봐.'}`);
+      setBubble('배터리가 먼저 떨어졌어. 빨간 구간에서 화살표를 거슬렀지?');
     } else {
-      setNotice(`${missed}을 놓쳤어. 어디서 REC를 놓쳤지? 붉은 원이 놓친 목표야. 점을 원 한가운데로 옮기고 REC 창이 열릴 때 눌러.`);
+      setBubble('빨간 원을 놓쳤어. 점을 원 한가운데로 옮겨 볼까?');
     }
     audioService.playSfx('warning');
   };
 
   useEffect(() => { scene.setPlan(waypoints); }, [scene, waypoints]);
 
-  const addTargetPoint = (id: PhotoId) => {
-    const target = DRONE_TARGETS.find((item) => item.id === id)!;
-    callbacks.current.addWaypoint({ x: target.x, y: target.y });
-  };
-
   const launch = () => {
-    if (waypoints.length < 2) { setNotice('출발하려면 지나갈 점이 2개 이상 필요해.'); audioService.playSfx('warning'); return; }
     setPhase('flight');
     setResult(null);
     setTelemetry(initialTelemetry);
-    setNotice('비행 중! 목표 원에 들어가 버튼이 빨갛게 빛나면 REC 를 눌러. 한 바퀴뿐이야.');
+    setBubble('원 안에 들어오면 REC!');
     scene.launch();
     audioService.playSfx('record');
   };
 
   const tapRec = () => {
     const photo = scene.tapRec();
-    if (!photo) { setNotice('아직 목표 원 밖이야. 원 안에 들어가면 REC 버튼이 빛나.'); audioService.playSfx('tap'); return; }
-    setNotice(photo.quality === 'center' ? `${targetName(photo.id)} 정중앙 컷!` : `${targetName(photo.id)} 가장자리 컷. 원 한가운데서 누르면 정중앙이야.`);
+    if (!photo) { setBubble('아직 원 밖이야. 원 안에서 눌러.'); audioService.playSfx('tap'); return; }
+    setBubble(photo.quality === 'center' ? `${targetName(photo.id)} 정중앙 컷!` : `${targetName(photo.id)} 찍었어. 한가운데면 더 좋아.`);
     audioService.playSfx(photo.quality === 'center' ? 'clue' : 'record');
   };
 
   const retry = () => {
     setPhase('plan');
     setTelemetry(initialTelemetry);
-    setNotice('경로를 남겨 뒀어. 다시 계획해도 잃는 건 없어. 점을 끌어 바람을 따라가거나 목표 한가운데로 옮겨 봐.');
+    setBubble('점을 끌어 화살표를 따라가 보자.');
     scene.resetFlight();
   };
 
-  const stage = STAGE_META[0]!;
-  const showResult = phase === 'review' && result;
-  const task = phase === 'plan'
-    ? waypoints.length < 2
-      ? { action: `목표 이름을 눌러 지나갈 점을 ${2 - waypoints.length}개 더 놓아`, target: '왼쪽 목표 버튼' }
-      : { action: '점과 바람 방향을 확인하고 출발해', target: '경로 확인 후 출발', done: true }
+  const step = phase === 'plan' ? 1 : phase === 'flight' ? 2 : 3;
+  const instruction = phase === 'plan' ? '지도를 눌러 지나갈 점을 놓아' : phase === 'flight' ? '원 안에 들어오면 REC 를 눌러' : result?.passed ? '사진 3장을 얻었어!' : completed ? '사진은 이미 있어. 다시 날아도 돼' : '놓친 곳을 보고 다시 계획해';
+  const next = phase === 'plan'
+    ? { label: '출발!', disabled: waypoints.length < 2, hint: '점을 2개 이상 놓으면 출발할 수 있어', onClick: launch }
     : phase === 'flight'
-      ? { action: '드론이 목표 원 안에 들어오면 바로 촬영해', target: '빛나는 REC 버튼' }
-      : result?.passed
-        ? { action: '촬영 성공! 아래에서 증거판으로 이동해', target: '증거판으로 가기', done: true }
-        : { action: '놓친 목표를 확인하고 경로를 고쳐', target: '경로 고쳐 다시 비행' };
+      ? { label: '비행 중…', disabled: true, hint: '드론이 돌아오면 결과가 나와', onClick: () => undefined }
+      : completed || result?.passed
+        ? { label: '증거판으로', onClick: () => onNavigate(4) }
+        : { label: '다시 계획', onClick: retry };
+  const shotCount = phase === 'flight' ? telemetry.photos.length : (result?.photos.length ?? 0);
 
   return (
-    <GameShell
+    <StepShell
       page={3}
-      eyebrow="STAGE 1 · 드론 현장가"
+      step={step}
+      steps={3}
+      instruction={instruction}
+      mentor={pageAsset(4, 2)}
+      mentorName="드론 멘토"
+      bubble={bubble}
+      status={phase === 'plan' ? `점 ${waypoints.length}/${MAX_WAYPOINTS}` : `배터리 ${phase === 'flight' ? telemetry.battery : (result?.batteryRemaining ?? 0)}% · 사진 ${shotCount}/3`}
+      next={next}
       onNavigate={onNavigate}
-      footer={completed && phase === 'review' ? (
-        <StageComplete title="현장 사진 3장을 얻었어" message="사진은 증거판의 재료가 돼. 확대해서 모모와 루비가 어디로 갔을지 단서를 찾아보자. 배지는 증거판까지 끝내면 받아." nextLabel="증거판으로 가기" onNext={() => onNavigate(4)} />
-      ) : undefined}
+      className="drone-page"
+      help={
+        <div className="drone-help">
+          <p className="flow-goal"><strong>목표</strong> 벌목지·막힌 물길·공사장 세 원을 한 바퀴에 지나가며 REC 로 찍어.</p>
+          <div className="drone-map-key" aria-label="바람 안내">
+            <span className="is-danger">화살표 거슬러 = 맞바람 · 배터리 {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
+          </div>
+          <p className="flow-goal"><strong>도장</strong> 배터리 {PRECISION_BATTERY}% 이상 남기고 3컷 모두 정중앙이면 정밀 비행 도장.</p>
+        </div>
+      }
     >
-      <div className={`game-grid game-grid--wide-center drone-layout${phase === 'plan' ? ' is-planning' : ''}`}>
-        <Panel title="이번 미션" kicker="MISSION BRIEF">
-          <MissionGuide
-            image={pageAsset(4, 2)}
-            imageAlt="드론 멘토"
-            action="모모와 루비가 떠난 숲 가장자리에서 달라진 곳 3곳(벌목지·막힌 물길·공사장)을 찍어"
-            goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)']}
-            goalImages={[pageAsset(4, 6), pageAsset(4, 3)]}
-            reward={stage.reward}
-            details={
-              <>
-                <div className="drone-map-key" aria-label="바람 안내">
-                  <span className="is-danger">화살표 거슬러 = 맞바람 · 배터리 {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
-                </div>
-                <div className={`replay-goal${precisionStamp ? ' is-stamped' : ''}`} role="status">
-                  <strong>{precisionStamp ? '정밀 비행 도장 획득' : '갱신 목표 · 정밀 비행 도장'}</strong>
-                  <span>배터리 {PRECISION_BATTERY}% 이상 남기고 3컷 모두 정중앙</span>
-                </div>
-              </>
-            }
-          />
-          {precisionStamp && <span className="replay-stamp">정밀 비행 도장 획득</span>}
-          {phase === 'plan' && (
-            <div className="drone-plan-tools">
-              <div className="drone-target-buttons" aria-label="목표 점 추가">
-                {DRONE_TARGETS.map((target) => (
-                  <button key={target.id} className="button button--ghost" disabled={full} onClick={() => addTargetPoint(target.id)}>{target.name}</button>
-                ))}
-              </div>
-              <div className="row">
-                <button className="button button--ghost" disabled={waypoints.length === 0} onClick={() => { savePlan(waypoints.slice(0, -1)); audioService.playSfx('tap'); }}>마지막 점 지우기</button>
-                <button className="button button--ghost" disabled={waypoints.length === 0} onClick={() => { savePlan([]); audioService.playSfx('tap'); }}>모두 지우기</button>
-              </div>
+      <div className={`drone-v4 is-${phase}`}>
+        <div className="v4-card drone-v4__map">
+          <PhaserStage scene={scene} ariaLabel="푸른솔 숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
+          {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>}
+          {phase === 'plan' && waypoints.length > 0 && (
+            <div className="drone-v4__tools">
+              <button type="button" className="button button--ghost button--small" onClick={() => { savePlan(waypoints.slice(0, -1)); audioService.playSfx('tap'); }}>점 하나 지우기</button>
+              <button type="button" className="button button--ghost button--small" onClick={() => { savePlan([]); audioService.playSfx('tap'); }}>모두 지우기</button>
             </div>
           )}
-          {phase === 'plan' && <div className="toast" role="status">{notice}</div>}
-        </Panel>
-
-        <div className="drone-center">
-          <div className="scene-card drone-scene">
-            <PhaserStage scene={scene} ariaLabel="푸른솔 숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
-            {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>}
-          </div>
-          <Panel className="drone-controls" title="비행 조종" kicker={phase === 'flight' ? 'LIVE' : 'CONTROL'}>
-            <TaskCue {...task} />
-            <div className={`drone-control-row is-${phase}`}>
-              {phase === 'flight' && <div className="direction-pad" aria-label="드론 미세 조종">
+          {phase === 'flight' && (
+            <>
+              <div className="direction-pad drone-v4__pad" aria-label="드론 미세 조종">
                 <button type="button" aria-label="드론을 위로 조금 이동" onClick={() => scene.nudge(0, -.035)}><span aria-hidden="true">↑</span><strong>위</strong></button>
                 <button type="button" aria-label="드론을 왼쪽으로 조금 이동" onClick={() => scene.nudge(-.035, 0)}><span aria-hidden="true">←</span><strong>왼쪽</strong></button>
                 <button type="button" aria-label="드론을 아래로 조금 이동" onClick={() => scene.nudge(0, .035)}><span aria-hidden="true">↓</span><strong>아래</strong></button>
                 <button type="button" aria-label="드론을 오른쪽으로 조금 이동" onClick={() => scene.nudge(.035, 0)}><span aria-hidden="true">→</span><strong>오른쪽</strong></button>
-              </div>}
-              {phase === 'plan' && <button className={`button button--primary button--large${waypoints.length >= 2 ? ' is-next-action' : ''}`} onClick={launch}>경로 확인 후 출발</button>}
-              {phase === 'flight' && (
-                <button className={`record-button${telemetry.recTarget ? ' is-window is-next-action' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
-                  <span />{telemetry.recTarget ? `REC · ${targetName(telemetry.recTarget)}` : 'REC'}
-                </button>
-              )}
-              {phase === 'review' && (
-                <div className="row drone-review-actions">
-                  <button className="button button--teal" onClick={() => { scene.replay(); audioService.playSfx('tap'); }}>4초 다시 보기</button>
-                  <button className="button button--primary" onClick={retry}>{result?.passed ? '다시 날아 도장 도전' : '경로 고쳐 다시 비행'}</button>
-                </div>
-              )}
-            </div>
-          </Panel>
+              </div>
+              <button className={`record-button drone-v4__rec${telemetry.recTarget ? ' is-window is-next-action' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
+                <span />{telemetry.recTarget ? `REC · ${targetName(telemetry.recTarget)}` : 'REC'}
+              </button>
+            </>
+          )}
         </div>
-
-        {phase !== 'plan' && (
-          <Panel title={showResult ? '촬영 결과' : '드론 상태'} kicker={showResult ? 'REVIEW' : 'TELEMETRY'}>
-            {!showResult ? (
-              <div className="metric-grid">
-                <ProgressBar value={telemetry.battery} label={`배터리 ${telemetry.battery}%`} />
-                <div className={`telemetry-pair is-${telemetry.wind}`}><span>바람</span><strong>{WIND_LABEL[telemetry.wind]}{telemetry.wind !== 'calm' ? ` · ${DRAIN_MULTIPLIER[telemetry.wind]}배` : ''}</strong></div>
-                <div className="target-checks">
-                  <strong>촬영 목표</strong>
-                  {DRONE_TARGETS.map((target) => {
-                    const photo = telemetry.photos.find((item) => item.id === target.id);
-                    return <div key={target.id} className={photo ? 'is-done' : ''}><span>{photo ? (photo.quality === 'center' ? '정중앙' : '가장자리') : '대기'}</span>{target.name}</div>;
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="drone-review">
-                <div className={`review-total ${result.passed ? 'is-pass' : 'is-partial'}`}>
-                  <span>{result.passed ? (result.precision ? '정밀 비행!' : '미션 완수') : result.batteryRemaining <= 0 ? '배터리 0 · 다시 계획하자' : '목표를 놓쳤어 · 다시 계획하자'}</span>
-                  <strong>{result.batteryRemaining}<small>% 남음</small></strong>
-                </div>
-                <div className="photo-cards" aria-label="획득한 사진">
-                  {DRONE_TARGETS.map((target) => {
-                    const photo = result.photos.find((item) => item.id === target.id);
-                    return (
-                      <figure key={target.id} className={`photo-card${photo ? '' : ' is-missing'}`}>
-                        <img src={photoAsset(target.id)} alt={`${target.name} 항공 사진`} />
-                        <figcaption><strong>{target.name}</strong><span>{photo ? (photo.quality === 'center' ? '정중앙' : '가장자리') : '못 찍음'}</span></figcaption>
-                      </figure>
-                    );
-                  })}
-                </div>
-                <div className="review-facts">
-                  <span>바람 구간에 쓴 배터리</span>
-                  <strong>{zones.map((zone, index) => `${index + 1}구간 ${Math.round(result.drainByZone[zone.id] ?? 0)}%`).join(' · ')}</strong>
-                </div>
-              </div>
-            )}
-            <div className={`toast${showResult && !result.passed ? ' toast--warning' : ''}`} role="status">{notice}</div>
-          </Panel>
+        {phase === 'review' && result && (
+          <div className="v4-card drone-v4__review">
+            <div className="photo-cards" aria-label="획득한 사진">
+              {DRONE_TARGETS.map((target) => {
+                const photo = result.photos.find((item) => item.id === target.id);
+                return (
+                  <figure key={target.id} className={`photo-card${photo ? '' : ' is-missing'}`}>
+                    <img src={photoAsset(target.id)} alt={`${target.name} 항공 사진`} />
+                    <figcaption><strong>{target.name}</strong><span>{photo ? (photo.quality === 'center' ? '정중앙' : '가장자리') : '못 찍음'}</span></figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+            <div className="drone-v4__review-actions">
+              {precisionStamp && <span className="replay-stamp">정밀 비행 도장</span>}
+              <button className="button button--ghost button--small" onClick={() => { scene.replay(); audioService.playSfx('tap'); }}>4초 다시 보기</button>
+              {result.passed && <button className="button button--ghost button--small" onClick={retry}>다시 날아 도장 도전</button>}{!result.passed && completed && <button className="button button--ghost button--small" onClick={retry}>다시 계획</button>}
+            </div>
+          </div>
         )}
       </div>
-    </GameShell>
+    </StepShell>
   );
 }

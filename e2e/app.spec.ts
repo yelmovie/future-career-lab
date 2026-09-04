@@ -38,54 +38,34 @@ test('home exposes start, continue, sound and settings controls with classroom t
 test('drone controls keep elementary touch targets on a 1024px tablet', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto('/#/page/3');
+  await page.waitForTimeout(800);
 
-  const planControls = [
-    page.getByRole('button', { name: '메인으로 이동' }),
-    page.getByRole('button', { name: '도움말' }),
-    page.getByRole('button', { name: '자세히' }),
-    page.getByRole('button', { name: '벌목지', exact: true }),
-  ];
-  for (const control of planControls) {
+  for (const control of [page.getByRole('button', { name: '메인으로 이동' }), page.getByRole('button', { name: '도움말' })]) {
     const box = await control.boundingBox();
     expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(48);
     expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(48);
   }
 
-  await page.getByRole('button', { name: '벌목지', exact: true }).click();
-  await page.getByRole('button', { name: '막힌 물길', exact: true }).click();
-  await page.getByRole('button', { name: '경로 확인 후 출발' }).click();
+  const map = page.locator('.phaser-stage canvas');
+  const box = (await map.boundingBox())!;
+  await map.click({ position: { x: box.width * .3, y: box.height * .28 } });
+  await map.click({ position: { x: box.width * .6, y: box.height * .72 } });
+  await page.getByRole('button', { name: /출발!/ }).click();
 
   const directions = page.locator('.direction-pad button');
   await expect(directions).toHaveCount(4);
   for (const control of await directions.all()) {
-    const box = await control.boundingBox();
-    expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(48);
-    expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(48);
+    const size = await control.boundingBox();
+    expect(Math.round(size?.width ?? 0)).toBeGreaterThanOrEqual(48);
+    expect(Math.round(size?.height ?? 0)).toBeGreaterThanOrEqual(48);
   }
-  const record = page.getByRole('button', { name: 'REC' });
+  const record = page.getByRole('button', { name: /REC/ });
   const recordBox = await record.boundingBox();
   expect(Math.round(recordBox?.width ?? 0)).toBeGreaterThanOrEqual(48);
   expect(Math.round(recordBox?.height ?? 0)).toBeGreaterThanOrEqual(48);
 });
 
-test('briefing requires all four job cards, a name and a prediction before departure', async ({ page }) => {
-  await page.goto('/#/page/2');
-  const depart = page.getByRole('button', { name: /탐험단 입단하고 출발/ });
-  await expect(depart).toBeDisabled();
-  const continueStory = page.getByRole('button', { name: /이야기 계속 읽기/ });
-  await continueStory.click();
-  await continueStory.click();
-  for (const card of await page.locator('.job-card').all()) await card.click();
-  await page.getByPlaceholder('이름을 적어 봐').fill('테스트');
-  await page.locator('.prediction__option').nth(2).click();
-  await expect(depart).toBeEnabled();
-  await depart.click();
-  await expect(page.getByRole('heading', { level: 1, name: '드론 정찰 비행' })).toBeVisible();
-
-  await page.goto('/#/page/1');
-  await page.getByRole('button', { name: /이어하기/ }).first().click();
-  await expect(page.getByRole('heading', { level: 1, name: '드론 정찰 비행' })).toBeVisible();
-});
+test.skip('briefing flow — superseded by v4-briefing-evidence.spec.ts', () => {});
 
 test('certificate stays locked until five real stage flags are complete', async ({ page }) => {
   await page.goto('/#/page/11');

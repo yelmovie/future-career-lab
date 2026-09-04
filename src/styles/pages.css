@@ -88,60 +88,7 @@
 .certificate-form label { display: grid; gap: var(--space-4); color: var(--gold-pale); font-size: var(--fs-cap); font-weight: 800; }
 .certificate-form input { min-height: var(--touch-min); width: 100%; padding: var(--space-8); border: 1px solid rgb(166 186 218 / 70%); border-radius: var(--radius-sm); background: rgb(255 255 255 / 78%); color: var(--cream); font-size: var(--fs-body); }
 
-/* 돌아보기 — 탭 3개로 나눠 한 화면에 하나씩 */
-.dna-page .game-content { grid-template-rows: auto minmax(0, 1fr); gap: var(--space-8); }
-.p10-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); }
-.p10-tab { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 2px solid rgb(166 186 218 / 70%); border-radius: 14px; background: rgb(255 255 255 / 78%); color: rgb(var(--cream-rgb) / 75%); font-size: var(--fs-body); font-weight: 850; cursor: pointer; }
-.p10-tab__art { position: relative; flex: 0 0 auto; width: 38px; height: 38px; }
-.p10-tab__art img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgb(0 0 0 / 32%)); }
-.p10-tab__art b { position: absolute; right: -3px; bottom: -2px; display: grid; place-items: center; width: 19px; height: 19px; border: 1px solid rgb(255 255 255 / 72%); border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 16px; }
-.p10-tab.is-active { border-color: var(--gold-pale); background: linear-gradient(180deg, #f2bd58, #d89226); color: #231808; }
-.p10-tab.is-active .p10-tab__art b { background: #ffffff; color: #845f15; }
-.p10-tab.is-done:not(.is-active) { border-color: rgb(89 216 135 / 55%); }
-.p10-tab small { padding: 2px 8px; border-radius: 999px; background: rgb(0 0 0 / 25%); font-size: 16px; }
-.p10-pane { display: grid; gap: var(--content-pad); min-height: 0; }
-.p10-pane > * { min-height: 0; overflow: auto; }
-.p10-pane--play { grid-template-columns: 250px minmax(0, 1.3fr) minmax(0, 1fr); }
-.p10-pane--compare { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
-.p10-pane--ability { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
-.result-disclaimer { display: flex; align-items: center; gap: var(--space-8); padding: 6px 12px; border: 1px solid rgb(105 222 214 / 38%); border-radius: 12px; background: rgb(255 255 255 / 88%); }
-.result-disclaimer svg { flex: 0 0 22px; width: 22px; color: var(--teal-bright); }
-.result-disclaimer p { margin: 0; line-height: 1.4; font-size: 16px; }
-.dna-profile { text-align: center; }
-.dna-profile > img { width: 100%; height: 190px; object-fit: contain; border-radius: var(--radius-sm); background: var(--color-panel-cream); }
-.dna-profile h3 { margin: var(--space-8) 0 var(--space-4); color: var(--gold-pale); font-size: var(--fs-head); line-height: 1.3; }
-.dna-profile p { margin: 0 0 var(--space-8); font-size: var(--fs-cap); }
-.radar-wrap { display: grid; grid-template-columns: minmax(200px, 1.1fr) minmax(150px, .9fr); align-items: center; gap: var(--space-8); }
-.radar-wrap svg { width: 100%; max-height: 300px; }
-.radar-gridline { fill: none; stroke: #c6d4e8; stroke-width: 1; }
-.radar-shape { fill: rgb(61 139 255 / 28%); stroke: var(--color-primary); stroke-width: 3; }
-.radar-dot { fill: var(--color-accent); stroke: var(--ink); stroke-width: 2; }
-.trait-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.trait-list li { display: flex; align-items: center; gap: var(--space-8); color: rgb(var(--cream-rgb) / 87%); font-size: var(--fs-cap); }
-.trait-list span { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: var(--teal-bright); }
-.radar-note { margin: var(--space-8) 0 0; padding: var(--space-8); border-radius: var(--radius-sm); background: rgb(255 244 214 / 60%); color: rgb(var(--cream-rgb) / 67%); font-size: 16px; }
-.evidence-list { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
-.evidence-list li { display: grid; grid-template-columns: 30px 1fr; gap: var(--space-8); padding: var(--space-8); border: 1px solid rgb(166 186 218 / 70%); border-radius: var(--radius-sm); background: rgb(255 255 255 / 78%); }
-.evidence-list li > span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #271a05; font-size: var(--fs-cap); font-weight: 900; }
-.evidence-list small { color: var(--teal-bright); font-size: 16px; font-weight: 800; }
-.evidence-list p { margin: 3px 0 0; font-size: var(--fs-cap); line-height: 1.45; }
-.evidence-list .empty-evidence { display: block; color: rgb(var(--cream-rgb) / 65%); font-size: var(--fs-cap); line-height: 1.6; }
-.field-section { padding: var(--content-pad); border: 1px solid rgb(166 186 218 / 70%); border-radius: 18px; background: rgb(255 255 255 / 91%); }
-.field-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-8); }
-.field-heading > span { color: var(--teal-bright); font-size: 16px; font-weight: 900; letter-spacing: .15em; }
-.field-heading h2 { margin: 0; color: var(--cream); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-head); line-height: 1.3; }
-.field-heading p { margin: 0 0 0 auto; color: rgb(var(--cream-rgb) / 58%); font-size: 16px; }
-.field-grid { display: grid; gap: var(--space-8); }
-.field-card { display: grid; grid-template-columns: 84px 1fr; overflow: hidden; min-width: 0; border: 1px solid rgb(166 186 218 / 70%); border-radius: 14px; background: var(--cream-2); color: var(--ink); }
-.field-card img { width: 100%; height: 100%; min-height: 84px; display: block; object-fit: contain; mix-blend-mode: multiply; }
-.field-card > div { padding: var(--space-8); }
-.field-card h3 { margin: 0 0 2px; color: #0b4360; font-size: var(--fs-body); line-height: 1.3; }
-.field-card p { margin: 0 0 6px; font-size: 16px; line-height: 1.4; }
-.field-card ul { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-.field-card li { padding: 2px 6px; border-radius: 6px; background: #e4d0a7; font-size: 16px; }
-.field-empty { min-height: 100px; display: flex; align-items: center; justify-content: center; gap: var(--space-8); padding: var(--space-16); border: 1px dashed rgb(166 186 218 / 70%); border-radius: 14px; color: rgb(var(--cream-rgb) / 72%); font-size: var(--fs-cap); text-align: center; }
-.field-empty svg { flex: 0 0 30px; width: 30px; color: var(--gold-pale); }
-.field-empty p { margin: 0; }
+/* 돌아보기(게임 페이지 10) 스타일은 src/pages/page09.css 로 옮겼다 (v4). */
 
 /* Certificate */
 .certificate-page .game-content { display: grid; place-items: center; }

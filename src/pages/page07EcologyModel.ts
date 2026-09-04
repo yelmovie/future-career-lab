@@ -42,7 +42,7 @@ export const POINTS: { id: PointId; title: string; blurb: string }[] = [
 export const TRACES: Trace[] = [
   { id: 'foot-boot', point: 'A', kind: 'footprint', title: '부츠 발자국', note: '사람이 자주 드나든 흔적이야.', image: v2Asset('trace-footprint-boot'), x: 30, y: 74 },
   { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: pageAsset(3, 8), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
-  { id: 'feather-green', point: 'A', kind: 'feather', title: '초록 깃털', note: '모모가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 82, y: 70 },
+  { id: 'feather-green', point: 'B', kind: 'feather', title: '초록 깃털', note: '모모가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 30, y: 66 },
   { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 숲의 새를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
   { id: 'sound-call', point: 'B', kind: 'sound', title: '녹음된 앵무 울음', note: '지난주 녹음기에 남은 정상 울음. 모모·루비가 편안하게 머문 흔적이야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
   { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '모모·루비가 땅에 내려와 열매를 먹은 자리야.', image: pageAsset(3, 7), x: 28, y: 76 },
@@ -65,6 +65,9 @@ export const SOUND_CHOICES: { id: SoundKind; label: string }[] = [
   { id: 'parrotAlarm', label: '앵무 경계음' },
   { id: 'chainsaw', label: '전기톱' },
 ];
+
+/** v4 현장 흔적 — 숨은 흔적 없이 지점마다 2개씩 6개. */
+export const FIELD_TRACES: Trace[] = TRACES.filter((trace) => !trace.hidden);
 
 export const getTrace = (id: string) => TRACES.find((trace) => trace.id === id);
 
@@ -173,6 +176,15 @@ export function runTrial(state: ExperimentState, prediction: Prediction): { stat
 }
 
 export const MIN_TRIALS = 3;
+
+/** 실험 기록에서 개체수를 가장 크게 움직인 변수 순서. 실험이 없는 변수는 뒤로. */
+export function rankByEffect(trials: readonly Trial[]): CauseId[] {
+  const effect = (id: CauseId) => Math.max(0, ...trials.filter((t) => t.variable === id).map((t) => Math.abs(t.after - t.before)));
+  return VARIABLES.map((v) => v.id).sort((a, b) => effect(b) - effect(a));
+}
+
+/** 학생이 고른 주원인을 뺀 나머지 중 영향이 큰 쪽이 보조원인. */
+export const subCause = (main: CauseId, trials: readonly Trial[]): CauseId => rankByEffect(trials).find((id) => id !== main)!;
 
 export type Verdict = 'main' | 'sub' | 'none';
 

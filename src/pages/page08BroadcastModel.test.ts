@@ -6,6 +6,7 @@ import {
   SEGMENTS,
   UNSOURCED_PENALTY,
   airBlock,
+  airRumor,
   airSegment,
   audioZone,
   buildCaptionCards,
@@ -16,6 +17,7 @@ import {
   planIncidents,
   resolveIncident,
   restoreBroadcast,
+  segmentCards,
   totalSegments,
   type BroadcastState,
 } from './page08BroadcastModel';
@@ -43,6 +45,9 @@ describe('page 8 broadcast model', () => {
     expect(cards.filter((card) => card.sourced).map((card) => card.id)).toEqual(['graph-logging', 'photo-stream', 'action-noise', 'action-report']);
     expect(cards.filter((card) => !card.sourced)).toHaveLength(4);
     expect(cards.every((card) => card.origin.length > 0)).toBe(true);
+    // 출처 줄에 "?" 같은 표식이 없다 — 학생이 글을 읽고 소문을 가려내야 한다
+    expect(cards.every((card) => !card.origin.includes('?'))).toBe(true);
+    expect(photo.photo).toBe('stream');
     expect(graph.text).toContain('(가장 큰 원인)');
     // 앞 스테이지 기록이 없어도 fallback 으로 근거 카드가 생긴다
     expect(buildCaptionCards({ graphs: [], photos: [] }).filter((card) => card.sourced)).toHaveLength(8);
@@ -77,11 +82,33 @@ describe('page 8 broadcast model', () => {
     expect(airBlock(ready(state, graph.id), cards)).toBeNull();
     // 출처 없는 카드는 어디서든 나갈 수 있다 (판단은 학생 몫)
     expect(airBlock(ready(state, rumor.id), cards)).toBeNull();
-    state = airSegment(ready(state, graph.id), cards);
-    state = skipIncident(airSegment(ready(state), cards)); // → 시민 행동 안내: 행동 카드만
+    state = airSegment(ready(state, graph.id), cards); // → 시민 부탁: 행동 카드만
     expect(airBlock(ready(state, graph.id), cards)).toBe('unfit');
     expect(airBlock(ready(state, action.id), cards)).toBeNull();
-    expect(state.trust).toBe(100 - 30); // 사고 둘 다 AP 0 으로 넘겨서 -15 x2, 자막 벌점은 없음
+    expect(state.trust).toBe(100 - 15); // 사고를 그대로 넘겨서 -15, 자막 벌점은 없음
+  });
+
+  it('keeps the audio level across segments', () => {
+    const state = airSegment(ready(createBroadcast()), cards);
+    expect(state.draft).toEqual({ source: null, captionId: null, level: 55 });
+  });
+
+  it('offers three cards per segment: two fitting sourced ones and one rumor', () => {
+    SEGMENTS.forEach((segment, index) => {
+      const picked = segmentCards(cards, index, 42);
+      expect(picked).toHaveLength(3);
+      expect(picked.filter((card) => !card.sourced).length).toBeGreaterThanOrEqual(1);
+      expect(picked.filter((card) => card.sourced).every((card) => segment.fit === 'any' || segment.fit === card.kind)).toBe(true);
+    });
+    expect(segmentCards(cards, 0, 42)).toEqual(segmentCards(cards, 0, 42));
+  });
+
+  it('airing a rumor in v4 drops trust and stays on the same segment', () => {
+    const state = airRumor(ready(createBroadcast(), rumor.id));
+    expect(state.trust).toBe(100 - UNSOURCED_PENALTY);
+    expect(state.corrections).toBe(1);
+    expect(state.index).toBe(0);
+    expect(state.draft.captionId).toBeNull();
   });
 
   it('drops trust and forces the next segment into a correction when an unsourced caption airs', () => {
@@ -98,7 +125,7 @@ describe('page 8 broadcast model', () => {
   it('appends a correction segment when the last segment airs an unsourced caption', () => {
     let state = createBroadcast();
     for (let i = 0; i < SEGMENTS.length - 1; i += 1) state = skipIncident(airSegment(ready(state), cards));
-    expect(currentSegment(state)?.id).toBe('closing');
+    expect(currentSegment(state)?.id).toBe('action');
     state = airSegment(ready(state, rumor.id), cards);
     expect(isFinished(state)).toBe(false);
     expect(totalSegments(state)).toBe(SEGMENTS.length + 1);
@@ -109,44 +136,27 @@ describe('page 8 broadcast model', () => {
     expect(state.corrections).toBe(2);
   });
 
-  it('plans two distinct incidents from the session seed', () => {
-    const plan = planIncidents(42);
-    expect(plan).toHaveLength(2);
-    expect(new Set(plan).size).toBe(2);
-    expect(plan.every((id) => INCIDENTS.some((item) => item.id === id))).toBe(true);
-    expect(planIncidents(42)).toEqual(plan);
-    const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    expect(new Set(seeds.flatMap(planIncidents))).toEqual(new Set(['mic', 'delay', 'tip']));
-  });
-
-  it('raises an incident twice and makes AP 3 insufficient for two full fixes', () => {
+  it('plans the single mic incident and raises it after the second segment', () => {
+    expect(planIncidents(42)).toEqual(['mic']);
     let state = createBroadcast(42);
-    const [first, second] = state.incidentPlan as [string, string];
     state = airSegment(ready(state), cards);
     expect(state.pendingIncident).toBeNull();
     state = airSegment(ready(state), cards);
-    expect(state.pendingIncident).toBe(first);
+    expect(state.pendingIncident).toBe('mic');
     expect(airBlock(ready(state), cards)).toBe('incident');
-    const fullFix = INCIDENTS.find((item) => item.id === first)!.actions.find((a) => a.cost === 2)!;
-    state = resolveIncident(state, fullFix.id);
-    expect(state.ap).toBe(AP_BUDGET - 2);
-    expect(state.trust).toBe(100);
-    state = airSegment(ready(state), cards);
-    state = airSegment(ready(state), cards);
-    expect(state.pendingIncident).toBe(second);
-    const actions = INCIDENTS.find((item) => item.id === second)!.actions;
-    // 남은 AP 1 → 근본 해결 불가
-    expect(resolveIncident(state, actions.find((a) => a.cost === 2)!.id)).toBe(state);
-    state = resolveIncident(state, actions.find((a) => a.cost === 1)!.id);
-    expect(state.trust).toBe(95);
-    expect(INCIDENTS.every((incident) => Math.min(...incident.actions.map((a) => a.cost)) === 0)).toBe(true);
+    const swap = INCIDENTS[0]!.actions.find((a) => a.id === 'mic-swap')!;
+    const fixed = resolveIncident(state, swap.id);
+    expect(fixed.ap).toBe(AP_BUDGET - 2);
+    expect(fixed.trust).toBe(100);
+    expect(resolveIncident(state, 'mic-ignore').trust).toBe(85);
   });
 
-  it('finishes after six segments and calls a zero-correction show clean', () => {
+  it('finishes after four segments and calls a zero-correction show clean', () => {
     let state = createBroadcast();
     for (let i = 0; i < SEGMENTS.length; i += 1) state = skipIncident(airSegment(ready(state), cards));
+    expect(SEGMENTS).toHaveLength(4);
     expect(currentSegment(state)).toBeNull();
-    expect(state.trust).toBe(70);
+    expect(state.trust).toBe(85);
     expect(isCleanBroadcast(state)).toBe(true);
   });
 
