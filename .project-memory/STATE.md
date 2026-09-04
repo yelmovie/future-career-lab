@@ -15,3 +15,4 @@
 - **v3 에셋 자리:** `v3Asset()` + `fallbackTo()` (src/shared/assets.ts). public/assets/v3/ 에 파일이 없으면 v2 그림으로 되돌아감. 프롬프트: docs/ASSET_REQUEST_v3.md.
 - 크레딧 파일 위치: assets/CREDITS.md (루트에서 이동). SW 버전 fcl-v3-2026.09.05, 오디오 200 응답을 캐시에 보관.
 - **v4 (2026-09-05 낮):** "한 화면 한 행동" 재설계. 공통 키트 `src/components/v4/` (StepShell·PictureChoice·SlotBoard·v4.css). P2·P4·P5·P6·P7·P8·P9·P10 전부 StepShell 위에 다시 씀(docs/GAME_DESIGN_v4.md 가 기준). 드론(P3)은 메커닉 유지·표면만. 옛 e2e(app/ux-flow/page04-board/page08/page09)는 skip 처리하고 `e2e/v4-*.spec.ts` 4개가 대신한다. page-05~10 슬롯 60장은 flood-fill 로 투명화(원본 PNG 는 assets/ 에 그대로). HabitatScene.ts·habitatModel.ts 는 더 이상 import 되지 않음(삭제 안 함).
+- screenshot-states.mjs 는 v4 화면과 안 맞음(옛 "자세히" 버튼 기준). 필요하면 StepShell 기준으로 다시 씀.

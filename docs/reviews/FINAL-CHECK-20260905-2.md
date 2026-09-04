@@ -57,8 +57,8 @@
 | 검증 | 결과 |
 |---|---|
 | `npm run typecheck` / `lint` / `test` | PASS · Vitest 74 |
-| `npm run test:e2e` | 아래 "e2e 최종" 참조 |
-| 캡처 | `docs/reviews/screens-v4/` (11페이지 × 2해상도, states) — git 제외 |
+| `npm run test:e2e` | PASS — 17 passed · 9 skipped(옛 스펙 대체) · 0 failed, workers 1 직렬 |
+| 캡처 | `docs/reviews/screens-v4/` 11페이지 × 2해상도 — git 제외. `scripts/screenshot-states.mjs` 는 옛 UI 셀렉터라 v4 에서 동작 안 함(갱신 필요) |
 | 브라우저 실조작 | 드론 계획→비행, 브리핑, 연합, 돌봄, 정원, 생태, 방송 화면 열어 확인 |
 
 ## 남은 것 (사용자 결정)
