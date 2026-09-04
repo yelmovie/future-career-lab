@@ -148,9 +148,9 @@ export class HabitatScene extends Phaser.Scene {
     if (!this.grid) return;
     const board = this.getBoardRect();
     this.grid.clear();
-    this.grid.fillStyle(0x071b2e, 0.92).fillRoundedRect(board.left, board.top, board.width, board.height, 18);
-    this.grid.lineStyle(2, 0xe4a63c, 0.78).strokeRoundedRect(board.left, board.top, board.width, board.height, 18);
-    this.grid.lineStyle(1, 0x4acfc5, 0.13);
+    this.grid.fillStyle(0xf4f8ff, 0.94).fillRoundedRect(board.left, board.top, board.width, board.height, 18);
+    this.grid.lineStyle(3, 0x9fb8dc, 0.9).strokeRoundedRect(board.left, board.top, board.width, board.height, 18);
+    this.grid.lineStyle(1, 0x3d8bff, 0.16);
     for (let x = 10; x < 100; x += 10) {
       const screenX = board.left + (x / 100) * board.width;
       this.grid.lineBetween(screenX, board.top, screenX, board.top + board.height);

@@ -202,8 +202,8 @@ test('completed missions hand off from the drone through reflection without a de
 
   const route = [
     { button: /증거판으로 가기/, heading: '현장 증거판' },
-    { button: /앵무새 살피러 가기/, heading: '구조된 앵무새 살피기' },
-    { button: /회복 공간 만들기/, heading: '회복 공간 만들기' },
+    { button: /모모와 루비 살피러 가기/, heading: '구조된 모모와 루비 살피기' },
+    { button: /새 정원 다시 만들기/, heading: '새 정원 다시 만들기' },
     { button: /숲 생태 조사로 가기/, heading: '숲 생태 조사' },
     { button: /생방송 컨트롤룸으로/, heading: '생방송 컨트롤룸' },
     { button: /연합 작전으로/, heading: '네 직업 연합 작전' },

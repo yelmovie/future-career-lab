@@ -145,7 +145,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
       footer={finished ? (
         <StageComplete
           title={clean ? '클린 방송 성공' : '생방송 완료'}
-          message={`시청자 신뢰 ${result.trust}점 · 정정 ${result.corrections}회. ${clean ? '출처 없는 자막이 한 번도 안 나갔어. 방송 클립이 카드로 저장됐어.' : '정정 0회에 다시 도전하면 "클린 방송" 도장을 받을 수 있어.'}`}
+          message={`시청자 신뢰 ${result.trust}점 · 정정 ${result.corrections}회. ${clean ? '출처 없는 자막이 한 번도 안 나갔어. 시민들이 푸른솔 숲의 새를 함께 지키기로 했어. 방송 클립이 카드로 저장됐어.' : '정정 0회에 다시 도전하면 "클린 방송" 도장을 받을 수 있어.'}`}
           nextLabel="연합 작전으로"
           onNext={() => onNavigate(9)}
         />

@@ -87,7 +87,7 @@ function zone(id: CareZoneId, number: number, visible: string, groundedIndex: 0 
 export const BIRDS: Bird[] = [
   {
     id: 'green',
-    name: '초록 앵무',
+    name: '모모',
     issue: '스트레스',
     issueLabel: '스트레스로 보여',
     sickImage: v2Asset('parrot-sick-green'),
@@ -138,7 +138,7 @@ export const BIRDS: Bird[] = [
   },
   {
     id: 'red',
-    name: '빨강 앵무',
+    name: '루비',
     issue: '탈수',
     issueLabel: '탈수로 보여',
     sickImage: v2Asset('parrot-sick-red'),

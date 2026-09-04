@@ -3,16 +3,16 @@ import { GameShell, Panel, TaskCue } from '../components/GameShell';
 import { ArrowIcon, CheckIcon, SparkIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { audioService } from '../services/audioService';
-import { homeAsset, pageAsset, v2Asset } from '../shared/assets';
+import { fallbackTo, homeAsset, pageAsset, v2Asset, v3Asset } from '../shared/assets';
 import { JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import './page02.css';
 
 const BRIEF_LINES = [
-  '도시 옆 숲에서 앵무새가 한 달 사이에 절반으로 줄었어. 아무도 이유를 몰라.',
-  '한 직업만으로는 못 풀어. 하늘에서 보고, 살피고, 조사하고, 알리는 네 사람이 필요해.',
-  '네가 네 직업을 차례로 맡아 봐. 마지막엔 넷을 한 팀으로 묶어서 숲을 되돌려 놓자.',
+  '하늘숲 동물원 새 정원 그물이 태풍에 찢어져서, 앵무새 모모와 루비가 푸른솔 숲으로 날아갔어. 사육사 혼자선 넓은 숲을 다 뒤질 수 없어.',
+  '한 직업만으로는 못 찾아. 하늘에서 보고, 살피고, 조사하고, 알리는 네 사람이 필요해.',
+  '네가 네 직업을 차례로 맡아 봐. 마지막엔 넷을 한 팀으로 묶어야 풀리는 일이 기다리고 있어.',
 ];
 
 const JOB_CARDS: { id: JobId; icon: string; mentor: string; tools: string[]; does: string }[] = [
@@ -66,7 +66,7 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
     }>
       <div className="briefing-layout">
         <Panel kicker="CASE" title="사건 접수" className="briefing-case">
-          <img className="briefing-keyart" src={v2Asset('scene-incident')} alt="저녁 하늘 아래 숲을 떠나는 앵무새들과 멀리 보이는 공사장" />
+          <img className="briefing-keyart" src={v3Asset('scene-escape')} onError={fallbackTo(v2Asset('scene-incident'))} alt="저녁 하늘, 푸른솔 숲 쪽으로 날아가는 초록·빨강 앵무 두 마리와 멀리 보이는 공사장" />
           <div className="briefing-dialog" aria-live="polite">
             <img src={homeAsset('mentor')} alt="" />
             <div>
@@ -114,7 +114,7 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
         <Modal title="끝내면 얻는 것" onClose={() => setRewardOpen(false)} actions={<button className="button button--primary" onClick={() => setRewardOpen(false)}>알겠어</button>}>
           <div className="briefing-reward">
             <ul>{STAGE_META.map((stage) => <li key={stage.id}><img src={stage.badge} alt="" />{stage.reward}</li>)}</ul>
-            <p>그리고 앵무새가 숲으로 돌아가. 수료증도 인쇄할 수 있어.</p>
+            <p>그리고 모모와 루비가 새 정원으로 건강하게 돌아가. 수료증도 인쇄할 수 있어.</p>
           </div>
         </Modal>
       )}

@@ -16,7 +16,7 @@ const pages: Record<PageNumber, LazyExoticComponent<ComponentType<{ onNavigate: 
   3: lazy(() => import('../pages/Page04Drone')),        // S1-a 드론 정찰
   4: lazy(() => import('../pages/Page03Mystery')),      // S1-b 증거판
   5: lazy(() => import('../pages/Page05ParrotCheck')),  // S2-a 건강 점검
-  6: lazy(() => import('../pages/Page06Habitat')),      // S2-b 회복 공간
+  6: lazy(() => import('../pages/Page06Habitat')),      // S2-b 새 정원
   7: lazy(() => import('../pages/Page07Ecology')),      // S3 생태 조사
   8: lazy(() => import('../pages/Page08Broadcast')),    // S4 생방송
   9: lazy(() => import('../pages/Page08Crisis')),       // S5 연합 작전

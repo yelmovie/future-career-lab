@@ -42,7 +42,7 @@ const STEPS: readonly { id: Step; short: string; title: string; lead: string }[]
   { id: 'detail', short: '숨은 것 찾기', title: '사진 속 숨은 것을 찾아', lead: '사진을 눌러 크게 보고, 이상한 곳을 손가락으로 눌러.' },
   { id: 'link', short: '선으로 잇기', title: '찾은 것과 사실을 이어', lead: '왼쪽에서 찾은 것을 하나 누르고, 오른쪽에서 어울리는 사실을 눌러.' },
   { id: 'sort', short: '카드 나누기', title: '카드를 세 칸으로 나눠', lead: '카드를 누르고, 아래 칸의 버튼을 눌러 넣어.' },
-  { id: 'guess', short: '가설 고르기', title: '앵무새가 사라진 까닭은?', lead: '모은 근거를 보고 하나만 골라. 틀려도 괜찮아, 숲에서 확인할 거야.' },
+  { id: 'guess', short: '가설 고르기', title: '모모와 루비는 왜 숲 가장자리를 떠났을까?', lead: '모은 근거를 보고 하나만 골라. 틀려도 괜찮아, 숲 생태 조사에서 확인할 거야.' },
 ];
 const STEP_IDS = STEPS.map((item) => item.id);
 /** 가설 카드에 붙일 그림 — 앞에서 드론으로 찍은 사진을 그대로 쓴다. */
@@ -181,7 +181,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
     setPageData('p4Bins', next);
     setSelectedCard(null);
     audioService.playSfx('drop');
-    if (cardId === IRRELEVANT_CARD && bin !== 'none') setHint('도시 야경이 숲 사건과 이어질까? 한 번 더 생각해 봐.');
+    if (cardId === IRRELEVANT_CARD && bin !== 'none') setHint('도시 야경이 모모와 루비 사건과 이어질까? 한 번 더 생각해 봐.');
     else if (cardId !== IRRELEVANT_CARD && bin === 'none') setHint('이 카드가 정말 사건과 상관없을까? 사진 속 세부와 비교해 봐.');
     else setHint(`${BINS.find((item) => item.id === bin)!.label} 칸에 놓았어.`);
   };
@@ -262,7 +262,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
       footer={completed && step === 'guess'
-        ? <StageComplete title={`가설 카드와 ${STAGE_META[0]!.badgeName}를 얻었어`} message="구조된 앵무새를 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="앵무새 살피러 가기" onNext={() => onNavigate(5)} />
+        ? <StageComplete title={`가설 카드와 ${STAGE_META[0]!.badgeName}를 얻었어`} message="가설을 세웠어. 사육사가 깊은 숲 열매 나무 근처에서 모모와 루비를 찾았대! 상태가 안 좋아 — 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="모모와 루비 살피러 가기" onNext={() => onNavigate(5)} />
         : (
           <div className="p4-footer">
             <TaskCue

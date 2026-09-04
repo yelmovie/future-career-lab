@@ -104,7 +104,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
       {visibleFooter && <footer className="game-footer">{visibleFooter}</footer>}
       {helpOpen && (
         <Modal title="게임은 이렇게 이어져" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
-          <p className="flow-goal"><strong>목표</strong> 숲에서 사라진 앵무새의 원인을 네 직업의 힘으로 찾고, 마지막에 넷을 한 팀으로 묶어 숲을 되돌리는 게임이야.</p>
+          <p className="flow-goal"><strong>목표</strong> 동물원에서 날아간 앵무새 모모와 루비를 네 직업의 힘으로 찾고, 푸른솔 숲의 새들을 지키려면 마지막에 넷을 한 팀으로 묶어야 하는 게임이야.</p>
           <ol className="flow-steps">
             {GAME_FLOW.map((item) => (
               <li key={item.stage} className={meta.stage === item.stage ? 'is-current' : ''}>

@@ -243,7 +243,7 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
         <section className="settings-block">
           <h3>앱 정보</h3>
           <ul className="settings-list">
-            <li>미래 직업실 · v2.0.0</li>
+            <li>미래 직업실 · v3.0.0</li>
             <li>기획·제작 옐쌤</li>
             <li>제공 issamGPT AI Mart</li>
           </ul>

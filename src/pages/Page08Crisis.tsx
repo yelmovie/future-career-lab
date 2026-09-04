@@ -7,7 +7,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
 import { ArrowIcon, CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { pageAsset, v2Asset } from '../shared/assets';
+import { fallbackTo, pageAsset, v2Asset, v3Asset } from '../shared/assets';
 import { CANVAS_FONT, JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -233,19 +233,19 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
       onNavigate={onNavigate}
       className="page08"
       footer={finished
-        ? <StageComplete title="네 직업의 힘이 맞물렸어" message={`${completedTurns}턴 만에 위기 3개를 안정시켰어. 앵무 무리가 숲으로 돌아오고 있어.`} nextLabel="탐험 돌아보기" onNext={() => onNavigate(10)} />
+        ? <StageComplete title="네 직업의 힘이 맞물렸어" message={`${completedTurns}턴 만에 위기 3개를 안정시켰어. 혼자였다면 하나도 못 막았어. 넷이 이어 붙어서 셋을 다 지켰어.`} nextLabel="탐험 돌아보기" onNext={() => onNavigate(10)} />
         : state.failed
           ? <div className="guided-footer"><TaskCue action="이번 기록을 보고 다시 짝지어 봐" target="다시 계획해 보기" /><button className="button button--primary button--large is-next-action" onClick={retry}>다시 계획해 보기</button></div>
           : undefined}
     >
       {finished ? (
         <section className="p08-ending" aria-labelledby="p08-ending-title">
-          <img className="p08-ending__scene" src={v2Asset('scene-restored')} alt="불이 꺼지고 초록으로 돌아온 숲 위로 앵무 무리가 돌아오는 장면" />
+          <img className="p08-ending__scene" src={v3Asset('scene-reunion')} onError={fallbackTo(v2Asset('scene-restored'))} alt="불이 꺼지고 초록으로 돌아온 푸른솔 숲에 새들이 돌아오는 장면" />
           <div className="p08-ending__copy">
             <img className="p08-ending__emblem" src={pageAsset(8, 10)} alt="연합 엠블럼" />
             <div>
-              <h2 id="p08-ending-title">앵무 무리가 돌아왔어</h2>
-              <p>화재가 꺼지고 숲 노드가 초록으로 바뀌었어. 위에서 보고, 근거를 찾고, 보호하고, 정확히 알린 네 힘이 하나로 맞물렸어.</p>
+              <h2 id="p08-ending-title">푸른솔 숲에 새소리가 돌아왔어</h2>
+              <p>불이 꺼지고 숲 노드가 초록으로 바뀌었어. 모모와 루비는 새 정원에서 건강하게 지내고, 시민들은 숲 지킴이가 됐어. 혼자였다면 하나도 못 막았어. 넷이 이어 붙어서 셋을 다 지켰어.</p>
               <p className="p08-ending__turns">이번 기록 {completedTurns}턴 · 최고 기록 {Math.min(bestTurns ?? completedTurns, completedTurns)}턴</p>
             </div>
             <button className="button button--ghost" onClick={retry}>더 적은 턴으로 다시 하기</button>
@@ -379,7 +379,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
 
       {briefing && !teacherMode && (
         <Modal title="네 직업의 힘을 짝지어 보자" actions={<button className="button button--primary" onClick={() => { setBriefing(false); audioService.unlock(); audioService.playSfx('tap'); }}>작전 시작</button>}>
-          <p>위기 세 개가 한꺼번에 왔어. 카드에는 직업 이름이 없고 "무엇이 필요한지"만 써 있어. 힌트에 맞는 배지 두 개를 붙여야 위기가 줄어.</p>
+          <p>방송 다음 날, 푸른솔 숲에 위기 세 개가 한꺼번에 왔어. 카드에는 직업 이름이 없고 "무엇이 필요한지"만 써 있어. 힌트에 맞는 배지 두 개를 붙여야 위기가 줄어.</p>
           <div className="tap-flow" aria-label="게임 방법"><b>1</b><span>위기 카드 힌트 읽기</span><i><ArrowIcon /></i><b>2</b><span>배지 두 개 붙이고 턴 진행</span></div>
           <p className="modal-note">턴마다 아무도 없는 위기는 더 번져. 100%에 닿으면 옆 위기까지 번지고 숲 노드를 하나 잃어. 쓴 배지는 한 턴 쉬어야 하니 {MAX_TURNS}턴 안에 순서를 잘 정해 봐.</p>
         </Modal>

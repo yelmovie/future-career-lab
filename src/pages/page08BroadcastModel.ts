@@ -18,11 +18,11 @@ export interface Segment {
 export const SOURCE_LABEL: Record<SourceId, string> = { drone: '드론 사진', studio: '스튜디오 카메라', reporter: '현장 리포터' };
 
 export const SEGMENTS: readonly Segment[] = [
-  { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '진행자가 사건을 소개해', fit: 'any' },
+  { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '모모·루비 구조 소식과 숲 문제를 소개해', fit: 'any' },
   { id: 'scene', title: '현장 상황', requiredSource: 'drone', need: '숲이 지금 어떤지 보여 줘', fit: 'photo' },
   { id: 'cause', title: '원인 설명', requiredSource: 'studio', need: '왜 줄었는지 근거로 설명해', fit: 'graph' },
   { id: 'interview', title: '전문가 인터뷰', requiredSource: 'reporter', need: '전문가가 직접 말해', fit: 'any' },
-  { id: 'action', title: '시민 행동 안내', requiredSource: 'reporter', need: '시민이 뭘 하면 되는지', fit: 'action' },
+  { id: 'action', title: '시민 행동 안내', requiredSource: 'reporter', need: '시민에게 도움을 요청해', fit: 'action' },
   { id: 'closing', title: '클로징', requiredSource: 'studio', need: '마무리', fit: 'any' },
 ];
 
@@ -48,9 +48,9 @@ export interface CaptionCard {
 }
 
 const GRAPH_TEXT: Record<CauseId, string> = {
-  logging: '먹이나무가 줄면 앵무새도 줄어요',
-  noise: '소음이 커지면 앵무새가 자리를 떠나요',
-  water: '물이 줄면 앵무새가 살기 어려워요',
+  logging: '먹이나무가 줄면 숲의 새도 줄어요',
+  noise: '소음이 커지면 숲의 새가 자리를 떠나요',
+  water: '물이 줄면 숲의 새가 살기 어려워요',
 };
 const VERDICT_TEXT = { main: '가장 큰 원인', sub: '보조 원인', none: '관련 적음' } as const;
 
@@ -62,14 +62,14 @@ const PHOTO_TEXT: Record<PhotoId, string> = {
 
 export const ACTION_CARDS: readonly CaptionCard[] = [
   { id: 'action-noise', text: '숲 가장자리 공사 소음을 줄여 주세요', sourced: true, kind: 'action', origin: '조사 그래프' },
-  { id: 'action-report', text: '다친 앵무새를 보면 돌봄센터에 알려 주세요', sourced: true, kind: 'action', origin: '돌봄 기록' },
+  { id: 'action-report', text: '다친 새를 보면 동물원 돌봄센터에 알려 주세요', sourced: true, kind: 'action', origin: '돌봄 기록' },
 ];
 
 /** 문장은 근거 카드와 같은 말투. 출처 줄만 다르다 — 마지막 카드는 사실처럼 들리지만 익명. */
 export const UNSOURCED_CARDS: readonly CaptionCard[] = [
-  { id: 'rumor-city', text: '앵무새가 도시로 다 날아갔어요', sourced: false, kind: 'rumor', origin: 'SNS 제보' },
-  { id: 'rumor-cat', text: '고양이가 앵무새를 다 잡아먹었어요', sourced: false, kind: 'rumor', origin: '익명 댓글' },
-  { id: 'rumor-back', text: '앵무새는 곧 저절로 돌아와요', sourced: false, kind: 'rumor', origin: '누가 그러던데' },
+  { id: 'rumor-city', text: '숲의 새들이 다 도시로 갔대요', sourced: false, kind: 'rumor', origin: 'SNS 제보' },
+  { id: 'rumor-cat', text: '고양이가 새를 다 잡아먹었어요', sourced: false, kind: 'rumor', origin: '익명 댓글' },
+  { id: 'rumor-back', text: '새는 곧 저절로 돌아와요', sourced: false, kind: 'rumor', origin: '누가 그러던데' },
   { id: 'rumor-trees', text: '숲 가장자리 나무가 작년보다 줄었어요', sourced: false, kind: 'rumor', origin: '익명 제보' },
 ];
 
@@ -128,7 +128,7 @@ export const INCIDENTS: readonly Incident[] = [
     { id: 'delay-still', label: '사진으로 채우기', cost: 1, trustDelta: -5, note: '화면은 멈췄지만 방송은 이어졌어.' },
     { id: 'delay-ignore', label: '그대로 두기', cost: 0, trustDelta: -15, note: '화면이 뚝뚝 끊겨 보였어.' },
   ] },
-  { id: 'tip', title: '잘못된 제보', signal: '"앵무새가 학교에 나타났다"는 제보가 왔는데 확인이 안 돼.', actions: [
+  { id: 'tip', title: '잘못된 제보', signal: '"또 다른 앵무새가 학교에 나타났다"는 제보가 왔는데 확인이 안 돼.', actions: [
     { id: 'tip-verify', label: '확인 전엔 내보내지 않기', cost: 2, trustDelta: 0, note: '확인해 보니 다른 새였어. 잘 참았어.' },
     { id: 'tip-hedge', label: '"확인 중"이라고 붙여 내보내기', cost: 1, trustDelta: -5, note: '틀린 정보는 아니지만 시청자가 헷갈렸어.' },
     { id: 'tip-air', label: '바로 속보로 내보내기', cost: 0, trustDelta: -15, note: '틀린 속보였어. 정정이 필요해.' },

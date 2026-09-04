@@ -64,9 +64,9 @@ test('the last step hands out the hypothesis card and the stage badge', async ({
     },
   });
 
-  await expect(page.getByRole('heading', { name: '앵무새가 사라진 까닭은?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '모모와 루비는 왜 숲 가장자리를 떠났을까?' })).toBeVisible();
   await page.locator('.p4-guess').first().click();
-  await expect(page.getByRole('button', { name: /앵무새 살피러 가기/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /모모와 루비 살피러 가기/ })).toBeVisible();
 
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(saved.artifacts.hypothesis).toBe('logging');

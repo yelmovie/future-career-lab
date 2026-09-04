@@ -134,7 +134,7 @@ export interface EvidenceCard { id: PhotoId | FactId; kind: 'photo' | 'fact'; ti
 export const FACT_CARDS: readonly EvidenceCard[] = [
   { id: 'cctv', kind: 'fact', title: 'CCTV 클립', note: '밤마다 큰 트럭이 숲길로 들어갔다 나와.', image: pageAsset(3, 4) },
   { id: 'footprint', kind: 'fact', title: '발자국 단서', note: '큰 부츠 자국이 물가까지 이어져.', image: pageAsset(3, 7) },
-  { id: 'silence', kind: 'fact', title: '녹음기 기록', note: '앵무새 울음이 일주일 전부터 안 들려.', image: pageAsset(3, 8) },
+  { id: 'silence', kind: 'fact', title: '녹음기 기록', note: '새소리가 일주일 전부터 숲 가장자리에서 안 들려.', image: pageAsset(3, 8) },
   { id: 'city-night', kind: 'fact', title: '도시 야경', note: '도시 불빛이 예쁘게 찍혔어.', image: backgroundFor(9) },
 ];
 export const IRRELEVANT_CARD: FactId = 'city-night';
@@ -143,7 +143,7 @@ export function photoCards(photos: readonly DronePhoto[]): EvidenceCard[] {
   return ids.map((id) => ({
     id, kind: 'photo', image: photoAsset(id),
     title: `${DRONE_TARGETS.find((target) => target.id === id)?.name ?? id} 사진`,
-    note: photos.find((photo) => photo.id === id)?.quality === 'edge' ? '가장자리에 찍혔어. 확대해서 살펴봐.' : '탭해서 확대하면 숨은 세부가 보여.',
+    note: photos.find((photo) => photo.id === id)?.quality === 'edge' ? '가장자리에 찍혔어. 확대해서 모모와 루비가 갈 만한 단서를 찾아봐.' : '탭해서 확대하면 모모와 루비가 갈 만한 단서가 보여.',
   }));
 }
 
@@ -173,7 +173,7 @@ export function sureBlocker(cardId: string, found: readonly DetailId[], links: r
 }
 
 export const HYPOTHESES: readonly { id: CauseId; label: string; note: string }[] = [
-  { id: 'logging', label: '벌목 때문', note: '나무가 잘려 살 곳과 먹이가 사라졌어.' },
-  { id: 'noise', label: '소음 때문', note: '공사 소리에 놀라 멀리 떠났어.' },
-  { id: 'water', label: '물 때문', note: '물길이 막혀 마실 물이 없어졌어.' },
+  { id: 'logging', label: '벌목 때문', note: '열매 나무가 잘려 먹이가 없어 더 깊은 숲으로 갔을 거야.' },
+  { id: 'noise', label: '소음 때문', note: '공사 소리에 놀라 조용한 곳으로 갔을 거야.' },
+  { id: 'water', label: '물 때문', note: '물길이 막혀 물 있는 곳을 찾아갔을 거야.' },
 ];

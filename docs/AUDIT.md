@@ -76,7 +76,7 @@
 | `sfx_stage_success` | `sound/bfx/stage-success-chime.mp3` |
 | `sfx_reward` | `sound/bfx/final-reward.mp3` |
 
-SFX는 Pixabay Content License에 따라 앱 안에서 사용하며 원본 페이지와 작가를 `CREDITS.md`에 기록한다. 독립 음원 파일로 재판매·재배포하지 않는다.
+SFX는 Pixabay Content License에 따라 앱 안에서 사용하며 원본 페이지와 작가를 `assets/CREDITS.md`에 기록한다. 독립 음원 파일로 재판매·재배포하지 않는다.
 
 ## 6. 누락·위험과 처리
 

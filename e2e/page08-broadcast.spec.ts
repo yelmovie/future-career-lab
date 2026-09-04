@@ -12,7 +12,7 @@ test('page 8 airs the opening segment from the cue sheet without a timer', async
 
   // 큐시트는 필요한 것만 말하고 소스 이름은 알려 주지 않는다
   const cue = page.getByRole('list', { name: '큐시트' }).locator('.is-current');
-  await expect(cue).toContainText('진행자가 사건을 소개해');
+  await expect(cue).toContainText('모모·루비 구조 소식과 숲 문제를 소개해');
   await expect(cue).not.toContainText('스튜디오 카메라');
 
   const air = page.getByRole('button', { name: /1번 송출/ });

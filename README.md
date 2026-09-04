@@ -1,8 +1,8 @@
-# 미래 직업실 v2
+# 미래 직업실 v3
 
 초등 5–6학년을 위한 체험형 진로교육 게임입니다. 설문이나 적성 단정 대신 **하나의 사건**을 네 직업의 도구로 직접 다루고, 마지막에 네 직업을 한 팀으로 묶어 해결합니다.
 
-> 도시 옆 숲에서 앵무새가 한 달 사이 절반으로 줄었다. 드론 현장가 → 동물돌봄 전문가 → 생태연구가 → 미래방송기술자가 되어 원인을 밝히고, 넷을 연합해 숲과 도시를 지킨다.
+> 태풍에 하늘숲 동물원 새 정원 그물이 찢어져 앵무새 모모와 루비가 푸른솔 숲으로 날아갔다. 드론 현장가 → 동물돌봄 전문가 → 생태연구가 → 미래방송기술자가 되어 두 마리를 찾아 돌보고, 숲의 새들이 줄고 있다는 더 큰 문제를 밝히고, 넷을 연합해 푸른솔 숲의 새들을 지킨다. (서사: `docs/GAME_CONCEPT_v3.md`)
 
 앞 스테이지의 산출물(사진·돌봄 기록·연구 그래프·방송 클립)이 뒤 스테이지의 재료가 되고, 마지막 연합 작전에서 그 품질이 효과로 드러납니다.
 
@@ -33,8 +33,8 @@ node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 →
 | 2 | 탐험단 브리핑 | 소개 | 사건 접수, 직업 카드 4장 뒤집기, 이름·**예측 직업** 선택 | prediction |
 | 3 | 드론 정찰 비행 | S1 드론 현장가 | 바람·배터리 제약 속 경로 드래그, 목표 위 REC 타이밍 | 사진 3장(품질) |
 | 4 | 현장 증거판 | S1 | 사진 확대 관찰 → 3칸 분류 → 선잇기 → 가설 | hypothesis |
-| 5 | 구조된 앵무새 살피기 | S2 동물돌봄 | 두 마리 개체별 관찰·소리 분류·처치 매칭 | careLog |
-| 6 | 회복 공간 만들기 | S2 | 돌봄 기록 조건에 맞춘 배치, 예측 → 시뮬 → 별 | habitatStars |
+| 5 | 구조된 모모와 루비 살피기 | S2 동물돌봄 | 두 마리 개체별 관찰·소리 분류·처치 매칭 | careLog |
+| 6 | 새 정원 다시 만들기 | S2 | 돌봄 기록 조건에 맞춘 배치, 예측 → 시뮬 → 별 | habitatStars |
 | 7 | 숲 생태 조사 | S3 생태연구가 | 흔적 수집(도감) → 그래프 읽기 → 슬라이더 하나씩 변인 실험 | traces, graphs |
 | 8 | 생방송 컨트롤룸 | S4 방송기술자 | 큐시트 6세그먼트(타이머 없음), 소스·출처 있는 자막·오디오 레벨·돌발 사고 | clip(신뢰) |
 | 9 | 네 직업 연합 작전 | S5 연합 | 위기 3개, 능력 힌트로 배지 짝짓기, 턴제 확산·쿨다운 | allianceTurns |
@@ -58,6 +58,8 @@ node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 →
 - localStorage `future-career-lab.save.v1` (schema v2, v1 자동 이행), 세션 시드로 결정적 랜덤
 - 서비스워커 `public/sw.js`: 정적 자원 캐시 우선, HTML 네트워크 우선 → 교실 와이파이가 끊겨도 진행
 - 글꼴 셀프호스팅(Jua·Pretendard, OFL). 외부 요청 0
+- 디자인 v3: 밝은 파스텔 토큰(`src/styles/index.css` 상단 `--color-*`), 3D 엣지 버튼, 16px 글자 하한. 배경은 흰색 워시로 파스텔화
+- 신규 그림 자리 `public/assets/v3/` (`v3Asset()` + `fallbackTo()`, 파일 없으면 v2 그림) — 프롬프트는 `docs/ASSET_REQUEST_v3.md`
 - 정적 배포: Vercel + GitHub
 
 ## 미디어와 라이선스
@@ -67,7 +69,7 @@ node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 →
 - 효과음: Pixabay Content License 8개 + Mixkit Sound Effects Free License 4개 (표기 불필요)
 - 글꼴: Jua, Pretendard (SIL OFL 1.1, 원문 동봉)
 
-상세 출처는 [CREDITS.md](./CREDITS.md), 설계 근거는 `docs/GAME_DESIGN_v2.md`, 에셋 요청·프롬프트는 `docs/ASSET_REQUEST_v2.md`·`docs/IMAGEN_PROMPTS_v2.md`에 있습니다.
+상세 출처는 [assets/CREDITS.md](./assets/CREDITS.md), 설계 근거는 `docs/GAME_DESIGN_v2.md`·`docs/GAME_CONCEPT_v3.md`, 에셋 요청·프롬프트는 `docs/ASSET_REQUEST_v3.md`(최신)·`docs/IMAGEN_PROMPTS_v2.md`에 있습니다.
 
 ## 저작권과 라이선스
 

@@ -1,12 +1,14 @@
 /* global self, caches, fetch, URL */
 /* 교실 와이파이 대비 오프라인 캐시. 같은 출처의 정적 자원을 캐시 우선으로 제공하고,
    HTML 은 네트워크 우선(새 배포 반영) → 실패 시 캐시. */
-const VERSION = 'fcl-v2-2026.09.ux2';
+const VERSION = 'fcl-v3-2026.09.05';
 const SHELL = [
   '/', '/index.html', '/manifest.webmanifest', '/og.png',
   '/assets/backgrounds/page-01.webp',
   '/assets/page-01/logo.webp', '/assets/page-01/badge.webp',
-  '/assets/page-04/slot-01.webp', '/assets/page-04/slot-02.webp',
+  '/assets/page-01/keyart.webp',
+  // 홈·브리핑 BGM 은 설치 때 통째로 보관한다(오프라인 첫 화면에서 소리가 끊기지 않게). 나머지 트랙은 재생 시 보관.
+  '/audio/bgm/main.mp3',
 ];
 
 async function precacheEntryAssets(cache) {
@@ -86,8 +88,15 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 오디오는 range 요청이 섞여 캐시 응답이 깨질 수 있어 네트워크 우선.
+  // 온전한(200) 응답만 보관해 두면 다음 수업에서 와이파이가 끊겨도 BGM 이 나온다.
   if (url.pathname.startsWith('/audio/')) {
-    event.respondWith(fetch(request).catch(() => caches.match(request, { ignoreVary: true })));
+    event.respondWith(fetch(request).then((response) => {
+      if (response.status === 200) {
+        const copy = response.clone();
+        caches.open(VERSION).then((cache) => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(request, { ignoreVary: true })));
     return;
   }
 

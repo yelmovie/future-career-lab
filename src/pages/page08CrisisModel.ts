@@ -23,9 +23,9 @@ export const HINT_BY_JOB: Record<JobId, string> = {
 };
 
 export const CRISES: readonly CrisisDefinition[] = [
-  { id: 'fire', title: '벌목지 화재 확산', symptom: '벌목한 자리에서 연기가 번져. 어디까지 퍼졌는지 모르고, 시민들도 아직 몰라.', hints: [HINT_BY_JOB.drone, HINT_BY_JOB.broadcast], needs: ['drone', 'broadcast'], x: 27, y: 34 },
-  { id: 'flock', title: '앵무 무리 이동 경로 위험', symptom: '돌아오는 앵무 무리가 위험한 길로 가고 있어. 어디로 가는지 알아야 하고, 쉴 곳도 없어.', hints: [HINT_BY_JOB.ecology, HINT_BY_JOB.care], needs: ['ecology', 'care'], x: 72, y: 32 },
-  { id: 'citizens', title: '시민 오해로 복원 반대', symptom: '"앵무새 때문에 공사가 멈췄다"는 소문이 돌아. 진짜 원인을 근거로 알려야 해.', hints: [HINT_BY_JOB.broadcast, HINT_BY_JOB.ecology], needs: ['broadcast', 'ecology'], x: 50, y: 74 },
+  { id: 'fire', title: '숲 가장자리 화재', symptom: '공사장 불꽃이 벌목지 마른 가지로 번졌어. 어디까지 퍼졌는지 모르고, 시민들도 아직 몰라.', hints: [HINT_BY_JOB.drone, HINT_BY_JOB.broadcast], needs: ['drone', 'broadcast'], x: 27, y: 34 },
+  { id: 'flock', title: '새 둥지 구역 대피', symptom: '태풍이 다시 온다는 예보야. 새들이 어디로 갈지 알아야 하고, 다친 새를 받을 곳이 없어.', hints: [HINT_BY_JOB.ecology, HINT_BY_JOB.care], needs: ['ecology', 'care'], x: 72, y: 32 },
+  { id: 'citizens', title: '시민 오해', symptom: '"새 때문에 공사가 멈췄다"는 소문이 돌아. 진짜 원인을 근거로 알려야 해.', hints: [HINT_BY_JOB.broadcast, HINT_BY_JOB.ecology], needs: ['broadcast', 'ecology'], x: 50, y: 74 },
 ] as const;
 
 export const JOB_ORDER: readonly JobId[] = ['drone', 'care', 'ecology', 'broadcast'];
@@ -62,7 +62,7 @@ export function cardQualities(artifacts: Artifacts | undefined, trials = 0): Car
   const trust = Math.max(0, Math.min(100, artifacts?.clip?.trust ?? 0));
   return [
     { job: 'drone', label: '현장 사진', chip: `정중앙 ${centerPhotos}/3`, power: BASE_POWER + Math.round(BONUS_POWER * centerPhotos / 3) },
-    { job: 'care', label: '회복 공간', chip: `별 ${stars}/3`, power: BASE_POWER + Math.round(BONUS_POWER * stars / 3) },
+    { job: 'care', label: '새 정원', chip: `별 ${stars}/3`, power: BASE_POWER + Math.round(BONUS_POWER * stars / 3) },
     { job: 'ecology', label: '연구 그래프', chip: `실험 ${Math.min(MIN_TRIALS, trials)}/${MIN_TRIALS} · ${hasMain && hasSub ? '원인 확정' : hasMain ? '보조원인 아직' : '원인 아직'}`, power: BASE_POWER + Math.round(BONUS_POWER * ecologyQuality) },
     { job: 'broadcast', label: '방송 클립', chip: artifacts?.clip ? `신뢰도 ${trust}` : '클립 없음', power: BASE_POWER + Math.round(BONUS_POWER * trust / 100) },
   ];

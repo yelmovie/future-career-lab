@@ -99,7 +99,7 @@ export function jobEvidence(artifacts: Artifacts, logs: readonly GameLog[]): Job
 
   return [
     { job: 'drone', quality: drone, reason: precision ? '정밀 비행 도장까지 찍었어.' : artifacts.photos.length ? `세 곳 중 정중앙 사진 ${centerCount}장.` : '아직 비행 기록이 없어.' },
-    { job: 'care', quality: care, reason: perfect ? `헛 처치 없이 두 마리를 안정시키고 회복 공간 별 ${artifacts.habitatStars}개.` : bothStable ? `두 마리를 안정시켰고 회복 공간 별 ${artifacts.habitatStars}개.` : '아직 돌봄 기록이 없어.' },
+    { job: 'care', quality: care, reason: perfect ? `헛 처치 없이 두 마리를 안정시키고 새 정원 별 ${artifacts.habitatStars}개.` : bothStable ? `두 마리를 안정시켰고 새 정원 별 ${artifacts.habitatStars}개.` : '아직 돌봄 기록이 없어.' },
     { job: 'ecology', quality: ecology, reason: mainDeclared ? `흔적 ${artifacts.traces.length}개를 모으고 주원인을 정했어.` : artifacts.traces.length ? `흔적 ${artifacts.traces.length}개를 모았어. 주원인은 아직.` : '아직 조사 기록이 없어.' },
     { job: 'broadcast', quality: broadcast, reason: artifacts.clip ? (artifacts.clip.corrections === 0 ? `정정 없이 신뢰도 ${artifacts.clip.trust}점 클린 방송.` : `신뢰도 ${artifacts.clip.trust}점, 정정 ${artifacts.clip.corrections}회.`) : '아직 방송 기록이 없어.' },
   ];
@@ -128,6 +128,6 @@ export const PREDICTION_NOTE = '맞았든 달랐든 둘 다 의미 있어. 예�
 /** 생활 전이 상황 카드 (P10). 정답 없음 — "내 계획"을 기록한다. */
 export const TRANSFER_SITUATION = {
   id: 'playground-construction',
-  title: '우리 학교 옆 놀이터 공사로 새들이 안 와',
-  copy: '놀이터 옆 공사가 시작된 뒤로 아침마다 오던 새들이 안 보여. 네 직업이 우리 동네에서 순서대로 무엇을 하면 좋을까? 정답은 없어. 네 계획이 답이야.',
+  title: '우리 학교 옆 공원 공사로 새가 안 온다면?',
+  copy: '공원 옆 공사가 시작된 뒤로 아침마다 오던 새들이 안 보여. 네 직업이 우리 동네에서 순서대로 무엇을 하면 좋을까? 정답은 없어. 네 계획이 답이야.',
 };

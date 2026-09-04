@@ -280,7 +280,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
               : { action: '예측을 골랐어. 실험을 실행해', target: '실행 버튼', done: true };
 
   const footer = completed ? (
-    <StageComplete title="숲 생태 조사 완료" message={`주원인 ${main ? causeLabel(main) : ''}. ${hypothesisMatch} 그래프 카드를 방송국으로 보냈어.`} nextLabel="생방송 컨트롤룸으로" onNext={() => onNavigate(8)} />
+    <StageComplete title="숲 생태 조사 완료" message={`주원인 ${main ? causeLabel(main) : ''}. ${hypothesisMatch} 이건 모모·루비만의 일이 아니야 — 숲의 새들이 줄고 있어. 시민에게 알려야 해. 그래프 카드를 방송국으로 보냈어.`} nextLabel="생방송 컨트롤룸으로" onNext={() => onNavigate(8)} />
   ) : (
     <div className="p7-footer">
       <TaskCue {...nextTask} />
@@ -295,11 +295,11 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
           <MissionGuide
             image={pageAsset(7, 1)}
             imageAlt="카키색 옷을 입은 생태 연구원"
-            action="흔적을 모으고 조건을 하나씩 바꿔 봐"
+            action="숲 가장자리에서 새가 사라진 이유를 찾아. 흔적을 모으고 조건을 하나씩 바꿔 봐"
             goals={['지점 A·B·C에서 흔적 찾기', '태블릿에서 튀는 값 고르기', '슬라이더 하나씩 바꿔 실험 3번']}
             goalImages={[pageAsset(3, 7), pageAsset(7, 5), pageAsset(7, 7)]}
             reward={META.reward}
-            details={<><p>실제 숲은 더 복잡해. 이 실험은 '하나씩 바꿔 보기'를 연습하는 거야. 슬라이더를 하나 움직이면 다른 슬라이더는 잠겨.</p><p className="p7-mentor">갱신 목표 · 숨은 흔적 2개까지 찾아 도감 {TRACES.length}/{TRACES.length}</p></>}
+            details={<><p>모모·루비는 찾았지만, 숲 가장자리에서 새가 사라진 이유는 아직 몰라. 초록·빨강 깃털은 두 마리가 지나간 길이야.</p><p>실제 숲은 더 복잡해. 이 실험은 '하나씩 바꿔 보기'를 연습하는 거야. 슬라이더를 하나 움직이면 다른 슬라이더는 잠겨.</p><p className="p7-mentor">갱신 목표 · 숨은 흔적 2개까지 찾아 도감 {TRACES.length}/{TRACES.length}</p></>}
           />
           <ol className="p7-steps" aria-label="진행 단계">
             {STEPS.map((s, i) => <li key={s.id} className={i < stepIndex ? 'is-done' : i === stepIndex ? 'is-current' : ''}><b>{i + 1}</b>{s.label}</li>)}
@@ -403,8 +403,8 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
                           );
                         })}
                         <li>
-                          <div className="p7-bar p7-bar--traces" style={{ '--h': `${(stats.traces / LEVEL_MAX) * 100}%` } as CSSProperties} aria-label={`${p.id} 지점 앵무 흔적 ${stats.traces}`}><i /><b>{stats.traces}</b></div>
-                          <span>앵무 흔적</span>
+                          <div className="p7-bar p7-bar--traces" style={{ '--h': `${(stats.traces / LEVEL_MAX) * 100}%` } as CSSProperties} aria-label={`${p.id} 지점 새 흔적 ${stats.traces}`}><i /><b>{stats.traces}</b></div>
+                          <span>새 흔적</span>
                         </li>
                       </ul>
                     </div>
@@ -413,7 +413,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
               </div>
             </section>
             <Panel title="그래프 읽기" kicker="QUESTION" className="p7-side">
-              <p className="p7-mentor">앵무 흔적이 가장 적은 지점은 어디야? 그 지점에서 유난히 튀는 값 하나를 막대로 눌러 골라.</p>
+              <p className="p7-mentor">새 흔적이 가장 적은 지점은 어디야? 그 지점에서 유난히 튀는 값 하나를 막대로 눌러 골라.</p>
               {chartPick ? <p className="p7-pick">고른 것 · 지점 {chartPick.point}의 <b>{VARIABLE_LABEL[chartPick.variable]}</b></p> : <p className="p7-muted">막대를 누르면 여기에 표시돼.</p>}
               <p className="p7-muted">고른 값이 첫 실험의 출발점이 돼.</p>
               <button type="button" className="button button--primary button--block p7-next" disabled={!chartPick} onClick={seedExperiment}>이 값으로 실험 시작 <ArrowIcon /></button>
@@ -426,7 +426,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
             <section className="p7-lab" aria-labelledby="p7-lab-title">
               <header className="p7-scene-head p7-scene-head--center"><div><span>변인 실험</span><h2 id="p7-lab-title">한 번에 하나만 바꿔</h2></div></header>
               <div className="p7-pop" aria-live="polite">
-                <span>앵무 개체수</span>
+                <span>숲의 새 개체수</span>
                 <b>{shownPop}</b>
                 <div className="p7-pop__bar"><i style={{ '--w': `${Math.min(100, (shownPop / 60) * 100)}%` } as CSSProperties} /></div>
               </div>

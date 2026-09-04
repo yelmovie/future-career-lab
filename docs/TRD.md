@@ -78,7 +78,7 @@ React가 route와 저장을 소유하고 Phaser Scene은 화면 안 조작만 �
 - BGM/SFX on/off와 volume을 저장.
 - `visibilitychange` 시 pause, 복귀 시 사용자 설정에 따라 resume.
 - source 실패는 no-op 처리하고 stage 완료를 막지 않는다.
-- SFX 출처/라이선스는 `CREDITS.md`에서 추적한다.
+- SFX 출처/라이선스는 `assets/CREDITS.md`에서 추적한다.
 
 ## 7. SaveManager와 migration
 

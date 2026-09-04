@@ -62,7 +62,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   const birdNeedingSound = BIRDS.find((item) => !state.sound[item.id]);
   const birdNeedingTreatment = BIRDS.find((item) => !isStable(state, item.id));
   const nextTask = birdNeedingRecords
-    ? { action: `${birdNeedingRecords.name}의 숫자 지점을 눌러 보이는 것을 기록해`, target: '앵무새 숫자 → 오른쪽 기록' }
+    ? { action: `${birdNeedingRecords.name}의 숫자 지점을 눌러 보이는 것을 기록해`, target: '모모·루비 숫자 → 오른쪽 기록' }
     : birdNeedingSound
       ? { action: `${birdNeedingSound.name}의 녹음을 듣고 정상·이상을 골라`, target: '녹음 듣기와 판정 버튼' }
       : birdNeedingTreatment
@@ -229,9 +229,9 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
 
   const footer = completed ? (
     <StageComplete
-      title="두 마리 모두 안정됐어"
-      message={mission.perfect ? '헛 처치 없이 한 번에 맞췄어. 돌봄 기록을 회복 공간 만들기로 보냈어.' : '돌봄 기록을 회복 공간 만들기로 보냈어.'}
-      nextLabel="회복 공간 만들기"
+      title="모모와 루비 모두 안정됐어"
+      message={mission.perfect ? '헛 처치 없이 한 번에 맞췄어. 돌봄 기록을 새 정원 다시 만들기로 보냈어.' : '돌봄 기록을 새 정원 다시 만들기로 보냈어.'}
+      nextLabel="새 정원 다시 만들기"
       onNext={() => onNavigate(6)}
     />
   ) : (
@@ -256,14 +256,14 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
           <MissionGuide
             image={pageAsset(5, 9)}
             imageAlt="돌봄 기록용 태블릿"
-            action="두 마리를 따로 살피고 맞는 처치를 골라"
+            action="구조된 모모와 루비를 따로 살피고 맞는 처치를 골라"
             goals={[`숫자 눌러 보이는 것 기록 (마리당 ${RECORDS_PER_BIRD}개)`, '울음소리 듣고 정상·이상 고르기', '처치 카드를 앵무새에게 놓기']}
             goalImages={[pageAsset(5, 9), pageAsset(3, 9), pageAsset(5, 5)]}
             reward={STAGE.reward}
-            details={<div className="p5-reward"><span>갱신 목표</span><strong>헛 처치 0번으로 두 마리 모두 안정</strong><small>같은 처치를 둘 다에게 주면 한 마리는 나빠져. 기록을 보고 다르게 골라.</small></div>}
+            details={<div className="p5-reward"><span>갱신 목표</span><strong>헛 처치 0번으로 두 마리 모두 안정</strong><small>사육사 하늘: "둘 다 힘들어 보이지만 이유가 달라. 같은 처치를 하면 한 마리는 더 나빠져." 기록을 보고 다르게 골라.</small></div>}
           />
 
-          <div className="p5-bird-list" aria-label="구조된 앵무새 두 마리">
+          <div className="p5-bird-list" aria-label="구조된 모모와 루비">
             {BIRDS.map((item) => {
               const gauge = birdGauge(state, item.id);
               const calm = isStable(state, item.id);

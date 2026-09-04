@@ -117,7 +117,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     : !prediction
       ? { action: '지금 집에서 안 보일 행동을 먼저 예측해', target: '오른쪽 예측 버튼' }
       : !simulation
-        ? { action: '예측을 확인하려고 회복 공간을 시험해', target: '회복 공간 시험하기' }
+        ? { action: '예측을 확인하려고 새 정원을 시험해', target: '새 정원 시험하기' }
         : redesigned
           ? { action: '배치를 바꿨으니 결과가 달라졌는지 다시 시험해', target: '현재 배치 다시 시험하기' }
           : perfect && !rethinkDone
@@ -201,16 +201,16 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
 
   const footer = completed ? (
     <StageComplete
-      title={simulation?.stars === 3 ? '만족도 3별! 회복 공간 완성' : '회복 공간을 완성했어'}
-      message={simulation?.stars === 3 ? `${STAGE.badgeName}를 얻었어. 두 마리 모두 먹고 놀고 쉬었어.` : `${STAGE.badgeName}를 얻었어. 3별을 노린다면 배치를 바꿔 다시 시험해 봐.`}
-      nextLabel="숲 생태 조사로 가기"
+      title={simulation?.stars === 3 ? '만족도 3별! 새 정원 완성' : '새 정원을 다시 만들었어'}
+      message={simulation?.stars === 3 ? `${STAGE.badgeName}를 얻었어. 모모와 루비가 새 정원에서 쉬고 있어. 그런데 사육사 하늘이 물었어: '숲 가장자리엔 왜 새소리가 없었지?'` : `${STAGE.badgeName}를 얻었어. 모모와 루비가 새 정원에서 쉬고 있어. 그런데 사육사 하늘이 물었어: '숲 가장자리엔 왜 새소리가 없었지?' 3별을 노린다면 배치를 바꿔 다시 시험해 봐.`}
+      nextLabel="푸른솔 숲 생태 조사로 가기"
       onNext={() => onNavigate(7)}
     />
   ) : (
     <div className="p6-footer" aria-live="polite">
       <TaskCue {...nextTask} />
       <button className={`button button--primary button--large${canFinish ? ' is-next-action' : ''}`} type="button" disabled={!canFinish} onClick={finishMission}>
-        생활 공간 완성
+        새 정원 완성
         <CheckIcon />
       </button>
     </div>
@@ -225,8 +225,8 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     { label: '오가는 길 잇기', ready: evaluation.connected },
   ];
   const birdRows = [
-    ...(conditions.dehydrated ? [{ label: `빨강(탈수): 물그릇을 쉬는 곳에서 ${WATER_REACH}칸 안에`, ready: conditionCheck.waterNearRest }] : []),
-    ...(conditions.stressed ? [{ label: '초록(스트레스): 숨을 곳을 놓고, 시끄러운 위쪽에서 떨어뜨리기', ready: conditionCheck.shelterQuiet }] : []),
+    ...(conditions.dehydrated ? [{ label: `루비(탈수): 물그릇을 쉬는 곳에서 ${WATER_REACH}칸 안에`, ready: conditionCheck.waterNearRest }] : []),
+    ...(conditions.stressed ? [{ label: '모모(스트레스): 숨을 곳을 놓고, 시끄러운 위쪽에서 떨어뜨리기', ready: conditionCheck.shelterQuiet }] : []),
   ];
 
   return (
@@ -235,8 +235,8 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
         <Panel title="이번 미션" kicker="BUILD KIT" className="p6-palette-panel">
           <MissionGuide
             image={pageAsset(6, 1)}
-            imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
-            action="두 마리에 맞는 회복 공간을 만들어"
+            imageAlt="태블릿으로 모모와 루비의 새 정원을 만드는 어린이"
+            action="찢어진 새 정원을 모모와 루비에 맞게 다시 만들어"
             goals={['물건 3~4개 놓기', '안 보일 행동 예측하고 시험하기', '3별이 아니면 옮겨서 다시 시험']}
             goalImages={[pageAsset(6, 9), pageAsset(6, 3), pageAsset(6, 10)]}
             reward={STAGE.reward}
@@ -244,7 +244,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
               <>
                 <div className="p6-handoff">
                   <strong>돌봄 기록에서 온 조건</strong>
-                  <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '초록' : '빨강'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
+                  <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '모모' : '루비'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
                 </div>
                 <div className="p6-reward"><span>갱신 목표</span><strong>먹기·놀기·쉬기 다 보이는 만족도 3별</strong></div>
               </>
@@ -334,7 +334,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             ) : (
               <div className="p6-handoff p6-rule-list--bird">
                 <strong>두 마리 조건은 시험해 봐야 알아</strong>
-                <p>{conditions.dehydrated ? '빨강(탈수)은 물이 쉬는 곳에서 가까워야 해. ' : ''}{conditions.stressed ? '초록(스트레스)은 조용한 쪽에 숨을 곳이 있어야 해. ' : ''}어디에 놓을지 먼저 예측해.</p>
+                <p>{conditions.dehydrated ? '루비(탈수)는 물이 쉬는 곳에서 가까워야 해. ' : ''}{conditions.stressed ? '모모(스트레스)는 조용한 쪽에 숨을 곳이 있어야 해. ' : ''}어디에 놓을지 먼저 예측해.</p>
               </div>
             )}
             {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
@@ -343,7 +343,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             </div>
           </Panel>
 
-          <Panel title="앵무새 길 보기" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
+          <Panel title="모모·루비 길 보기" kicker="OBSERVE · REVISE" className="p6-simulation-panel">
             {!simulation ? (
               <>
                 <p>시험하기 전에 예측해. 지금 배치에서 어떤 행동이 안 보일까?</p>
@@ -353,7 +353,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                   ))}
                 </div>
                 <button className="button button--teal button--large button--block" type="button" disabled={!evaluation.valid || simulating || !prediction} onClick={startSimulation}>
-                  {simulating ? '앵무새를 보는 중…' : '회복 공간 시험하기'}
+                  {simulating ? '모모와 루비를 보는 중…' : '새 정원 시험하기'}
                 </button>
                 {!evaluation.valid && <small className="p6-sim-hint">왼쪽 완료 조건을 모두 채우면 시험할 수 있어.</small>}
                 {evaluation.valid && !prediction && <small className="p6-sim-hint">먼저 예측을 하나 골라.</small>}

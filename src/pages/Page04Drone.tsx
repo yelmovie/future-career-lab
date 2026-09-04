@@ -251,8 +251,8 @@ class DroneFlightScene extends Phaser.Scene {
     this.rings.clear();
     const width = Math.max(320, this.scale.width);
     const height = Math.max(300, this.scale.height);
-    this.add.image(width / 2, height / 2, 'drone-map').setDisplaySize(width, height).setAlpha(.7).setTint(0xb9d8cc);
-    this.add.rectangle(width / 2, height / 2, width, height, 0x04101d, .28);
+    this.add.image(width / 2, height / 2, 'drone-map').setDisplaySize(width, height).setAlpha(.92);
+    this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, .10);
 
     this.zones.forEach((zone, index) => {
       const hot = this.highlightZone === zone.id;
@@ -469,7 +469,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
       eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
       footer={completed && phase === 'review' ? (
-        <StageComplete title="현장 사진 3장을 얻었어" message="사진은 증거판의 재료가 돼. 확대해서 숨은 세부를 찾아보자. 배지는 증거판까지 끝내면 받아." nextLabel="증거판으로 가기" onNext={() => onNavigate(4)} />
+        <StageComplete title="현장 사진 3장을 얻었어" message="사진은 증거판의 재료가 돼. 확대해서 모모와 루비가 어디로 갔을지 단서를 찾아보자. 배지는 증거판까지 끝내면 받아." nextLabel="증거판으로 가기" onNext={() => onNavigate(4)} />
       ) : undefined}
     >
       <div className={`game-grid game-grid--wide-center drone-layout${phase === 'plan' ? ' is-planning' : ''}`}>
@@ -477,7 +477,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
           <MissionGuide
             image={pageAsset(4, 2)}
             imageAlt="드론 멘토"
-            action="벌목지·막힌 물길·공사장을 드론으로 찍어"
+            action="모모와 루비가 갈 만한 곳 3곳(벌목지·막힌 물길·공사장)을 드론으로 찍어"
             goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)']}
             goalImages={[pageAsset(4, 6), pageAsset(4, 3)]}
             reward={stage.reward}
@@ -512,7 +512,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
 
         <div className="drone-center">
           <div className="scene-card drone-scene">
-            <PhaserStage scene={scene} ariaLabel="숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
+            <PhaserStage scene={scene} ariaLabel="푸른솔 숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
             {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>}
           </div>
           <Panel className="drone-controls" title="비행 조종" kicker={phase === 'flight' ? 'LIVE' : 'CONTROL'}>

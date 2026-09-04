@@ -83,5 +83,5 @@
 
 ## Audio
 
-BGM과 SFX logical ID는 `docs/AUDIT.md` 표와 동일하다. Pixabay 개별 원본 페이지·작가·라이선스는 `CREDITS.md`를 기준으로 한다.
+BGM과 SFX logical ID는 `docs/AUDIT.md` 표와 동일하다. Pixabay 개별 원본 페이지·작가·라이선스는 `assets/CREDITS.md`를 기준으로 한다.
 

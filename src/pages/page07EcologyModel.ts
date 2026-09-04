@@ -42,19 +42,19 @@ export const POINTS: { id: PointId; title: string; blurb: string }[] = [
 export const TRACES: Trace[] = [
   { id: 'foot-boot', point: 'A', kind: 'footprint', title: '부츠 발자국', note: '사람이 자주 드나든 흔적이야.', image: v2Asset('trace-footprint-boot'), x: 30, y: 74 },
   { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: pageAsset(3, 8), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
-  { id: 'feather-green', point: 'A', kind: 'feather', title: '초록 깃털', note: '초록 앵무가 여기를 지나갔어.', image: pageAsset(9, 10), tint: 'green', x: 82, y: 70 },
-  { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 앵무를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
-  { id: 'sound-call', point: 'B', kind: 'sound', title: '앵무 울음', note: '앵무 정상 울음. 편안할 때 내는 소리야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
-  { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '앵무가 땅에 내려와 열매를 먹은 자리야.', image: pageAsset(3, 7), x: 28, y: 76 },
-  { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '빨강 앵무도 깊은 숲에 있어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
-  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '앵무 경계음', note: '앵무 경계음. 위험을 느낄 때 내는 소리야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
+  { id: 'feather-green', point: 'A', kind: 'feather', title: '초록 깃털', note: '모모가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 82, y: 70 },
+  { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 숲의 새를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
+  { id: 'sound-call', point: 'B', kind: 'sound', title: '앵무 울음', note: '앵무 정상 울음. 모모·루비가 편안하게 머문 흔적이야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
+  { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '모모·루비가 땅에 내려와 열매를 먹은 자리야.', image: pageAsset(3, 7), x: 28, y: 76 },
+  { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '루비도 깊은 숲까지 왔어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
+  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '앵무 경계음', note: '앵무 경계음. 모모·루비가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
 ];
 
 export const ENV_SPOTS: EnvSpot[] = [
   { id: 'stump', point: 'A', title: '그루터기', note: '막 베인 나무야. 톱밥이 아직 젖어 있어.', image: v2Asset('trace-stump'), x: 48, y: 62 },
   { id: 'meter', point: 'B', title: '환경 측정기', note: '온도 24도, 습도 88%. 땅이 축축해서 발자국이 잘 찍혀. 조용히 하면 작은 소리도 들려.', image: pageAsset(7, 7), x: 18, y: 50 },
-  { id: 'puddle', point: 'B', title: '물웅덩이', note: '앵무가 물을 마시러 오는 곳이야.', image: pageAsset(6, 7), x: 56, y: 70 },
-  { id: 'fruit', point: 'C', title: '열매 나무', note: '앵무가 가장 좋아하는 먹이야.', image: v2Asset('trace-fruit'), x: 46, y: 50 },
+  { id: 'puddle', point: 'B', title: '물웅덩이', note: '숲의 새들이 물을 마시러 오는 곳이야.', image: pageAsset(6, 7), x: 56, y: 70 },
+  { id: 'fruit', point: 'C', title: '열매 나무', note: '모모·루비도, 숲의 새들도 좋아하는 먹이야.', image: v2Asset('trace-fruit'), x: 46, y: 50 },
 ];
 
 /** 숨은 흔적을 여는 환경 핫스팟 */
@@ -89,7 +89,7 @@ export const VARIABLE_LABEL: Record<CauseId, string> = { logging: '먹이나무'
 
 export type Levels = Record<CauseId, number>;
 
-/** 지점별 측정값 0~10. traces 는 앵무 흔적 수. */
+/** 지점별 측정값 0~10. traces 는 새 흔적 수. */
 export const POINT_STATS: Record<PointId, Levels & { traces: number }> = {
   A: { logging: 3, noise: 9, water: 6, traces: 1 },
   B: { logging: 6, noise: 4, water: 9, traces: 4 },

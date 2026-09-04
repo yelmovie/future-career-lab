@@ -11,7 +11,7 @@ test('page 9 supports keyboard pair assignment and advances a turn', async ({ pa
   await expect(page.locator('.p08-scene canvas')).toBeVisible();
   await expect(page.locator('.p08-turn strong')).toHaveText('1턴');
 
-  const fireCard = page.locator('.p08-crisis-card').filter({ hasText: '벌목지 화재 확산' });
+  const fireCard = page.locator('.p08-crisis-card').filter({ hasText: '숲 가장자리 화재' });
   await expect(fireCard.locator('.p08-crisis-gauge')).toHaveText('위기 40%');
   await expect(fireCard).not.toContainText(/드론|방송/);
 
@@ -20,10 +20,10 @@ test('page 9 supports keyboard pair assignment and advances a turn', async ({ pa
     await card.focus();
     await page.keyboard.press('Enter');
     await expect(card).toHaveAttribute('aria-pressed', 'true');
-    const target = fireCard.getByRole('button', { name: /벌목지 화재 확산, 위기/ });
+    const target = fireCard.getByRole('button', { name: /숲 가장자리 화재, 위기/ });
     await target.focus();
     await page.keyboard.press('Enter');
-    await expect(card).toContainText('벌목지 화재 확산에 배치');
+    await expect(card).toContainText('숲 가장자리 화재에 배치');
   };
   await assignByKeyboard('드론 현장가');
   await assignByKeyboard('미래방송기술자');
@@ -31,7 +31,7 @@ test('page 9 supports keyboard pair assignment and advances a turn', async ({ pa
   await page.getByRole('button', { name: '턴 진행' }).click();
   await expect(page.locator('.p08-turn strong')).toHaveText('2턴');
   await expect(fireCard.locator('.p08-crisis-gauge')).toHaveText('안정');
-  const flockCard = page.locator('.p08-crisis-card').filter({ hasText: '앵무 무리 이동 경로 위험' });
+  const flockCard = page.locator('.p08-crisis-card').filter({ hasText: '새 둥지 구역 대피' });
   await expect(flockCard.locator('.p08-crisis-gauge')).toHaveText('위기 50%');
   await expect(page.locator('.p08-job-card').filter({ hasText: '드론 현장가' })).toContainText('쉬는 중');
   await expect(page.locator('.p08-turn small')).toContainText('12턴 안에');

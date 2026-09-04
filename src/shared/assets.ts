@@ -17,6 +17,20 @@ export type V2Asset =
   | 'reporter';
 export const v2Asset = (name: V2Asset) => `/assets/v2/${name}.webp`;
 
+/**
+ * v3 서사(모모·루비 탈출 사건)용 신규 그림 자리. 파일은 아직 없다 — docs/ASSET_REQUEST_v3.md 프롬프트로 만들어
+ * public/assets/v3/ 에 넣으면 그대로 뜨고, 없으면 <img onError> 로 v2 그림으로 되돌아간다.
+ */
+export type V3Asset = 'scene-escape' | 'scene-found' | 'scene-reunion' | 'keeper-haneul';
+export const v3Asset = (name: V3Asset) => `/assets/v3/${name}.webp`;
+/** v3 그림이 없을 때 v2 그림으로 조용히 되돌린다 (한 번만). */
+export const fallbackTo = (src: string) => (event: { currentTarget: HTMLImageElement }) => {
+  const img = event.currentTarget;
+  if (img.dataset.fallback) return;
+  img.dataset.fallback = '1';
+  img.src = src;
+};
+
 export const FEATURE_FLAGS = {
   FEATURE_3D_PARROT_INSPECTION: false,
   FEATURE_3D_HABITAT: false,

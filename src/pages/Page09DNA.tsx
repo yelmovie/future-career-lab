@@ -211,7 +211,7 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
           </Panel>
 
           <Panel kicker="MY TOWN" title="우리 동네라면?" className="p10-transfer">
-            <h3>{TRANSFER_SITUATION.title}</h3>
+            <h3>우리 학교 옆 공원 공사로 새가 안 온다면?</h3>
             <p className="p10-note">{TRANSFER_SITUATION.copy}</p>
             <ol className="p10-plan" aria-label="내 계획 순서">
               {plan.map((job, index) => (
@@ -263,7 +263,7 @@ export default function Page09DNA({ onNavigate }: { onNavigate: (page: PageNumbe
               </div>
             </form>
             <p className="p10-count" role="status">고른 문장 {chosen.length}/{MAX_STATEMENTS}</p>
-            <p className="p10-note">문장은 "나는 이제 …" 뒤에 붙어 수료증에 인쇄돼. 미션에서 실제로 해 본 것을 골라.</p>
+            <p className="p10-note">문장은 "나는 이제 …" 뒤에 붙어 수료증에 인쇄돼. 미션에서 실제로 해 본 것을 골라. 모든 직업은 이어져 있고, 미래엔 함께 일하는 힘이 더 중요해져.</p>
           </Panel>
         </div>
       )}
