@@ -117,8 +117,15 @@ export const PHOTO_DETAILS: readonly PhotoDetail[] = [
   { id: 'dam', photo: 'stream', label: '물길 막은 자재', hint: '물이 끊긴 자리에 무엇이 놓여 있지?', rect: { x: .24, y: .34, width: .5, height: .28 } },
   { id: 'noise-sign', photo: 'construction', label: '소음 작업 표지', hint: '공사장 울타리 안, 동그란 표지판을 찾아 봐.', rect: { x: .5, y: .54, width: .12, height: .16 } },
 ];
+/** 초등학생 손가락 기준으로 핫스팟 가장자리를 조금 넉넉하게 잡는다. */
+export const DETAIL_TOUCH_PAD = .05;
 export function hitDetail(photo: PhotoId, fx: number, fy: number): DetailId | null {
-  const detail = PHOTO_DETAILS.find((item) => item.photo === photo && pointInRect({ x: fx, y: fy }, item.rect));
+  const detail = PHOTO_DETAILS.find((item) => item.photo === photo && pointInRect({ x: fx, y: fy }, {
+    x: item.rect.x - DETAIL_TOUCH_PAD,
+    y: item.rect.y - DETAIL_TOUCH_PAD,
+    width: item.rect.width + DETAIL_TOUCH_PAD * 2,
+    height: item.rect.height + DETAIL_TOUCH_PAD * 2,
+  }));
   return detail?.id ?? null;
 }
 

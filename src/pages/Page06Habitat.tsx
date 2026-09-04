@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, GripIcon } from '../components/Icons';
@@ -112,6 +112,19 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   const canFinish = Boolean(simulation) && evaluation.valid && !redesigned && rethinkDone;
   const selected = placements.find((placement) => placement.instanceId === selectedId) ?? null;
   const placedIds = new Set(placements.map((placement) => placement.itemId));
+  const nextTask = !evaluation.valid
+    ? { action: '물건을 3~4개 놓아 오른쪽 조건을 모두 채워', target: '왼쪽 물건 목록' }
+    : !prediction
+      ? { action: '지금 집에서 안 보일 행동을 먼저 예측해', target: '오른쪽 예측 버튼' }
+      : !simulation
+        ? { action: '예측을 확인하려고 회복 공간을 시험해', target: '회복 공간 시험하기' }
+        : redesigned
+          ? { action: '배치를 바꿨으니 결과가 달라졌는지 다시 시험해', target: '현재 배치 다시 시험하기' }
+          : perfect && !rethinkDone
+            ? { action: '3별 배치를 그대로 둘 까닭 하나를 골라', target: '오른쪽 까닭 카드' }
+            : canFinish
+              ? { action: '시험과 다시 생각하기 완료! 공간을 완성해', target: '생활 공간 완성', done: true }
+              : { action: '빠진 행동을 보고 물건 하나를 옮겨 다시 설계해', target: '가운데 보드의 물건' };
 
   const loadStrategy = (strategyId: (typeof HABITAT_STRATEGIES)[number]['id']) => {
     const strategy = HABITAT_STRATEGIES.find((item) => item.id === strategyId);
@@ -195,11 +208,8 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     />
   ) : (
     <div className="p6-footer" aria-live="polite">
-      <span className={evaluation.valid ? 'is-ready' : ''}>{evaluation.valid ? '집 만들기 완료' : '집 만들기'}</span>
-      <span className={prediction ? 'is-ready' : ''}>{prediction ? '예측 완료' : '예측하기'}</span>
-      <span className={simulation ? 'is-ready' : ''}>{simulation ? `만족도 ${simulation.stars}/3별` : '시험하기'}</span>
-      <span className={rethinkDone && !redesigned ? 'is-ready' : ''}>{redesigned ? '바꾼 배치 다시 시험하기' : rethinkDone ? '다시 생각하기 완료' : '다시 생각하기'}</span>
-      <button className="button button--primary button--large" type="button" disabled={!canFinish} onClick={finishMission}>
+      <TaskCue {...nextTask} />
+      <button className={`button button--primary button--large${canFinish ? ' is-next-action' : ''}`} type="button" disabled={!canFinish} onClick={finishMission}>
         생활 공간 완성
         <CheckIcon />
       </button>
@@ -207,12 +217,12 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   );
 
   const ruleRows = [
-    { label: '물건 3~4개 놓기', ready: evaluation.enoughElements && evaluation.withinCount },
-    { label: '쓴 힘이 8을 넘지 않기', ready: evaluation.withinBudget },
-    { label: '물·쉼·놀이 모두 놓기', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
+    { label: '물건 3~4개', ready: evaluation.enoughElements && evaluation.withinCount },
+    { label: '힘 8 이하', ready: evaluation.withinBudget },
+    { label: '물·쉼·놀이 모두', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
     { label: '빨간 문 앞 비우기', ready: evaluation.entranceClear },
-    { label: '물건 겹치지 않기', ready: evaluation.noCollisions },
-    { label: '모든 곳을 오가는 길 만들기', ready: evaluation.connected },
+    { label: '겹치지 않기', ready: evaluation.noCollisions },
+    { label: '오가는 길 잇기', ready: evaluation.connected },
   ];
   const birdRows = [
     ...(conditions.dehydrated ? [{ label: `빨강(탈수): 물그릇을 쉬는 곳에서 ${WATER_REACH}칸 안에`, ready: conditionCheck.waterNearRest }] : []),
@@ -226,9 +236,24 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
           <MissionGuide
             image={pageAsset(6, 1)}
             imageAlt="태블릿으로 앵무새 집을 만드는 어린이"
-            action="두 마리에 맞는 회복 공간을 만들어요"
-            goals={['물건 3~4개 놓고 두 마리 조건 생각하기', '안 보일 행동 예측하고 시험하기', '3별이 아니면 옮겨서 다시 시험하기']}
+            action="두 마리에 맞는 회복 공간을 만들어"
+            goals={['물건 3~4개 놓기', '안 보일 행동 예측하고 시험하기', '3별이 아니면 옮겨서 다시 시험']}
+            goalImages={[pageAsset(6, 9), pageAsset(6, 3), pageAsset(6, 10)]}
+            reward={STAGE.reward}
+            details={
+              <>
+                <div className="p6-handoff">
+                  <strong>돌봄 기록에서 온 조건</strong>
+                  <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '초록' : '빨강'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
+                </div>
+                <div className="p6-reward"><span>갱신 목표</span><strong>먹기·놀기·쉬기 다 보이는 만족도 3별</strong></div>
+              </>
+            }
           />
+          <div className="p6-budget" aria-label={`예산 ${evaluation.budget} / 8, 물체 ${evaluation.count} / 4`}>
+            <div><span>쓴 힘</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
+            <div><span>물건</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
+          </div>
           <div className="p6-item-palette" aria-label="배치할 물체">
             {HABITAT_ITEM_IDS.map((itemId) => {
               const item = HABITAT_ITEMS[itemId];
@@ -237,43 +262,28 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
               return (
                 <button key={itemId} type="button" disabled={unavailable} onClick={() => addItem(itemId)} aria-label={`${item.name}, 비용 ${item.cost}${alreadyPlaced ? ', 이미 배치됨' : ''}`}>
                   <img src={item.image} alt="" />
-                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}</small></span>
+                  <span><strong>{item.shortName}</strong><small>힘 {item.cost}{alreadyPlaced ? ' · 배치됨' : ''}</small></span>
                   <b>{alreadyPlaced ? '배치됨' : '추가'}</b>
                 </button>
               );
             })}
           </div>
-          <div className="p6-reward">
-            <span>끝내면 얻는 것</span>
-            <strong>{STAGE.reward}</strong>
-            <small>갱신 목표: 먹기·놀기·쉬기 다 보이는 만족도 3별</small>
-          </div>
-          <div className="p6-budget" aria-label={`예산 ${evaluation.budget} / 8, 물체 ${evaluation.count} / 4`}>
-            <div><span>쓴 힘</span><strong className={evaluation.withinBudget ? '' : 'is-over'}>{evaluation.budget}<small>/8</small></strong></div>
-            <div><span>놓은 물건</span><strong className={evaluation.withinCount ? '' : 'is-over'}>{evaluation.count}<small>/4</small></strong></div>
-          </div>
-
-          <div className="p6-handoff">
-            <strong>돌봄 기록에서 온 조건</strong>
-            <p>{save.artifacts.careLog.length > 0 ? save.artifacts.careLog.map((entry) => `${entry.bird === 'green' ? '초록' : '빨강'} ${entry.issue} → ${entry.treatment}`).join(' · ') : '기록이 없어 두 마리 조건을 모두 켰어.'}</p>
-          </div>
-
         </Panel>
 
         <section className="p6-workbench" aria-labelledby="p6-board-title">
           <header className="p6-workbench__header">
-            <h2 id="p6-board-title">물건을 골라 집에 놓아 봐</h2>
+            <h2 id="p6-board-title">집에 물건 놓기</h2>
+            <div className="p6-strategies" aria-label="빠르게 시작할 수 있는 예시">
+              <span>빠른 시작</span>
+              {HABITAT_STRATEGIES.map((strategy) => (
+                <button key={strategy.id} type="button" onClick={() => loadStrategy(strategy.id)} title={strategy.description}>{strategy.name}</button>
+              ))}
+            </div>
             <button className="button button--ghost" type="button" disabled={placements.length === 0} onClick={() => scene.clearLayout()}>모두 치우기</button>
           </header>
           <div className="p6-board scene-card">
             <PhaserStage scene={scene} ariaLabel="물건을 끌어 놓아 생활 공간을 만드는 화면. 왼쪽 붉은 곳은 비워야 하는 출입 안전선이야." />
             <div className="p6-board-hint">물건을 끌어 놓거나 눌러서 선택해.</div>
-          </div>
-          <div className="p6-strategies" aria-label="빠르게 시작할 수 있는 예시">
-            <span>빠른 시작</span>
-            {HABITAT_STRATEGIES.map((strategy) => (
-              <button key={strategy.id} type="button" onClick={() => loadStrategy(strategy.id)} title={strategy.description}>{strategy.name}</button>
-            ))}
           </div>
 
           <div className="p6-selection-tools" aria-label="선택한 물체 조절">
@@ -291,12 +301,15 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             <button className="button button--danger" type="button" disabled={!selected} onClick={() => { scene.removeSelected(); audioService.playSfx('tap'); }}>선택 삭제</button>
           </div>
           {placements.length > 0 && (
-            <div className="p6-placed-list" aria-label="배치된 물체 목록">
-              {placements.map((placement) => (
-                <button key={placement.instanceId} type="button" className={selectedId === placement.instanceId ? 'is-selected' : ''} onClick={() => scene.selectInstance(placement.instanceId)}>
-                  {HABITAT_ITEMS[placement.itemId].shortName}
-                </button>
-              ))}
+            <div className="p6-placed-row">
+              <span>놓은 물건</span>
+              <div className="p6-placed-list" aria-label="배치된 물체 목록">
+                {placements.map((placement) => (
+                  <button key={placement.instanceId} type="button" className={selectedId === placement.instanceId ? 'is-selected' : ''} onClick={() => scene.selectInstance(placement.instanceId)}>
+                    {HABITAT_ITEMS[placement.itemId].shortName}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </section>
@@ -326,7 +339,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
             )}
             {!evaluation.noCollisions && <div className="toast toast--warning">겹친 물체가 {evaluation.collisionPairs.length}쌍 있어. 붉게 표시된 물체를 옮겨.</div>}
             <div className="p6-strategy-result">
-              <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong><small>물건을 많이 놓기보다 필요한 물건을 잘 이어 주는 게 중요해.</small>
+              <span>지금 만든 방법</span><strong>{evaluation.strategyName}</strong>
             </div>
           </Panel>
 

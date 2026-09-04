@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
-import { ArrowIcon, CheckIcon } from '../components/Icons';
+import { GameShell, Panel, TaskCue } from '../components/GameShell';
+import { ArrowIcon, CheckIcon, SparkIcon } from '../components/Icons';
+import { Modal } from '../components/Modal';
 import { audioService } from '../services/audioService';
 import { homeAsset, pageAsset, v2Asset } from '../shared/assets';
 import { JOB_LABELS, STAGE_META } from '../shared/constants';
@@ -25,9 +26,19 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
   const { save, setPlayerName, setPrediction, logEvent } = useGame();
   const [line, setLine] = useState(0);
   const [flipped, setFlipped] = useState<JobId[]>([]);
+  const [rewardOpen, setRewardOpen] = useState(false);
   const briefed = line >= BRIEF_LINES.length - 1;
   const allFlipped = flipped.length === JOB_CARDS.length;
-  const ready = allFlipped && Boolean(save.prediction) && save.playerName.trim().length > 0;
+  const ready = briefed && allFlipped && Boolean(save.prediction) && save.playerName.trim().length > 0;
+  const nextTask = !briefed
+    ? { action: '사건 이야기를 끝까지 읽어', target: '왼쪽 이야기의 다음' }
+    : !allFlipped
+      ? { action: `직업 카드 ${JOB_CARDS.length - flipped.length}장을 더 확인해`, target: '가운데 직업 카드' }
+      : save.playerName.trim().length === 0
+        ? { action: '탐험가 이름을 적어', target: '오른쪽 이름 칸' }
+        : !save.prediction
+          ? { action: '가장 해 보고 싶은 직업 하나를 골라', target: '오른쪽 직업 선택' }
+          : { action: '준비 완료! 첫 정찰로 출발해', target: '출발 버튼', done: true };
 
   const flip = (id: JobId) => {
     if (flipped.includes(id)) return;
@@ -48,7 +59,10 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
 
   return (
     <GameShell page={2} eyebrow="CASE BRIEFING" onNavigate={onNavigate} className="briefing-page" footer={
-      <button className="button button--primary button--large" disabled={!ready} onClick={join}>탐험단 입단하고 출발 <ArrowIcon /></button>
+      <div className="guided-footer">
+        <TaskCue {...nextTask} />
+        <button className={`button button--primary button--large${ready ? ' is-next-action' : ''}`} disabled={!ready} onClick={join}>탐험단 입단하고 출발 <ArrowIcon /></button>
+      </div>
     }>
       <div className="briefing-layout">
         <Panel kicker="CASE" title="사건 접수" className="briefing-case">
@@ -58,14 +72,10 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
             <div>
               <span>탐험단장</span>
               <p>{BRIEF_LINES[line]}</p>
-              {!briefed && <button className="button button--ghost" onClick={() => { audioService.playSfx('tap'); setLine(line + 1); }}>다음 <ArrowIcon /></button>}
+              {!briefed && <button className="button button--ghost is-next-action" onClick={() => { audioService.playSfx('tap'); setLine(line + 1); }}>이야기 계속 읽기 <ArrowIcon /></button>}
             </div>
           </div>
-          <div className="briefing-reward">
-            <strong>끝내면 얻는 것</strong>
-            <ul>{STAGE_META.map((stage) => <li key={stage.id}><img src={stage.badge} alt="" />{stage.reward}</li>)}</ul>
-            <p>그리고 앵무새가 숲으로 돌아가. 수료증도 인쇄할 수 있어.</p>
-          </div>
+          <button type="button" className="briefing-reward-button" onClick={() => { audioService.playSfx('tap'); setRewardOpen(true); }}><SparkIcon />끝내면 얻는 것 보기</button>
         </Panel>
 
         <Panel kicker="JOBS" title="네 직업 카드를 뒤집어 봐" className="briefing-jobs">
@@ -99,6 +109,15 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
           {!allFlipped && <p className="briefing-lock">카드 {flipped.length} / 4 확인</p>}
         </Panel>
       </div>
+
+      {rewardOpen && (
+        <Modal title="끝내면 얻는 것" onClose={() => setRewardOpen(false)} actions={<button className="button button--primary" onClick={() => setRewardOpen(false)}>알겠어</button>}>
+          <div className="briefing-reward">
+            <ul>{STAGE_META.map((stage) => <li key={stage.id}><img src={stage.badge} alt="" />{stage.reward}</li>)}</ul>
+            <p>그리고 앵무새가 숲으로 돌아가. 수료증도 인쇄할 수 있어.</p>
+          </div>
+        </Modal>
+      )}
     </GameShell>
   );
 }

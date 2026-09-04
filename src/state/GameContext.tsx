@@ -4,13 +4,17 @@ import type { Artifacts, AudioSettings, GameSave, JobId, LogInput, PageNumber } 
 import { createDefaultSave } from './defaultSave';
 import { loadSave, persistSave, type LoadResult } from './storage';
 import { deriveStageCompletion } from './progress';
+import { isTeacherPassword, loadTeacherPreview, persistTeacherPreview } from './teacherAccess';
 
 interface GameContextValue {
   save: GameSave;
   hadSave: boolean;
   loadIssue: LoadResult['issue'];
   saveFailed: boolean;
+  teacherMode: boolean;
   startNew: () => void;
+  unlockTeacherMode: (password: string) => boolean;
+  lockTeacherMode: () => void;
   setPlayerName: (name: string) => void;
   setLastPage: (page: PageNumber) => void;
   completePage: (page: PageNumber) => void;
@@ -32,6 +36,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [save, setSave] = useState<GameSave>(initial.save);
   const [hadSave, setHadSave] = useState(initial.hadSave);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [teacherMode, setTeacherMode] = useState(loadTeacherPreview);
 
   useEffect(() => {
     setSaveFailed(!persistSave(save));
@@ -46,6 +51,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const fresh = createDefaultSave();
     setSave(fresh);
     setHadSave(true);
+  }, []);
+
+  const unlockTeacherMode = useCallback((password: string) => {
+    const accepted = isTeacherPassword(password);
+    if (accepted) {
+      setTeacherMode(true);
+      persistTeacherPreview(true);
+    }
+    return accepted;
+  }, []);
+
+  const lockTeacherMode = useCallback(() => {
+    setTeacherMode(false);
+    persistTeacherPreview(false);
   }, []);
 
   const setPlayerName = useCallback((playerName: string) => update((current) => ({ ...current, playerName })), [update]);
@@ -112,7 +131,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     hadSave,
     loadIssue: initial.issue,
     saveFailed,
+    teacherMode,
     startNew,
+    unlockTeacherMode,
+    lockTeacherMode,
     setPlayerName,
     setLastPage,
     completePage,
@@ -125,7 +147,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setArtifacts,
     setPrediction,
     setAbilityStatements,
-  }), [addUnique, setArtifacts, setPrediction, setAbilityStatements, completePage, hadSave, initial.issue, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew]);
+  }), [addUnique, setArtifacts, setPrediction, setAbilityStatements, completePage, hadSave, initial.issue, lockTeacherMode, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew, teacherMode, unlockTeacherMode]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { STORAGE_POLICY_TEXT } from '../shared/constants';
+import { TEACHER_ANSWERS } from '../data/teacherGuide';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
@@ -59,8 +60,10 @@ const CREDIT_SFX: { title: string; creator: string }[] = [
 ];
 
 export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: PageNumber) => void }) {
-  const { save, setAudio, startNew } = useGame();
+  const { save, setAudio, startNew, teacherMode, unlockTeacherMode, lockTeacherMode } = useGame();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [teacherPassword, setTeacherPassword] = useState('');
+  const [teacherError, setTeacherError] = useState('');
   const { bgmVolume, sfxVolume, muted } = save.audio;
 
   // ponytail: 개별 on/off 는 볼륨 0 으로 표현한다. 저장 스키마에 필드를 더하지 않으려는 선택.
@@ -147,28 +150,60 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
 
         <details className="settings-block">
           <summary>교사용 가이드</summary>
-          <p><b>수업 35분 운영 예시</b></p>
-          <ul className="settings-list">
-            <li>도입 5분 — 전자칠판으로 홈과 브리핑을 함께 보고, 학생이 이름과 "잘 맞을 것 같은 직업"을 예측합니다.</li>
-            <li>전개 25분 — Stage 1~5를 순서대로 진행합니다. 한 스테이지에 5~8분이 걸리며, 2차시로 나눌 때는 Stage 2와 3 사이에서 끊습니다(이어하기 지원).</li>
-            <li>정리 5분 — 돌아보기 화면에서 예측과 실제를 비교하고, "나는 이제 ~할 수 있다" 문장을 고른 뒤 수료증을 확인합니다.</li>
-          </ul>
-          <p><b>5개 스테이지가 하는 일</b></p>
-          <ul className="settings-list">
-            <li>Stage 1 드론 현장가 — 바람과 배터리를 고려해 경로를 짜고 숲을 촬영한 뒤, 사진을 증거판에 이어 원인을 가설로 세웁니다.</li>
-            <li>Stage 2 동물돌봄 전문가 — 상태가 다른 앵무새 두 마리를 따로 살피고, 기록에 맞는 회복 공간을 설계합니다.</li>
-            <li>Stage 3 생태연구가 — 숲에서 흔적을 모으고, 조건을 하나씩 바꾸는 실험으로 원인을 확인합니다.</li>
-            <li>Stage 4 방송기술자 — 출처 있는 자막만 골라 생방송을 완성하고 돌발 사고를 우선순위로 복구합니다.</li>
-            <li>Stage 5 네 직업 연합 — 위기마다 필요한 능력을 읽고 직업을 짝지어 숲과 도시를 지킵니다.</li>
-            <li>스테이지 산출물(사진·기록·그래프·클립)이 다음 스테이지의 재료가 되므로 순서대로 진행하도록 안내합니다.</li>
-          </ul>
-          <p><b>준비물</b></p>
-          <ul className="settings-list">
-            <li>태블릿은 가로 화면으로 고정하고, 브라우저는 전체 화면으로 둡니다.</li>
-            <li>소리를 쓰는 활동이므로 헤드셋을 쓰거나, 설정에서 배경음을 끄고 진행합니다.</li>
-            <li>전자칠판은 도입과 정리 단계에서만 쓰고, 전개 단계는 개별 태블릿으로 진행합니다.</li>
-            <li>기록이 기기에 저장되므로 같은 학생이 같은 기기를 쓰면 이어서 할 수 있습니다.</li>
-          </ul>
+          {!teacherMode ? (
+            <form className="teacher-unlock" onSubmit={(event) => {
+              event.preventDefault();
+              if (unlockTeacherMode(teacherPassword)) {
+                setTeacherPassword('');
+                setTeacherError('');
+              } else {
+                setTeacherError('비밀번호가 맞지 않습니다. 다시 확인해 주세요.');
+              }
+            }}>
+              <p className="settings-hint">교사용 비밀번호를 입력하면 정답지와 전체 화면 바로가기가 열립니다.</p>
+              <label htmlFor="teacher-password">교사용 비밀번호</label>
+              <div>
+                <input
+                  id="teacher-password"
+                  type="password"
+                  value={teacherPassword}
+                  autoComplete="off"
+                  onChange={(event) => { setTeacherPassword(event.target.value); setTeacherError(''); }}
+                />
+                <button className="button button--teal" type="submit" disabled={!teacherPassword.trim()}>전체 해금</button>
+              </div>
+              {teacherError && <p className="teacher-unlock__error" role="alert">{teacherError}</p>}
+            </form>
+          ) : (
+            <div className="teacher-guide">
+              <div className="teacher-unlocked" role="status">
+                <div><strong>교사용 전체 해금됨</strong><span>모든 페이지가 한꺼번에 열렸습니다. 학생의 진행 기록은 변경되지 않습니다.</span></div>
+                <button className="button button--ghost" type="button" onClick={lockTeacherMode}>해금 종료</button>
+              </div>
+
+              <section aria-labelledby="teacher-answer-title">
+                <h4 id="teacher-answer-title">정답지·판정 기준</h4>
+                <div className="teacher-answers">
+                  {TEACHER_ANSWERS.map((section) => (
+                    <article key={section.title}>
+                      <h5>{section.title}</h5>
+                      <ul>{section.answers.map((answer) => <li key={answer}>{answer}</li>)}</ul>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h4>운영 준비</h4>
+                <ul className="settings-list">
+                  <li>태블릿은 가로 화면으로 고정하고, 브라우저는 전체 화면으로 둡니다.</li>
+                  <li>소리를 쓰는 활동이므로 헤드셋을 쓰거나, 설정에서 배경음을 끄고 진행합니다.</li>
+                  <li>스테이지 산출물(사진·기록·그래프·클립)이 다음 스테이지의 재료가 되므로 학생 활동은 순서대로 진행합니다.</li>
+                  <li>기록은 기기에 저장되므로 같은 학생이 같은 기기를 쓰면 이어서 할 수 있습니다.</li>
+                </ul>
+              </section>
+            </div>
+          )}
         </details>
 
         <details className="settings-block">

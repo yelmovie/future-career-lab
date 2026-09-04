@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
@@ -291,7 +291,7 @@ class DroneFlightScene extends Phaser.Scene {
       this.waypoints.forEach((point) => line.lineTo(point.x * width, point.y * height));
       line.strokePath();
       this.waypoints.forEach((point, index) => {
-        const dot = this.add.circle(point.x * width, point.y * height, 24, 0x0d9e9b, .94).setStrokeStyle(3, 0xb5fff6, 1).setDepth(8);
+        const dot = this.add.circle(point.x * width, point.y * height, 32, 0x0d9e9b, .94).setStrokeStyle(4, 0xb5fff6, 1).setDepth(8);
         const label = this.add.text(point.x * width, point.y * height, String(index + 1), { fontFamily: FONT, fontSize: CANVAS_FONT.body, fontStyle: 'bold', color: '#04101d' }).setOrigin(.5).setDepth(9);
         if (this.mode === 'plan') {
           dot.setInteractive({ useHandCursor: true, draggable: true });
@@ -453,6 +453,15 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
 
   const stage = STAGE_META[0]!;
   const showResult = phase === 'review' && result;
+  const task = phase === 'plan'
+    ? waypoints.length < 2
+      ? { action: `목표 이름을 눌러 지나갈 점을 ${2 - waypoints.length}개 더 놓아`, target: '왼쪽 목표 버튼' }
+      : { action: '점과 바람 방향을 확인하고 출발해', target: '경로 확인 후 출발', done: true }
+    : phase === 'flight'
+      ? { action: '드론이 목표 원 안에 들어오면 바로 촬영해', target: '빛나는 REC 버튼' }
+      : result?.passed
+        ? { action: '촬영 성공! 아래에서 증거판으로 이동해', target: '증거판으로 가기', done: true }
+        : { action: '놓친 목표를 확인하고 경로를 고쳐', target: '경로 고쳐 다시 비행' };
 
   return (
     <GameShell
@@ -469,43 +478,55 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             image={pageAsset(4, 2)}
             imageAlt="드론 멘토"
             action="벌목지·막힌 물길·공사장을 드론으로 찍어"
-            goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)', `끝내면: ${stage.reward}`]}
+            goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)']}
+            goalImages={[pageAsset(4, 6), pageAsset(4, 3)]}
+            reward={stage.reward}
+            details={
+              <>
+                <div className="drone-map-key" aria-label="바람 안내">
+                  <span className="is-danger">화살표 거슬러 = 맞바람 · 배터리 {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
+                </div>
+                <div className={`replay-goal${precisionStamp ? ' is-stamped' : ''}`} role="status">
+                  <strong>{precisionStamp ? '정밀 비행 도장 획득' : '갱신 목표 · 정밀 비행 도장'}</strong>
+                  <span>배터리 {PRECISION_BATTERY}% 이상 남기고 3컷 모두 정중앙</span>
+                </div>
+              </>
+            }
           />
-          <div className="drone-map-key" aria-label="바람 안내">
-            <span className="is-danger">화살표 거슬러 = 맞바람 · {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
-          </div>
-          <div className="row drone-target-buttons" aria-label="목표 점 추가">
-            {DRONE_TARGETS.map((target) => (
-              <button key={target.id} className="button button--ghost" disabled={phase !== 'plan' || full} onClick={() => addTargetPoint(target.id)}>{target.name} 점 추가</button>
-            ))}
-          </div>
-          <div className="row">
-            <button className="button button--ghost" disabled={phase !== 'plan' || waypoints.length === 0} onClick={() => { savePlan(waypoints.slice(0, -1)); audioService.playSfx('tap'); }}>마지막 점 지우기</button>
-            <button className="button button--ghost" disabled={phase !== 'plan' || waypoints.length === 0} onClick={() => { savePlan([]); audioService.playSfx('tap'); }}>모두 지우기</button>
-          </div>
-          <div className={`replay-goal${precisionStamp ? ' is-stamped' : ''}`} role="status">
-            <strong>{precisionStamp ? '정밀 비행 도장 획득' : '갱신 목표 · 정밀 비행 도장'}</strong>
-            <span>배터리 {PRECISION_BATTERY}% 이상 남기고 3컷 모두 정중앙</span>
-          </div>
+          {precisionStamp && <span className="replay-stamp">정밀 비행 도장 획득</span>}
+          {phase === 'plan' && (
+            <div className="drone-plan-tools">
+              <div className="drone-target-buttons" aria-label="목표 점 추가">
+                {DRONE_TARGETS.map((target) => (
+                  <button key={target.id} className="button button--ghost" disabled={full} onClick={() => addTargetPoint(target.id)}>{target.name}</button>
+                ))}
+              </div>
+              <div className="row">
+                <button className="button button--ghost" disabled={waypoints.length === 0} onClick={() => { savePlan(waypoints.slice(0, -1)); audioService.playSfx('tap'); }}>마지막 점 지우기</button>
+                <button className="button button--ghost" disabled={waypoints.length === 0} onClick={() => { savePlan([]); audioService.playSfx('tap'); }}>모두 지우기</button>
+              </div>
+            </div>
+          )}
           {phase === 'plan' && <div className="toast" role="status">{notice}</div>}
         </Panel>
 
-        <div className="drone-center stack">
+        <div className="drone-center">
           <div className="scene-card drone-scene">
             <PhaserStage scene={scene} ariaLabel="숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
             {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>}
           </div>
           <Panel className="drone-controls" title="비행 조종" kicker={phase === 'flight' ? 'LIVE' : 'CONTROL'}>
-            <div className="drone-control-row">
-              <div className="direction-pad" aria-label="드론 미세 조종">
-                <button disabled={phase !== 'flight'} onClick={() => scene.nudge(0, -.035)}>위</button>
-                <button disabled={phase !== 'flight'} onClick={() => scene.nudge(-.035, 0)}>왼쪽</button>
-                <button disabled={phase !== 'flight'} onClick={() => scene.nudge(0, .035)}>아래</button>
-                <button disabled={phase !== 'flight'} onClick={() => scene.nudge(.035, 0)}>오른쪽</button>
-              </div>
-              {phase === 'plan' && <button className="button button--primary button--large" onClick={launch}>경로 확인 후 출발</button>}
+            <TaskCue {...task} />
+            <div className={`drone-control-row is-${phase}`}>
+              {phase === 'flight' && <div className="direction-pad" aria-label="드론 미세 조종">
+                <button type="button" aria-label="드론을 위로 조금 이동" onClick={() => scene.nudge(0, -.035)}><span aria-hidden="true">↑</span><strong>위</strong></button>
+                <button type="button" aria-label="드론을 왼쪽으로 조금 이동" onClick={() => scene.nudge(-.035, 0)}><span aria-hidden="true">←</span><strong>왼쪽</strong></button>
+                <button type="button" aria-label="드론을 아래로 조금 이동" onClick={() => scene.nudge(0, .035)}><span aria-hidden="true">↓</span><strong>아래</strong></button>
+                <button type="button" aria-label="드론을 오른쪽으로 조금 이동" onClick={() => scene.nudge(.035, 0)}><span aria-hidden="true">→</span><strong>오른쪽</strong></button>
+              </div>}
+              {phase === 'plan' && <button className={`button button--primary button--large${waypoints.length >= 2 ? ' is-next-action' : ''}`} onClick={launch}>경로 확인 후 출발</button>}
               {phase === 'flight' && (
-                <button className={`record-button${telemetry.recTarget ? ' is-window' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
+                <button className={`record-button${telemetry.recTarget ? ' is-window is-next-action' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
                   <span />{telemetry.recTarget ? `REC · ${targetName(telemetry.recTarget)}` : 'REC'}
                 </button>
               )}

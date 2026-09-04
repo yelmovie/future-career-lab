@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type DragEvent } from 'react';
-import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
 import { CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { ProgressBar } from '../components/ProgressBar';
@@ -58,9 +58,11 @@ function dropId(event: DragEvent) {
 
 export default function Page08Broadcast({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
+  const missionCompleted = save.stageProgress.completedPages.includes(8);
   const cards = useMemo(() => buildCaptionCards(save.artifacts), [save.artifacts]);
   const photos = useMemo(() => photoIds(save.artifacts.photos), [save.artifacts.photos]);
   const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast(save.sessionSeed));
+  const [replayStarted, setReplayStarted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -70,13 +72,16 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   }, [setPageData]);
 
   const segment = currentSegment(state);
-  const finished = isFinished(state);
+  const stateFinished = isFinished(state);
+  const finished = stateFinished || (missionCompleted && !replayStarted);
   const block = airBlock(state, cards);
   const zone = audioZone(state.draft.level);
   const caption = cards.find((card) => card.id === state.draft.captionId) ?? null;
   const incident = INCIDENTS.find((item) => item.id === state.pendingIncident) ?? null;
-  const result = clipResult(state);
-  const clean = finished && state.corrections === 0;
+  const result = stateFinished ? clipResult(state) : save.artifacts.clip ?? clipResult(state);
+  const clean = finished && result.corrections === 0;
+  const nextControl = block === 'source' || block === 'wrong-source' ? 'source' : block === 'caption' || block === 'unfit' ? 'caption' : block === 'audio' ? 'audio' : block === 'incident' ? 'incident' : 'air';
+  const taskTarget = nextControl === 'source' ? '1 화면 소스' : nextControl === 'caption' ? '2 자막 카드' : nextControl === 'audio' ? '3 오디오' : nextControl === 'incident' ? '돌발 사고 선택지' : '송출 버튼';
 
   const setDraft = (patch: Partial<BroadcastState['draft']>) => commit({ ...state, draft: { ...state.draft, ...patch } });
 
@@ -123,7 +128,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
     commit(next);
   };
 
-  const replay = () => { audioService.playSfx('tap'); setSelectedCard(null); commit(createBroadcast(save.sessionSeed)); };
+  const replay = () => { audioService.playSfx('tap'); setSelectedCard(null); setReplayStarted(true); commit(createBroadcast(save.sessionSeed)); };
 
   const onDrop = (event: DragEvent) => {
     event.preventDefault();
@@ -152,7 +157,10 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
             image={pageAsset(3, 3)}
             imageAlt="방송 멘토"
             action="큐시트 6개를 순서대로 송출해"
-            goals={['큐시트를 읽고 맞는 화면 고르기', '출처가 믿을 만한 자막만 올리기', '오디오를 초록 구간에 맞추기', `끝내면: ${STAGE.reward}`]}
+            goals={['큐시트를 읽고 맞는 화면 고르기', '출처가 믿을 만한 자막만 올리기', '오디오를 초록 구간에 맞추기']}
+            goalImages={[pageAsset(2, 7), pageAsset(4, 7), pageAsset(4, 4)]}
+            reward={STAGE.reward}
+            details={<><p>SNS 제보나 익명 댓글은 근거가 아니야. 조사·사진·기록에서 나온 말만 올려. 출처 없는 자막이 나가면 정정 방송을 해야 해.</p><p className="flow-goal"><strong>갱신 목표</strong>정정 0회 클린 방송</p></>}
           />
           <Panel title="큐시트" kicker="CUE SHEET" className="cue-panel">
             <ol className="cue-list" aria-label="큐시트">
@@ -204,64 +212,66 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
 
           {!finished && segment && (
             <Panel title={segment.id === 'correction' ? '정정 방송 준비' : `${segment.title} 준비`} kicker="CONTROL" className="control-panel">
-              <div className="control-block">
-                <strong className="control-label"><b>1</b>화면 소스</strong>
-                <div className="source-tabs" role="group" aria-label="화면 소스 선택">
-                  {SOURCES.map((source) => (
-                    <button key={source} type="button" className={`source-tab${state.draft.source === source ? ' is-active' : ''}`} aria-pressed={state.draft.source === source} onClick={() => pickSource(source)}>
-                      <img src={source === 'drone' ? v2Asset(`photo-${photos[0] ?? 'logging'}`) : source === 'studio' ? pageAsset(4, 5) : v2Asset('reporter')} alt="" />
-                      <span>{SOURCE_LABEL[source]}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="control-block">
-                <strong className="control-label"><b>2</b>자막 카드 <small>끌어다 놓거나 고른 뒤 올리기</small></strong>
-                <div className="caption-cards" aria-label="자막 카드">
-                  {cards.map((card) => {
-                    const onAir = card.id === state.draft.captionId;
-                    const selected = selectedCard === card.id;
-                    return (
-                      <button
-                        key={card.id}
-                        type="button"
-                        className={`caption-card${selected ? ' is-selected' : ''}${onAir ? ' is-on-air' : ''}`}
-                        draggable
-                        aria-pressed={selected}
-                        onDragStart={(event) => { event.dataTransfer.setData('text/broadcast-caption', card.id); setSelectedCard(card.id); }}
-                        onClick={() => { audioService.playSfx('tap'); setSelectedCard(selected ? null : card.id); }}
-                      >
-                        <GripIcon />
-                        <span>{card.text}</span>
-                        <small>출처: {card.origin}</small>
+              <div className="control-columns">
+                <div className={`control-block${nextControl === 'source' ? ' is-next-control' : ''}`}>
+                  <strong className="control-label"><b>1</b>화면 소스</strong>
+                  <div className="source-tabs" role="group" aria-label="화면 소스 선택">
+                    {SOURCES.map((source) => (
+                      <button key={source} type="button" className={`source-tab${state.draft.source === source ? ' is-active' : ''}`} aria-pressed={state.draft.source === source} onClick={() => pickSource(source)}>
+                        <img src={source === 'drone' ? v2Asset(`photo-${photos[0] ?? 'logging'}`) : source === 'studio' ? pageAsset(4, 5) : v2Asset('reporter')} alt="" />
+                        <span>{SOURCE_LABEL[source]}</span>
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-                <div className="row">
-                  <button type="button" className="button button--ghost" disabled={!selectedCard} onClick={() => selectedCard && putCaption(selectedCard)}>자막 올리기</button>
-                  {caption && <button type="button" className="button button--ghost" onClick={() => { audioService.playSfx('tap'); setDraft({ captionId: null }); }}>자막 내리기</button>}
-                </div>
-              </div>
 
-              <div className="control-block">
-                <strong className="control-label"><b>3</b>오디오 레벨 <small>초록 구간 {AUDIO_BAND.low}~{AUDIO_BAND.high}</small></strong>
-                <div className={`audio-meter is-${zone}`} aria-hidden="true">
-                  <span className="audio-band" />
-                  {WAVE_BARS.map((height, index) => <i key={index} style={{ height: `${Math.round(height * state.draft.level)}%` }} />)}
+                <div className={`control-block${nextControl === 'caption' ? ' is-next-control' : ''}`}>
+                  <strong className="control-label"><b>2</b>자막 카드 <small>끌어다 놓거나 고른 뒤 올리기</small></strong>
+                  <div className="caption-cards" aria-label="자막 카드">
+                    {cards.map((card) => {
+                      const onAir = card.id === state.draft.captionId;
+                      const selected = selectedCard === card.id;
+                      return (
+                        <button
+                          key={card.id}
+                          type="button"
+                          className={`caption-card${selected ? ' is-selected' : ''}${onAir ? ' is-on-air' : ''}`}
+                          draggable
+                          aria-pressed={selected}
+                          onDragStart={(event) => { event.dataTransfer.setData('text/broadcast-caption', card.id); setSelectedCard(card.id); }}
+                          onClick={() => { audioService.playSfx('tap'); setSelectedCard(selected ? null : card.id); }}
+                        >
+                          <GripIcon />
+                          <span>{card.text}</span>
+                          <small>출처: {card.origin}</small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="caption-actions">
+                    <button type="button" className="button button--ghost" disabled={!selectedCard} onClick={() => selectedCard && putCaption(selectedCard)}>자막 올리기</button>
+                    {caption && <button type="button" className="button button--ghost" onClick={() => { audioService.playSfx('tap'); setDraft({ captionId: null }); }}>자막 내리기</button>}
+                  </div>
                 </div>
-                <label className="audio-slider">
-                  <span className="sr-only">오디오 레벨</span>
-                  <input type="range" min={0} max={100} step={1} value={state.draft.level} aria-valuetext={`${state.draft.level}, ${zone === 'ok' ? '알맞음' : zone === 'clip' ? '소리 찢어짐' : '너무 작음'}`} onChange={(event) => setDraft({ level: Number(event.target.value) })} />
-                  <output>{state.draft.level}</output>
-                </label>
-                <span className={`status-chip status-chip--${zone === 'ok' ? 'success' : zone === 'clip' ? 'danger' : 'warning'}`}>{zone === 'ok' ? '알맞은 소리' : zone === 'clip' ? '소리가 찢어져' : '소리가 너무 작아'}</span>
+
+                <div className={`control-block audio-block${nextControl === 'audio' ? ' is-next-control' : ''}`}>
+                  <strong className="control-label"><b>3</b>오디오 <small>초록 {AUDIO_BAND.low}~{AUDIO_BAND.high}</small></strong>
+                  <div className={`audio-meter is-${zone}`} aria-hidden="true">
+                    <span className="audio-band" />
+                    {WAVE_BARS.map((height, index) => <i key={index} style={{ height: `${Math.round(height * state.draft.level)}%` }} />)}
+                  </div>
+                  <label className="audio-slider">
+                    <span className="sr-only">오디오 레벨</span>
+                    <input type="range" min={0} max={100} step={1} value={state.draft.level} aria-valuetext={`${state.draft.level}, ${zone === 'ok' ? '알맞음' : zone === 'clip' ? '소리 찢어짐' : '너무 작음'}`} onChange={(event) => setDraft({ level: Number(event.target.value) })} />
+                    <output>{state.draft.level}</output>
+                  </label>
+                  <span className={`status-chip status-chip--${zone === 'ok' ? 'success' : zone === 'clip' ? 'danger' : 'warning'}`}>{zone === 'ok' ? '알맞은 소리' : zone === 'clip' ? '소리가 찢어져' : '소리가 너무 작아'}</span>
+                </div>
               </div>
 
               <div className="air-row">
-                <p className="air-hint" aria-live="polite">{block ? BLOCK_HINT[block] : '준비 끝. 송출하면 이 세그먼트는 되돌릴 수 없어.'}</p>
-                <button type="button" className="button button--primary button--large air-button" disabled={Boolean(block)} onClick={air}>송출</button>
+                <TaskCue action={block ? BLOCK_HINT[block] : '준비 끝! 지금 세그먼트를 송출해'} target={taskTarget} done={!block} />
+                <button type="button" className={`button button--primary button--large air-button${!block ? ' is-next-action' : ''}`} disabled={Boolean(block)} onClick={air}>{state.index + 1}번 송출</button>
               </div>
             </Panel>
           )}

@@ -15,7 +15,7 @@ test('page 8 airs the opening segment from the cue sheet without a timer', async
   await expect(cue).toContainText('진행자가 사건을 소개해');
   await expect(cue).not.toContainText('스튜디오 카메라');
 
-  const air = page.getByRole('button', { name: '송출', exact: true });
+  const air = page.getByRole('button', { name: /1번 송출/ });
   await expect(air).toBeDisabled();
 
   // 1. 잘못된 소스 → 되묻는 힌트(답 없음), 맞는 소스 → 힌트 사라짐

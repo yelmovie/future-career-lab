@@ -4,6 +4,7 @@ import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
 import { useHashRouter } from './router';
+import { AppErrorBoundary } from '../components/AppErrorBoundary';
 
 /**
  * 게임 순서(페이지 번호) → 화면 컴포넌트.
@@ -46,8 +47,18 @@ export function App() {
   }, []);
 
   return (
-    <Suspense fallback={<div className="app-loader"><span className="loader-orbit" /><strong>미래 직업실을 준비하고 있어…</strong></div>}>
-      <Page onNavigate={navigate} />
-    </Suspense>
+    <AppErrorBoundary key={page}>
+      <Suspense fallback={<div className="app-loader"><span className="loader-orbit" /><strong>미래 직업실을 준비하고 있어…</strong></div>}>
+        <>
+          <Page onNavigate={navigate} />
+          <aside className="device-notice" role="status" aria-live="polite">
+            <div className="device-notice__icon" aria-hidden="true">↻</div>
+            <strong>더 큰 가로 화면에서 열어 줘</strong>
+            <p>버튼을 편하게 누르려면 태블릿을 가로로 돌리거나 PC에서 열어 줘.</p>
+            <small>권장 화면: 가로 1024px 이상</small>
+          </aside>
+        </>
+      </Suspense>
+    </AppErrorBoundary>
   );
 }

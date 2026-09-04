@@ -10,10 +10,71 @@ test('home loads and a corrupt save recovers safely', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('안전하게 새 탐험판');
 });
 
+test('home exposes start, continue, sound and settings controls with classroom touch sizes', async ({ page }) => {
+  await page.goto('/#/page/1');
+  const start = page.getByRole('button', { name: '시작하기' });
+  const resume = page.getByRole('button', { name: '이어하기' });
+  const sound = page.getByRole('button', { name: '소리 끄기' });
+  const settings = page.getByRole('button', { name: '설정 열기' });
+
+  await expect(start).toBeVisible();
+  await expect(resume).toBeDisabled();
+  for (const control of [start, resume, sound, settings]) {
+    const box = await control.boundingBox();
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(48);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(48);
+  }
+
+  await sound.click();
+  await expect(page.getByRole('button', { name: '소리 켜기' })).toBeVisible();
+  await settings.click();
+  await expect(page.getByRole('heading', { name: '설정' })).toBeVisible();
+  await page.getByRole('button', { name: '닫기' }).click();
+
+  await start.click();
+  await expect(page.getByRole('heading', { level: 1, name: '탐험단 브리핑' })).toBeVisible();
+});
+
+test('drone controls keep elementary touch targets on a 1024px tablet', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/#/page/3');
+
+  const planControls = [
+    page.getByRole('button', { name: '메인으로 이동' }),
+    page.getByRole('button', { name: '도움말' }),
+    page.getByRole('button', { name: '자세히' }),
+    page.getByRole('button', { name: '벌목지', exact: true }),
+  ];
+  for (const control of planControls) {
+    const box = await control.boundingBox();
+    expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(48);
+    expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(48);
+  }
+
+  await page.getByRole('button', { name: '벌목지', exact: true }).click();
+  await page.getByRole('button', { name: '막힌 물길', exact: true }).click();
+  await page.getByRole('button', { name: '경로 확인 후 출발' }).click();
+
+  const directions = page.locator('.direction-pad button');
+  await expect(directions).toHaveCount(4);
+  for (const control of await directions.all()) {
+    const box = await control.boundingBox();
+    expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(48);
+    expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(48);
+  }
+  const record = page.getByRole('button', { name: 'REC' });
+  const recordBox = await record.boundingBox();
+  expect(Math.round(recordBox?.width ?? 0)).toBeGreaterThanOrEqual(48);
+  expect(Math.round(recordBox?.height ?? 0)).toBeGreaterThanOrEqual(48);
+});
+
 test('briefing requires all four job cards, a name and a prediction before departure', async ({ page }) => {
   await page.goto('/#/page/2');
   const depart = page.getByRole('button', { name: /탐험단 입단하고 출발/ });
   await expect(depart).toBeDisabled();
+  const continueStory = page.getByRole('button', { name: /이야기 계속 읽기/ });
+  await continueStory.click();
+  await continueStory.click();
   for (const card of await page.locator('.job-card').all()) await card.click();
   await page.getByPlaceholder('이름을 적어 봐').fill('테스트');
   await page.locator('.prediction__option').nth(2).click();
@@ -30,6 +91,52 @@ test('certificate stays locked until five real stage flags are complete', async 
   await page.goto('/#/page/11');
   await page.reload();
   await expect(page.getByRole('heading', { name: /수료증은 다섯 스테이지/ })).toBeVisible();
+});
+
+test('teacher password unlocks every screen at once without changing progress', async ({ page }) => {
+  await page.goto('/#/page/1');
+  await page.getByRole('button', { name: '설정 열기' }).click();
+  await page.getByText('교사용 가이드', { exact: true }).click();
+
+  await expect(page.getByText('수업 35분 운영 예시')).toHaveCount(0);
+  await page.getByLabel('교사용 비밀번호').fill('yElSaM');
+  await page.getByRole('button', { name: '전체 해금' }).click();
+
+  await expect(page.getByText('교사용 전체 해금됨')).toBeVisible();
+  await expect(page.getByText('전체 흐름 바로가기')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '화면 보기' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '정답지·판정 기준' })).toBeVisible();
+
+  await page.getByRole('button', { name: '닫기' }).click();
+  await page.getByRole('button', { name: '시작하기' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: '탐험단 브리핑' })).toBeVisible();
+
+  const nextHeadings = [
+    '드론 정찰 비행',
+    '현장 증거판',
+    '구조된 앵무새 살피기',
+    '회복 공간 만들기',
+    '숲 생태 조사',
+    '생방송 컨트롤룸',
+    '네 직업 연합 작전',
+    '탐험 돌아보기',
+    '탐험 수료증',
+  ];
+  for (const heading of nextHeadings) {
+    const teacherNext = page.getByRole('button', { name: /교사용 다음 화면:/ });
+    await expect(teacherNext).toBeVisible();
+    const box = await teacherNext.boundingBox();
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(48);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(48);
+    await teacherNext.click();
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+  }
+  await expect(page.getByLabel('미래 직업실 탐험 수료증')).toBeVisible();
+
+  const saved = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
+  const progress = saved ? JSON.parse(saved) : null;
+  expect(progress?.stageProgress.completedPages).toEqual([]);
+  expect(progress?.certificateUnlocked).toBe(false);
 });
 
 test('unlocked certificate has a clean print view', async ({ page }) => {

@@ -9,6 +9,7 @@ const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+page.on('requestfailed', (request) => errors.push(`request failed: ${request.url()} (${request.failure()?.errorText ?? 'unknown'})`));
 try {
   await page.goto('http://127.0.0.1:4177/#/page/1');
   await page.waitForFunction(() => navigator.serviceWorker?.controller || navigator.serviceWorker?.ready.then(() => true), null, { timeout: 15000 });
@@ -24,11 +25,14 @@ try {
   await context.setOffline(true);
   await page.reload();
   await page.waitForTimeout(2500);
-  const h1 = await page.locator('h1').first().textContent().catch(() => null);
-  console.log('offline reload h1:', h1);
+  const headingName = async () => page.locator('h1').first().evaluate((element) => element.textContent?.trim() || element.getAttribute('aria-label')).catch(() => null);
+  const page2Heading = await headingName();
+  console.log('offline reload h1:', page2Heading);
   await page.goto('http://127.0.0.1:4177/#/page/1');
   await page.waitForTimeout(1500);
-  console.log('offline home h1:', await page.locator('h1').first().textContent().catch(() => null));
+  const homeHeading = await headingName();
+  console.log('offline home h1:', homeHeading);
+  if (page2Heading !== '탐험단 브리핑' || homeHeading !== '미래 직업실') process.exitCode = 1;
 } finally {
   console.log('errors:', errors);
   await browser.close();

@@ -5,7 +5,7 @@ export function StageComplete({ title, message, nextLabel, onNext }: { title: st
     <div className="stage-complete" role="status">
       <span className="stage-complete__icon"><CheckIcon /></span>
       <div><strong>{title}</strong><p>{message}</p></div>
-      <button className="button button--primary" onClick={onNext}>{nextLabel}<ArrowIcon /></button>
+      <button className="button button--primary is-next-action" onClick={onNext}><span>다음 화면</span>{nextLabel}<ArrowIcon /></button>
     </div>
   );
 }

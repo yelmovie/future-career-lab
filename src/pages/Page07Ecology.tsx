@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
-import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
 import { StageComplete } from '../components/StageComplete';
 import { ArrowIcon, CheckIcon, LockIcon, SoundIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
@@ -259,12 +259,31 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const focusTrace = focus?.type === 'trace' ? getTrace(focus.id) : undefined;
   const focusEnv = focus?.type === 'env' ? ENV_SPOTS.find((s) => s.id === focus.id) : undefined;
   const hypothesisMatch = hypothesis && main ? (hypothesis === main ? `네 첫 가설(${HYPOTHESIS_LABEL[hypothesis]})과 같아.` : `네 첫 가설(${HYPOTHESIS_LABEL[hypothesis]})과 달라. 실험이 생각을 바꿨네.`) : '';
+  const nextTask = step === 'collect'
+    ? collectDone
+      ? { action: '필수 흔적을 다 모았어. 측정값을 비교해', target: '연구 태블릿 열기', done: true }
+      : { action: 'A·B·C를 옮겨 다니며 반짝이는 흔적을 눌러', target: '가운데 흔적과 좌우 화살표' }
+    : step === 'tablet'
+      ? chartPick
+        ? { action: '고른 값으로 첫 실험을 시작해', target: '이 값으로 실험 시작', done: true }
+        : { action: '흔적이 적은 지점에서 유난히 큰 막대 하나를 골라', target: '가운데 막대그래프' }
+      : lastTrial
+        ? { action: '예측과 결과를 비교하고 다음 실험으로 넘어가', target: '다음 실험' }
+        : trials.length >= MIN_TRIALS
+          ? main && sub
+            ? { action: '주원인과 보조원인을 정했어. 결과를 확정해', target: '연구 결과 확정', done: true }
+            : { action: main ? '기록을 보고 보조원인을 골라' : '기록을 보고 주원인을 골라', target: '오른쪽 실험 기록' }
+          : !exp.active
+            ? { action: '조건 하나의 슬라이더만 움직여', target: '가운데 슬라이더' }
+            : !prediction
+              ? { action: '개체수가 어떻게 달라질지 먼저 예측해', target: '가운데 예측 버튼' }
+              : { action: '예측을 골랐어. 실험을 실행해', target: '실행 버튼', done: true };
 
   const footer = completed ? (
     <StageComplete title="숲 생태 조사 완료" message={`주원인 ${main ? causeLabel(main) : ''}. ${hypothesisMatch} 그래프 카드를 방송국으로 보냈어.`} nextLabel="생방송 컨트롤룸으로" onNext={() => onNavigate(8)} />
   ) : (
     <div className="p7-footer">
-      <p className="p7-footer__note">실제 숲은 더 복잡해요. 이 실험은 '하나씩 바꿔 보기'를 연습하는 거예요.</p>
+      <TaskCue {...nextTask} />
       <span className={found.length === TRACES.length ? 'p7-goal is-done' : 'p7-goal'}>갱신 목표 · 도감 {found.length}/{TRACES.length}</span>
     </div>
   );
@@ -273,8 +292,15 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
     <GameShell page={7} eyebrow="STAGE 3 · ECOLOGY" onNavigate={onNavigate} footer={footer} className="p7-shell">
       <div className="p7-layout">
         <Panel title="이번 미션" kicker="MISSION" className="p7-mission">
-          <MissionGuide image={pageAsset(7, 1)} imageAlt="카키색 옷을 입은 생태 연구원" action="흔적을 모으고 조건을 하나씩 바꿔 봐" goals={['지점 A·B·C에서 흔적 찾기', '태블릿에서 튀는 값 고르기', '슬라이더 하나씩 바꿔 실험 3번']} />
-          <p className="p7-reward">끝내면 얻는 것 · {META.reward}</p>
+          <MissionGuide
+            image={pageAsset(7, 1)}
+            imageAlt="카키색 옷을 입은 생태 연구원"
+            action="흔적을 모으고 조건을 하나씩 바꿔 봐"
+            goals={['지점 A·B·C에서 흔적 찾기', '태블릿에서 튀는 값 고르기', '슬라이더 하나씩 바꿔 실험 3번']}
+            goalImages={[pageAsset(3, 7), pageAsset(7, 5), pageAsset(7, 7)]}
+            reward={META.reward}
+            details={<><p>실제 숲은 더 복잡해. 이 실험은 '하나씩 바꿔 보기'를 연습하는 거야. 슬라이더를 하나 움직이면 다른 슬라이더는 잠겨.</p><p className="p7-mentor">갱신 목표 · 숨은 흔적 2개까지 찾아 도감 {TRACES.length}/{TRACES.length}</p></>}
+          />
           <ol className="p7-steps" aria-label="진행 단계">
             {STEPS.map((s, i) => <li key={s.id} className={i < stepIndex ? 'is-done' : i === stepIndex ? 'is-current' : ''}><b>{i + 1}</b>{s.label}</li>)}
           </ol>

@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
-import { GameShell, MissionGuide, Panel } from '../components/GameShell';
+import { GameShell, MissionGuide, Panel, TaskCue } from '../components/GameShell';
 import { StageComplete } from '../components/StageComplete';
 import { CheckIcon, SearchIcon, SoundIcon, SparkIcon } from '../components/Icons';
+import { toStagePoint } from '../app/stageScale';
 import { audioService } from '../services/audioService';
 import { pageAsset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
@@ -57,6 +58,16 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   const statements = useMemo(() => shuffledStatements(birdId, zoneId, save.sessionSeed), [birdId, zoneId, save.sessionSeed]);
   const mission = useMemo(() => evaluateCare(state), [state]);
   const stable = isStable(state, birdId);
+  const birdNeedingRecords = BIRDS.find((item) => groundedCount(state, item.id) < RECORDS_PER_BIRD);
+  const birdNeedingSound = BIRDS.find((item) => !state.sound[item.id]);
+  const birdNeedingTreatment = BIRDS.find((item) => !isStable(state, item.id));
+  const nextTask = birdNeedingRecords
+    ? { action: `${birdNeedingRecords.name}의 숫자 지점을 눌러 보이는 것을 기록해`, target: '앵무새 숫자 → 오른쪽 기록' }
+    : birdNeedingSound
+      ? { action: `${birdNeedingSound.name}의 녹음을 듣고 정상·이상을 골라`, target: '녹음 듣기와 판정 버튼' }
+      : birdNeedingTreatment
+        ? { action: `기록을 보고 ${birdNeedingTreatment.name}에게 맞는 처치를 골라`, target: '처치 카드 → 앵무새' }
+        : { action: '두 마리 돌봄 완료! 기록을 확정해', target: '돌봄 기록 확정', done: true };
 
   const commit = (next: CareState) => {
     setState(next);
@@ -119,7 +130,8 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     if (!drag) return;
     if (!drag.moved && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 8) return;
     drag.moved = true;
-    setGhost({ treatment: drag.treatment, x: event.clientX, y: event.clientY });
+    const point = toStagePoint(event.clientX, event.clientY);
+    setGhost({ treatment: drag.treatment, x: point.x, y: point.y });
   };
   const onCardUp = (event: PointerEvent<HTMLButtonElement>) => {
     const drag = cardDrag.current;
@@ -139,6 +151,8 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     if (selectedTreatment) dropTreatment(target, selectedTreatment);
     else switchBird(target);
   };
+  // 큰 앵무새 화면을 누르면 고른 처치를 지금 보는 앵무새에게 준다. (드래그 회전과 구분: 8px 안 움직였을 때만)
+  const viewportTap = useRef<{ x: number; y: number } | null>(null);
 
   const updateCamera = (change: Partial<CameraState>) => setCamera((current) => ({
     yaw: clamp(change.yaw ?? current.yaw, -35, 35),
@@ -152,6 +166,14 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     if ((event.target as HTMLElement).closest('button')) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     dragState.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    viewportTap.current = { x: event.clientX, y: event.clientY };
+  };
+  const handleViewportClick = (event: { clientX: number; clientY: number; target: EventTarget }) => {
+    if ((event.target as HTMLElement).closest('button')) return;
+    const start = viewportTap.current;
+    viewportTap.current = null;
+    if (!selectedTreatment || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) return;
+    dropTreatment(birdId, selectedTreatment);
   };
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragState.current;
@@ -214,12 +236,13 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     />
   ) : (
     <div className="p5-footer-progress" aria-live="polite">
-      <span className={mission.grounded >= RECORDS_PER_BIRD * 2 ? 'is-done' : ''}>근거 기록 {Math.min(mission.grounded, RECORDS_PER_BIRD * 2)}/{RECORDS_PER_BIRD * 2}</span>
-      <span className={mission.soundsClassified >= 2 ? 'is-done' : ''}>소리 분류 {mission.soundsClassified}/2</span>
-      <span className={mission.stableBirds >= 2 ? 'is-done' : ''}>안정 {mission.stableBirds}/2</span>
-      <span className={state.wrongRecords === 0 ? 'is-done' : ''}>헛 기록 {state.wrongRecords}번</span>
-      <span className={state.wrongTreatments === 0 ? 'is-done' : ''}>헛 처치 {state.wrongTreatments}번</span>
-      <button className="button button--primary button--large" type="button" disabled={!mission.ready} onClick={finishMission}>
+      <TaskCue {...nextTask} />
+      <div className="p5-footer-count" aria-label="돌봄 진행 상황">
+        <span className={mission.grounded >= RECORDS_PER_BIRD * 2 ? 'is-done' : ''}>기록 {Math.min(mission.grounded, RECORDS_PER_BIRD * 2)}/{RECORDS_PER_BIRD * 2}</span>
+        <span className={mission.soundsClassified >= 2 ? 'is-done' : ''}>소리 {mission.soundsClassified}/2</span>
+        <span className={mission.stableBirds >= 2 ? 'is-done' : ''}>안정 {mission.stableBirds}/2</span>
+      </div>
+      <button className={`button button--primary button--large${mission.ready ? ' is-next-action' : ''}`} type="button" disabled={!mission.ready} onClick={finishMission}>
         돌봄 기록 확정
         <CheckIcon />
       </button>
@@ -233,14 +256,12 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
           <MissionGuide
             image={pageAsset(5, 9)}
             imageAlt="돌봄 기록용 태블릿"
-            action="두 마리를 따로 살피고 맞는 처치를 골라요"
-            goals={[`숫자를 눌러 보이는 것만 기록 (한 마리에 ${RECORDS_PER_BIRD}개 이상)`, '울음소리 듣고 정상·이상 고르기', '처치 카드를 앵무새에게 끌어 놓기']}
+            action="두 마리를 따로 살피고 맞는 처치를 골라"
+            goals={[`숫자 눌러 보이는 것 기록 (마리당 ${RECORDS_PER_BIRD}개)`, '울음소리 듣고 정상·이상 고르기', '처치 카드를 앵무새에게 놓기']}
+            goalImages={[pageAsset(5, 9), pageAsset(3, 9), pageAsset(5, 5)]}
+            reward={STAGE.reward}
+            details={<div className="p5-reward"><span>갱신 목표</span><strong>헛 처치 0번으로 두 마리 모두 안정</strong><small>같은 처치를 둘 다에게 주면 한 마리는 나빠져. 기록을 보고 다르게 골라.</small></div>}
           />
-          <div className="p5-reward">
-            <span>끝내면 얻는 것</span>
-            <strong>{STAGE.reward}</strong>
-            <small>갱신 목표: 헛 처치 0번으로 두 마리 모두 안정</small>
-          </div>
 
           <div className="p5-bird-list" aria-label="구조된 앵무새 두 마리">
             {BIRDS.map((item) => {
@@ -271,34 +292,25 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
             })}
           </div>
 
-          <div className="p5-treatments" aria-label="처치 카드. 끌어서 앵무새에게 놓거나, 눌러 고른 뒤 앵무새를 눌러">
-            <strong>처치 카드</strong>
-            {TREATMENTS.map((treatment) => (
-              <button
-                key={treatment.id}
-                type="button"
-                className={`p5-treatment ${selectedTreatment === treatment.id ? 'is-selected' : ''}`}
-                onPointerDown={(event) => onCardDown(event, treatment.id)}
-                onPointerMove={onCardMove}
-                onPointerUp={onCardUp}
-                onPointerCancel={() => { cardDrag.current = null; setGhost(null); }}
-                aria-pressed={selectedTreatment === treatment.id}
-              >
-                <b>{treatment.name}</b>
-                <small>{treatment.detail}</small>
-              </button>
-            ))}
-            {selectedTreatment && <p className="p5-treatment-hint">위의 앵무새를 눌러 놓아 봐.</p>}
-          </div>
         </Panel>
 
         <section className="p5-viewer" aria-labelledby="p5-viewer-title">
           <header className="p5-viewer__header">
-            <h2 id="p5-viewer-title">{bird.name} 살펴보기</h2>
-            <span>{stable ? '안정' : `${bird.issueLabel} · ${birdStatus(state, birdId)}`}</span>
+            <div>
+              <h2 id="p5-viewer-title">{bird.name} 살펴보기</h2>
+              <span>{stable ? '안정' : `${bird.issueLabel} · ${birdStatus(state, birdId)}`}</span>
+            </div>
+            <div className="p5-camera-controls" aria-label="화면 보기 조절">
+              <button type="button" aria-label="앵무새 화면 왼쪽 회전" onClick={() => updateCamera({ yaw: camera.yaw - 8 })}>↶ 왼쪽</button>
+              <button type="button" aria-label="앵무새 화면 오른쪽 회전" onClick={() => updateCamera({ yaw: camera.yaw + 8 })}>오른쪽 ↷</button>
+              <button type="button" aria-label="앵무새 화면 확대" onClick={() => updateCamera({ zoom: camera.zoom + 0.12 })}>크게 ＋</button>
+              <button type="button" aria-label="앵무새 화면 축소" onClick={() => updateCamera({ zoom: camera.zoom - 0.12 })}>작게 －</button>
+              <button type="button" aria-label="앵무새 화면 처음 보기" onClick={() => setCamera(HOME_CAMERA)}>처음 보기</button>
+            </div>
           </header>
           <div
-            className="p5-viewport"
+            className={`p5-viewport ${selectedTreatment ? 'is-drop-target' : ''}`}
+            data-bird={birdId}
             tabIndex={0}
             role="application"
             aria-label="앵무새 보기. 드래그하거나 방향키로 돌리고, 더하기와 빼기로 확대해."
@@ -306,6 +318,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
             onPointerMove={handlePointerMove}
             onPointerUp={endPointer}
             onPointerCancel={endPointer}
+            onClick={handleViewportClick}
             onWheel={handleWheel}
             onKeyDown={handleStageKey}
           >
@@ -332,13 +345,25 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
               ))}
             </div>
             {stable && <div className="p5-recovered-badge"><SparkIcon />회복했어</div>}
+            {selectedTreatment && <div className="p5-drop-hint">{bird.name}에게 놓으려면 여기를 눌러</div>}
           </div>
-          <div className="p5-camera-controls" aria-label="화면 보기 조절">
-            <button type="button" onClick={() => updateCamera({ yaw: camera.yaw - 8 })}>왼쪽 회전</button>
-            <button type="button" onClick={() => updateCamera({ yaw: camera.yaw + 8 })}>오른쪽 회전</button>
-            <button type="button" onClick={() => updateCamera({ zoom: camera.zoom + 0.12 })}>확대</button>
-            <button type="button" onClick={() => updateCamera({ zoom: camera.zoom - 0.12 })}>축소</button>
-            <button type="button" onClick={() => setCamera(HOME_CAMERA)}>보기 초기화</button>
+          <div className="p5-treatments" aria-label="처치 카드. 끌어서 앵무새에게 놓거나, 눌러 고른 뒤 앵무새를 눌러">
+            <strong>처치 카드</strong>
+            {TREATMENTS.map((treatment) => (
+              <button
+                key={treatment.id}
+                type="button"
+                className={`p5-treatment ${selectedTreatment === treatment.id ? 'is-selected' : ''}`}
+                onPointerDown={(event) => onCardDown(event, treatment.id)}
+                onPointerMove={onCardMove}
+                onPointerUp={onCardUp}
+                onPointerCancel={() => { cardDrag.current = null; setGhost(null); }}
+                aria-pressed={selectedTreatment === treatment.id}
+              >
+                <b>{treatment.name}</b>
+                <small>{treatment.detail}</small>
+              </button>
+            ))}
           </div>
         </section>
 

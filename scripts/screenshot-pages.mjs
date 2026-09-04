@@ -8,7 +8,8 @@ import process from 'node:process';
 
 const outDir = process.argv[2] ?? 'test-results/screens';
 fs.mkdirSync(outDir, { recursive: true });
-const PROFILES = [[906, 755], [1280, 800], [1920, 1080]];
+const PROFILES = process.env.SHOT_PROFILES ? process.env.SHOT_PROFILES.split(',').map((s) => s.split('x').map(Number)) : [[906, 755], [1280, 800], [1920, 1080]];
+const PAGES = process.env.SHOT_PAGES ? process.env.SHOT_PAGES.split(',').map(Number) : Array.from({ length: 11 }, (_, index) => index + 1);
 const SAVE_KEY = 'future-career-lab.save.v1';
 const fullSave = {
   schemaVersion: 2, contentVersion: '2026.09', sessionSeed: 42, playerName: '테스트', lastPage: 1,
@@ -29,7 +30,7 @@ try {
     const page = await context.newPage();
     await page.goto('http://127.0.0.1:4176/#/page/1');
     await page.evaluate(([key, save]) => localStorage.setItem(key, JSON.stringify(save)), [SAVE_KEY, fullSave]);
-    for (let n = 1; n <= 11; n += 1) {
+    for (const n of PAGES) {
       await page.goto(`http://127.0.0.1:4176/#/page/${n}`);
       await page.reload();
       await page.waitForTimeout(1800);

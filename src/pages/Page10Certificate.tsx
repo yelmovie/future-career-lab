@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GameShell, Panel } from '../components/GameShell';
+import { GameShell, Panel, TaskCue } from '../components/GameShell';
 import { CheckIcon, LockIcon, PrintIcon, SparkIcon } from '../components/Icons';
 import { pageAsset } from '../shared/assets';
 import { STAGE_META, STAGE_PAGES } from '../shared/constants';
@@ -11,7 +11,7 @@ const CERTIFICATE_TITLE = '미래 직업실 탐험 수료증';
 const STAGE_LABELS: Record<StageNumber, string> = Object.fromEntries(STAGE_META.map((stage) => [stage.id, stage.label])) as Record<StageNumber, string>;
 
 export default function Page10Certificate({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, setPlayerName, grantReward } = useGame();
+  const { save, setPlayerName, grantReward, teacherMode } = useGame();
   const [school, setSchool] = useState('');
   const [grade, setGrade] = useState('');
   const [classroom, setClassroom] = useState('');
@@ -40,7 +40,7 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
     window.setTimeout(() => { printing.current = false; }, 600);
   };
 
-  if (!save.certificateUnlocked) {
+  if (!save.certificateUnlocked && !teacherMode) {
     return <GameShell page={11} eyebrow="FINAL REWARD" onNavigate={onNavigate} className="certificate-page">
       <div className="locked-certificate">
         <Panel className="panel--cream">
@@ -59,12 +59,13 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
       {celebrating && <div className="celebration no-print" aria-live="polite"><span className="celebration-ring" /><SparkIcon /><strong>다섯 스테이지 탐험 완료!</strong><p>관찰하고 선택하고 협업한 모든 장면이 모였어.</p></div>}
       <div className="certificate-layout">
         <Panel kicker="YOUR RECORD" title="수료 정보" className="certificate-form no-print">
-          <p>입력한 내용은 서버로 보내지 않고, 이 화면과 인쇄에만 사용돼.</p>
+          <TaskCue action="정보를 적고 수료증을 인쇄해" done />
+          <p>입력 내용은 이 화면과 인쇄에만 사용돼.</p>
           <label>학교<input value={school} onChange={(event) => setSchool(event.target.value)} placeholder="학교 이름" /></label>
           <div className="form-row"><label>학년<input value={grade} onChange={(event) => setGrade(event.target.value)} inputMode="numeric" /></label><label>반<input value={classroom} onChange={(event) => setClassroom(event.target.value)} inputMode="numeric" /></label><label>번호<input value={number} onChange={(event) => setNumber(event.target.value)} inputMode="numeric" /></label></div>
           <label>이름<input value={save.playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="탐험가 이름" /></label>
           <label>담임교사 서명<input value={teacher} onChange={(event) => setTeacher(event.target.value)} placeholder="인쇄 후 직접 서명해도 돼" /></label>
-          <div className="certificate-actions"><button className="button button--primary button--block" onClick={print}><PrintIcon /> 인쇄하기</button><button className="button button--ghost button--block" onClick={() => onNavigate(1)}>메인으로 돌아가기</button></div>
+          <div className="certificate-actions"><button className="button button--primary is-next-action" aria-label="수료증 인쇄하기" onClick={print}><PrintIcon /> 인쇄하기</button><button className="button button--ghost" aria-label="메인으로 돌아가기" onClick={() => onNavigate(1)}>메인으로</button></div>
         </Panel>
 
         <article className="certificate-sheet" aria-label={CERTIFICATE_TITLE}>
