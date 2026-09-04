@@ -108,7 +108,7 @@
 .result-disclaimer svg { flex: 0 0 22px; width: 22px; color: var(--teal-bright); }
 .result-disclaimer p { margin: 0; line-height: 1.4; font-size: 16px; }
 .dna-profile { text-align: center; }
-.dna-profile > img { width: 100%; height: 190px; object-fit: contain; border-radius: var(--radius-sm); background: var(--cream); }
+.dna-profile > img { width: 100%; height: 190px; object-fit: contain; border-radius: var(--radius-sm); background: var(--color-panel-cream); }
 .dna-profile h3 { margin: var(--space-8) 0 var(--space-4); color: var(--gold-pale); font-size: var(--fs-head); line-height: 1.3; }
 .dna-profile p { margin: 0 0 var(--space-8); font-size: var(--fs-cap); }
 .radar-wrap { display: grid; grid-template-columns: minmax(200px, 1.1fr) minmax(150px, .9fr); align-items: center; gap: var(--space-8); }

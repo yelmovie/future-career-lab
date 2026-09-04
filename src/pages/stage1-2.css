@@ -43,9 +43,9 @@
 }
 .direction-pad button span { color: var(--teal-bright); font-size: 25px; font-weight: 900; line-height: 1; }
 .direction-pad button strong { font-size: 16px; white-space: nowrap; }
-.direction-pad button:hover { border-color: #6ecfc6; background: #19466b; }
-.direction-pad button:active { transform: scale(.96); background: #215b86; }
-.record-button { min-width: 200px; min-height: 64px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-8); padding: var(--space-8) var(--space-16); border: 2px solid #cc7971; border-radius: var(--radius-md); color: #842415; background: #702621; font-size: 19px; font-weight: 950; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.direction-pad button:hover { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.direction-pad button:active { transform: scale(.96); background: var(--color-primary-soft); }
+.record-button { min-width: 200px; min-height: 64px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-8); padding: var(--space-8) var(--space-16); border: 2px solid #cc7971; border-radius: var(--radius-md); color: #fff; background: #d94f43; box-shadow: 0 5px 0 #a53328; font-size: 19px; font-weight: 950; cursor: pointer; transition: transform .15s, box-shadow .15s; }
 .record-button span { flex: 0 0 auto; width: 16px; height: 16px; border-radius: 50%; background: #ff695c; box-shadow: 0 0 0 4px rgb(255 105 92 / 20%); }
 .record-button:disabled { opacity: .5; cursor: not-allowed; }
 .record-button.is-window { border-color: #cf756e; background: #c0362d; box-shadow: 0 0 26px rgb(255 78 66 / 55%); transform: scale(1.06); animation: rec-pulse .7s ease-in-out infinite alternate; }

@@ -25,7 +25,7 @@ export const HINT_BY_JOB: Record<JobId, string> = {
 export const CRISES: readonly CrisisDefinition[] = [
   { id: 'fire', title: '숲 가장자리 화재', symptom: '공사장 불꽃이 벌목지 마른 가지로 번졌어. 어디까지 퍼졌는지 모르고, 시민들도 아직 몰라.', hints: [HINT_BY_JOB.drone, HINT_BY_JOB.broadcast], needs: ['drone', 'broadcast'], x: 27, y: 34 },
   { id: 'flock', title: '새 둥지 구역 대피', symptom: '태풍이 다시 온다는 예보야. 새들이 어디로 갈지 알아야 하고, 다친 새를 받을 곳이 없어.', hints: [HINT_BY_JOB.ecology, HINT_BY_JOB.care], needs: ['ecology', 'care'], x: 72, y: 32 },
-  { id: 'citizens', title: '시민 오해', symptom: '"새 때문에 공사가 멈췄다"는 소문이 돌아. 진짜 원인을 근거로 알려야 해.', hints: [HINT_BY_JOB.broadcast, HINT_BY_JOB.ecology], needs: ['broadcast', 'ecology'], x: 50, y: 74 },
+  { id: 'citizens', title: '시민 오해', symptom: '"새 때문에 공사가 늦어진다"는 소문이 돌아. 진짜 원인을 근거로 알려야 해.', hints: [HINT_BY_JOB.broadcast, HINT_BY_JOB.ecology], needs: ['broadcast', 'ecology'], x: 50, y: 74 },
 ] as const;
 
 export const JOB_ORDER: readonly JobId[] = ['drone', 'care', 'ecology', 'broadcast'];

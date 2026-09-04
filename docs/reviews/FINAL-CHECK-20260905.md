@@ -66,6 +66,24 @@
 | 21번 | 크레딧 `assets/CREDITS.md` 이동, 문서 링크 갱신, 버전 3.0.0 | `README.md`, `docs/*`, `package.json` | – |
 | 에셋 | v3 그림 자리 4개(`v3Asset` + `fallbackTo`), 프롬프트 문서 | `src/shared/assets.ts`, `docs/ASSET_REQUEST_v3.md` | 파일 없어도 v2 로 표시 확인 |
 
+## 독립 비평(quality-critic) 반영
+
+20건 지적 중 18건 반영. 남긴 2건: 토큰 별칭 정리(`--cream` 이름이 값과 어긋남 — 다음 리팩터링), 자막 카드 "새 때문에 공사가 늦어진다" 전제 보강(S4 클로징 문구 추가는 사용자 확인 후).
+
+| 심각도 | 지적 | 조치 |
+|---|---|---|
+| 높음 | 브리핑·엔딩 그림이 v2 "앵무 무리" 폴백 | 폴백을 모모·루비 두 마리 그림(`page-01/parrot-pair`)으로 교체. v3 그림이 오면 자동 우선 |
+| 높음 | S5 배지 카드·S4 자막·REC 버튼 대비 | 배지 그라데이션·자막 글자색·REC 흰 글자로 수정 |
+| 중간 | 교사 가이드 위기 이름 옛 서사 | `CRISES` 제목과 일치시킴 |
+| 중간 | S2-b "집·복도·빨간 문" 어휘 | "정원·관람로·출입문" 으로 통일 |
+| 중간 | S5 보상이 모모·루비 귀환 중복 | "연합 엠블럼 + 숲의 새소리 복귀" |
+| 중간 | 드론 목표 "갈 만한 곳" vs 가설 "피해 떠났다" | "숲 가장자리에서 달라진 곳 3곳" 으로 |
+| 중간 | 발견을 사육사 혼자 한 것처럼 읽힘 | "네 가설대로 … 뒤져서 찾았대" 로 학생 추론과 연결 |
+| 중간 | 미리보기·태블릿 선택·보라 패널·방향 패드 대비 | 밝은 배경·파란 outline 으로 |
+| 낮음 | 구조 뒤 "지금" 앵무 울음 / 방송 원인 주어 / 남색 캔버스·프로필 배경 | "녹음된 울음" / "숲의 새가 왜 줄었는지" / 캔버스·배경 밝게 |
+
+캡처 원본: `docs/reviews/screens-v3/` (git 제외, 로컬 확인용).
+
 ## 안 고친 것 / 남은 것
 
 | 항목 | 이유 | 다음 행동 |
@@ -89,9 +107,9 @@
 | 검증 | 결과 |
 |---|---|
 | `npm run verify` | PASS — typecheck, lint, Vitest 66, 이미지 132+모델 슬롯 1, build |
-| `npm run test:e2e` | PASS — Chromium 19/19 (2.3m) |
+| `npm run test:e2e` | PASS — Chromium 19/19 (비평 반영 뒤 재실행) |
 | `node scripts/probe-offline.mjs` | load 229ms · 2,362,779B · 14요청, 오프라인 메인·브리핑 복구, BGM `ERR_FAILED` 없음(`ERR_ABORTED` 는 재생 중단) |
-| 캡처 | 11페이지 × 1280·1920 + 상태 12장 (`test-results/screens-v3`, `test-results/states`) |
+| 캡처 | 11페이지 × 1280·1920 + 상태 20장 (`docs/reviews/screens-v3/`, git 제외) |
 | `git diff --check` | PASS |
 
 ※ 점수와 배포 판정은 별개다. 판정은 checklists/verdict-rules.md 기준.

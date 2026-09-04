@@ -7,7 +7,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { StageComplete } from '../components/StageComplete';
 import { ArrowIcon, CheckIcon, GripIcon, SparkIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { fallbackTo, pageAsset, v2Asset, v3Asset } from '../shared/assets';
+import { fallbackTo, homeAsset, pageAsset, v2Asset, v3Asset } from '../shared/assets';
 import { CANVAS_FONT, JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -82,8 +82,8 @@ class AllianceCityScene extends Phaser.Scene {
     if (width < 40 || height < 40) return;
     const allClear = this.snapshot.done;
     const graphics = this.add.graphics();
-    graphics.fillStyle(allClear ? 0x062a1e : 0x041524, 0.92).fillRoundedRect(10, 10, width - 20, height - 20, 25);
-    graphics.lineStyle(2, 0xe7b861, 0.6).strokeRoundedRect(10, 10, width - 20, height - 20, 25);
+    graphics.fillStyle(allClear ? 0xe2f8ec : 0xdbe8f7, 0.94).fillRoundedRect(10, 10, width - 20, height - 20, 25);
+    graphics.lineStyle(3, 0x9fb8dc, 0.9).strokeRoundedRect(10, 10, width - 20, height - 20, 25);
     const mapSize = Math.min(width * 0.7, height * 0.8);
     this.add.image(width / 2, height / 2, 'city-map').setDisplaySize(mapSize, mapSize).setAlpha(0.25);
 
@@ -240,7 +240,7 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     >
       {finished ? (
         <section className="p08-ending" aria-labelledby="p08-ending-title">
-          <img className="p08-ending__scene" src={v3Asset('scene-reunion')} onError={fallbackTo(v2Asset('scene-restored'))} alt="불이 꺼지고 초록으로 돌아온 푸른솔 숲에 새들이 돌아오는 장면" />
+          <img className="p08-ending__scene" src={v3Asset('scene-reunion')} onError={fallbackTo(homeAsset('parrot-pair'))} alt="불이 꺼지고 초록으로 돌아온 푸른솔 숲에 새들이 돌아오는 장면" />
           <div className="p08-ending__copy">
             <img className="p08-ending__emblem" src={pageAsset(8, 10)} alt="연합 엠블럼" />
             <div>

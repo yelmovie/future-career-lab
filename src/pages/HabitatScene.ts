@@ -63,7 +63,7 @@ export class HabitatScene extends Phaser.Scene {
       backgroundColor: '#6f322dcc',
       padding: { x: 7, y: 4 },
     }).setOrigin(0.5);
-    this.loudLabel = this.add.text(0, 0, '복도 쪽 · 시끄러움', {
+    this.loudLabel = this.add.text(0, 0, '관람로 쪽 · 시끄러움', {
       fontFamily: 'Pretendard, Noto Sans KR, sans-serif',
       fontSize: CANVAS_FONT.cap,
       fontStyle: 'bold',

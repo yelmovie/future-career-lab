@@ -477,7 +477,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
           <MissionGuide
             image={pageAsset(4, 2)}
             imageAlt="드론 멘토"
-            action="모모와 루비가 갈 만한 곳 3곳(벌목지·막힌 물길·공사장)을 드론으로 찍어"
+            action="모모와 루비가 떠난 숲 가장자리에서 달라진 곳 3곳(벌목지·막힌 물길·공사장)을 찍어"
             goals={['지도에 지나갈 점 2~4개 놓기', '목표 원 안에서 REC 누르기 (한 바퀴!)']}
             goalImages={[pageAsset(4, 6), pageAsset(4, 3)]}
             reward={stage.reward}

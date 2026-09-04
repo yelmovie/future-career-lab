@@ -3,7 +3,7 @@ import { GameShell, Panel, TaskCue } from '../components/GameShell';
 import { ArrowIcon, CheckIcon, SparkIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { audioService } from '../services/audioService';
-import { fallbackTo, homeAsset, pageAsset, v2Asset, v3Asset } from '../shared/assets';
+import { fallbackTo, homeAsset, pageAsset, v3Asset } from '../shared/assets';
 import { JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -66,7 +66,7 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
     }>
       <div className="briefing-layout">
         <Panel kicker="CASE" title="사건 접수" className="briefing-case">
-          <img className="briefing-keyart" src={v3Asset('scene-escape')} onError={fallbackTo(v2Asset('scene-incident'))} alt="저녁 하늘, 푸른솔 숲 쪽으로 날아가는 초록·빨강 앵무 두 마리와 멀리 보이는 공사장" />
+          <img className="briefing-keyart" src={v3Asset('scene-escape')} onError={fallbackTo(homeAsset('parrot-pair'))} alt="저녁 하늘, 푸른솔 숲 쪽으로 날아가는 초록·빨강 앵무 두 마리와 멀리 보이는 공사장" />
           <div className="briefing-dialog" aria-live="polite">
             <img src={homeAsset('mentor')} alt="" />
             <div>

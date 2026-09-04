@@ -44,10 +44,10 @@ export const TRACES: Trace[] = [
   { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: pageAsset(3, 8), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
   { id: 'feather-green', point: 'A', kind: 'feather', title: '초록 깃털', note: '모모가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 82, y: 70 },
   { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 숲의 새를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
-  { id: 'sound-call', point: 'B', kind: 'sound', title: '앵무 울음', note: '앵무 정상 울음. 모모·루비가 편안하게 머문 흔적이야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
+  { id: 'sound-call', point: 'B', kind: 'sound', title: '녹음된 앵무 울음', note: '지난주 녹음기에 남은 정상 울음. 모모·루비가 편안하게 머문 흔적이야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
   { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '모모·루비가 땅에 내려와 열매를 먹은 자리야.', image: pageAsset(3, 7), x: 28, y: 76 },
   { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '루비도 깊은 숲까지 왔어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
-  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '앵무 경계음', note: '앵무 경계음. 모모·루비가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
+  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '녹음된 앵무 경계음', note: '지난주 녹음기에 남은 경계음. 모모·루비가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
 ];
 
 export const ENV_SPOTS: EnvSpot[] = [

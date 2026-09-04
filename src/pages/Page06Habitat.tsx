@@ -115,7 +115,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
   const nextTask = !evaluation.valid
     ? { action: '물건을 3~4개 놓아 오른쪽 조건을 모두 채워', target: '왼쪽 물건 목록' }
     : !prediction
-      ? { action: '지금 집에서 안 보일 행동을 먼저 예측해', target: '오른쪽 예측 버튼' }
+      ? { action: '지금 정원에서 안 보일 행동을 먼저 예측해', target: '오른쪽 예측 버튼' }
       : !simulation
         ? { action: '예측을 확인하려고 새 정원을 시험해', target: '새 정원 시험하기' }
         : redesigned
@@ -220,7 +220,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
     { label: '물건 3~4개', ready: evaluation.enoughElements && evaluation.withinCount },
     { label: '힘 8 이하', ready: evaluation.withinBudget },
     { label: '물·쉼·놀이 모두', ready: evaluation.hasWater && evaluation.hasRest && evaluation.hasActivity },
-    { label: '빨간 문 앞 비우기', ready: evaluation.entranceClear },
+    { label: '출입문 앞 비우기', ready: evaluation.entranceClear },
     { label: '겹치지 않기', ready: evaluation.noCollisions },
     { label: '오가는 길 잇기', ready: evaluation.connected },
   ];
@@ -272,7 +272,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
 
         <section className="p6-workbench" aria-labelledby="p6-board-title">
           <header className="p6-workbench__header">
-            <h2 id="p6-board-title">집에 물건 놓기</h2>
+            <h2 id="p6-board-title">정원에 물건 놓기</h2>
             <div className="p6-strategies" aria-label="빠르게 시작할 수 있는 예시">
               <span>빠른 시작</span>
               {HABITAT_STRATEGIES.map((strategy) => (

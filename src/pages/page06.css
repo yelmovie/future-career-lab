@@ -20,7 +20,7 @@
 .p6-reward strong { color: var(--cream); font-size: var(--fs-body); line-height: 1.3; }
 .p6-reward small { color: rgb(var(--cream-rgb) / 70%); font-size: var(--fs-cap); }
 .p6-rule-list--bird { margin-top: var(--space-8); }
-.p6-rule-list--bird li { border-color: rgb(148 110 207 / 70%); background: rgb(64 42 91 / 40%); }
+.p6-rule-list--bird li { border-color: #d9c9f2; background: #f1eafb; }
 .p6-rule-list--bird li.is-ready { border-color: rgb(89 216 135 / 45%); background: rgb(228 248 236 / 78%); }
 .p6-predictions { display: grid; gap: 6px; margin-bottom: var(--space-8); }
 .p6-predictions button { min-height: var(--touch-min); padding: 6px 10px; text-align: left; border: 1px solid rgb(166 186 218 / 70%); border-radius: var(--radius-sm); background: rgb(255 255 255 / 78%); color: var(--cream); font-size: 16px; font-weight: 780; cursor: pointer; }

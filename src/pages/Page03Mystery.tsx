@@ -262,7 +262,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       eyebrow="STAGE 1 · 드론 현장가"
       onNavigate={onNavigate}
       footer={completed && step === 'guess'
-        ? <StageComplete title={`가설 카드와 ${STAGE_META[0]!.badgeName}를 얻었어`} message="가설을 세웠어. 사육사가 깊은 숲 열매 나무 근처에서 모모와 루비를 찾았대! 상태가 안 좋아 — 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="모모와 루비 살피러 가기" onNext={() => onNavigate(5)} />
+        ? <StageComplete title={`가설 카드와 ${STAGE_META[0]!.badgeName}를 얻었어`} message="네 가설대로 사육사가 깊은 숲 열매 나무 쪽을 뒤져서 모모와 루비를 찾았대! 상태가 안 좋아 — 살피러 가자. 가설은 숲 생태 조사에서 검증해." nextLabel="모모와 루비 살피러 가기" onNext={() => onNavigate(5)} />
         : (
           <div className="p4-footer">
             <TaskCue

@@ -1,7 +1,7 @@
 .briefing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, .85fr); gap: var(--content-pad); height: 100%; min-height: 0; }
 .briefing-layout > .panel { min-height: 0; overflow: auto; }
 .briefing-jobs { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
-.briefing-keyart { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--panel-border); }
+.briefing-keyart { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; border-radius: var(--radius-md); border: 2px solid #fff; background: linear-gradient(180deg, #d6ecff, #fff6dc); box-shadow: var(--shadow-soft); }
 .briefing-dialog { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: var(--space-8); margin-top: var(--space-8); padding: var(--space-8); border-radius: var(--radius-md); background: rgb(255 248 232 / 96%); color: var(--ink); }
 .briefing-dialog > img { width: 56px; height: 56px; object-fit: contain; object-position: top; border-radius: 50%; background: #dceee9; }
 .briefing-dialog span { display: inline-block; font-size: 16px; font-weight: 900; color: #0c6c68; }

@@ -76,7 +76,7 @@
 .p5-statement.is-chosen { border-color: #62d98b; background: rgb(228 248 236 / 78%); }
 .p5-statement:hover { border-color: var(--teal-bright); }
 
-.p5-sound { display: grid; gap: 6px; margin-bottom: var(--space-8); padding: 8px; border: 1px solid rgb(148 110 207 / 70%); border-radius: var(--radius-sm); background: rgb(64 42 91 / 55%); }
+.p5-sound { display: grid; gap: 6px; margin-bottom: var(--space-8); padding: 8px; border: 2px solid #d9c9f2; border-radius: var(--radius-sm); background: #f1eafb; }
 .p5-sound__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; }
 .p5-sound__head strong { color: #411584; font-size: var(--fs-cap); }
 .p5-sound p { margin: 0; color: rgb(var(--cream-rgb) / 82%); font-size: 16px; line-height: 1.4; }

@@ -20,7 +20,7 @@ export const SOURCE_LABEL: Record<SourceId, string> = { drone: '드론 사진', 
 export const SEGMENTS: readonly Segment[] = [
   { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '모모·루비 구조 소식과 숲 문제를 소개해', fit: 'any' },
   { id: 'scene', title: '현장 상황', requiredSource: 'drone', need: '숲이 지금 어떤지 보여 줘', fit: 'photo' },
-  { id: 'cause', title: '원인 설명', requiredSource: 'studio', need: '왜 줄었는지 근거로 설명해', fit: 'graph' },
+  { id: 'cause', title: '원인 설명', requiredSource: 'studio', need: '숲의 새가 왜 줄었는지 근거로 설명해', fit: 'graph' },
   { id: 'interview', title: '전문가 인터뷰', requiredSource: 'reporter', need: '전문가가 직접 말해', fit: 'any' },
   { id: 'action', title: '시민 행동 안내', requiredSource: 'reporter', need: '시민에게 도움을 요청해', fit: 'action' },
   { id: 'closing', title: '클로징', requiredSource: 'studio', need: '마무리', fit: 'any' },
