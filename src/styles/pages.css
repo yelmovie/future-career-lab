@@ -58,9 +58,9 @@
 .home-mission-brief strong { color: var(--ink); font-size: 18px; line-height: 1.3; }
 
 .home-dialog {
-  position: absolute; z-index: 5; top: 318px; width: 236px; min-height: 90px; padding: 12px 16px 13px;
-  border: 3px solid #fff; border-radius: 22px; background: rgb(255 255 255 / 94%);
-  color: var(--ink); box-shadow: var(--shadow-card); animation: home-float-bubble 2200ms ease-in-out infinite;
+  position: absolute; z-index: 5; top: 300px; width: 264px; min-height: 90px; padding: 12px 16px 13px;
+  border: 2px solid var(--glass-line); border-radius: 22px; background: var(--glass-3); backdrop-filter: var(--glass-blur);
+  color: var(--ink); box-shadow: var(--glass-shadow), var(--glass-inset); animation: home-float-bubble 2200ms ease-in-out infinite;
 }
 .home-dialog::after {
   content: ""; position: absolute; top: 34px; width: 0; height: 0; border: 12px solid transparent;
@@ -75,9 +75,8 @@
 @keyframes home-float-bubble { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
 
 .home-actions {
-  position: absolute; z-index: 6; left: 50%; bottom: 18px; width: 560px; padding: 12px 14px 10px;
-  transform: translateX(-50%); border: 3px solid #fff; border-radius: var(--radius-lg);
-  background: rgb(255 255 255 / 90%); box-shadow: var(--shadow-card); backdrop-filter: blur(8px);
+  position: absolute; z-index: 6; left: 50%; bottom: 22px; width: 560px; padding: 0;
+  transform: translateX(-50%); border: 0; background: none; box-shadow: none;
 }
 .home-action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .home-actions .button { min-height: var(--button-height-lg); font-size: 24px; }
@@ -107,7 +106,7 @@
 .certificate-stage-list span { font-size: 16px; }
 .certificate-stage-list b { font-size: var(--fs-cap); }
 .certificate-layout { height: 100%; display: grid; grid-template-columns: 270px auto; justify-content: center; gap: var(--content-pad); align-items: stretch; }
-.certificate-form { overflow: auto; }
+.certificate-form { align-self: start; overflow: auto; }
 .certificate-form .task-cue { grid-template-columns: 1fr; gap: 5px; }
 .certificate-form .task-cue__target { padding: 5px 0 0; border-top: 1px solid rgb(110 207 198 / 70%); border-left: 0; white-space: normal; }
 .certificate-form p { margin-top: 0; color: rgb(var(--cream-rgb) / 66%); font-size: 16px; }
@@ -115,6 +114,8 @@
 .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
 .certificate-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); margin-top: var(--space-8); }
 .certificate-actions .button { min-width: 0; padding-inline: var(--space-8); }
+.certificate-actions__home { grid-column: 1 / -1; }
+.certificate-save-status { margin: 10px 0 0 !important; color: #dff4e6 !important; font-weight: 800; line-height: 1.4; }
 .certificate-sheet { --paper: #fcf7ea; --paper-ink: #1f3548; --paper-gold: #b8933f; --paper-gold-soft: #e6d6ac; --paper-teal: #0f7b7e; height: 100%; aspect-ratio: 1.414 / 1; max-width: 100%; padding: 14px; background: linear-gradient(180deg, #fffdf6, var(--paper)); color: var(--paper-ink); box-shadow: 0 24px 60px rgb(30 40 60 / 22%); }
 .certificate-border { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; padding: 26px 44px 20px; border: 3px solid var(--paper-gold); outline: 1px solid var(--paper-gold-soft); outline-offset: -8px; text-align: center; overflow: hidden; }
 /* 모서리 장식 — 얇은 금색 꺾쇠 4개 */
@@ -142,20 +143,8 @@
 .certificate-abilities li::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--color-secondary); }
 .certificate-info { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 22px; color: #35495c; font-size: 16px; font-weight: 600; }
 .certificate-info b { display: inline-block; min-width: 36px; padding: 0 6px 2px; border-bottom: 1.5px solid var(--paper-gold-soft); color: var(--paper-ink); font-weight: 800; }
-.certificate-border footer { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding-top: 12px; border-top: 1.5px solid var(--paper-gold-soft); color: #35495c; font-size: 16px; font-weight: 600; }
-.certificate-border footer > span:first-child { justify-self: start; }
-.certificate-border footer > span:last-child { justify-self: end; margin-right: 96px; }
-.certificate-border footer b { display: inline-block; min-width: 120px; padding: 0 6px 2px; border-bottom: 1.5px solid var(--paper-gold-soft); color: var(--paper-ink); font-weight: 800; }
+.certificate-border footer { width: 100%; display: flex; justify-content: center; align-items: center; padding-top: 12px; border-top: 1.5px solid var(--paper-gold-soft); color: #35495c; font-size: 16px; font-weight: 600; }
 .certificate-seal { position: absolute; right: 30px; bottom: 16px; width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 4px 8px rgb(120 90 30 / 25%)); }
-/* 축하 오버레이는 2.6초 뒤 사라진다. 그 사이에도 뒤 버튼을 막지 않게 pointer-events 를 끈다. */
-.celebration { position: fixed; z-index: var(--z-modal); inset: 0; display: grid; place-content: center; place-items: center; text-align: center; background: rgb(255 255 255 / 89%); pointer-events: none; animation: celebration-out .4s 2.2s both; }
-.celebration > svg { width: 90px; color: var(--gold-pale); filter: drop-shadow(0 0 24px var(--gold)); animation: pop .7s cubic-bezier(.2, .8, .2, 1); }
-.celebration strong { margin-top: 16px; color: var(--gold-pale); font-size: 44px; }
-.celebration p { color: var(--cream); font-size: var(--fs-body); }
-.celebration-ring { position: absolute; width: 260px; height: 260px; border: 3px solid var(--gold); border-radius: 50%; animation: ring 1.5s ease-out infinite; }
-@keyframes pop { from { transform: scale(.4) rotate(-18deg); opacity: 0; } }
-@keyframes ring { from { transform: scale(.4); opacity: .9; } to { transform: scale(1.55); opacity: 0; } }
-@keyframes celebration-out { to { opacity: 0; visibility: hidden; } }
 
 @page { size: A4 landscape; margin: 8mm; }
 @media print {
