@@ -10,7 +10,7 @@
 .p8-screen__art { width: 100%; height: 100%; object-fit: cover; }
 .p8-screen__empty { color: var(--color-border-soft); font-family: var(--font-display); font-size: 30px; }
 /* 왼쪽 140px 은 비운다 — 하단 멘토 컷아웃(130px)이 둥실 떠도 자막을 안 가린다 */
-.p8-screen__caption { position: absolute; inset: auto 12px 12px 140px; margin: 0; padding: 10px 14px; border-left: 6px solid var(--color-accent); border-radius: 10px; background: rgb(255 255 255 / 92%); color: var(--ink); font-size: 20px; font-weight: 850; line-height: 1.3; animation: v4-fade .25s ease; }
+.p8-screen__caption { position: absolute; inset: auto 12px 12px 140px; margin: 0; padding: 10px 14px; border-left: 6px solid var(--color-accent); border-radius: 10px; background: var(--glass-3); color: var(--ink); font-size: 20px; font-weight: 850; line-height: 1.3; animation: v4-fade .25s ease; }
 .p8-screen__caption.is-rumor { border-left-color: var(--color-coral); }
 
 /* 오른쪽 조작 */

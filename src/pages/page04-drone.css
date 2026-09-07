@@ -3,10 +3,17 @@
 .drone-v4.is-review { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
 .drone-v4__map { position: relative; }
 .drone-v4__tools { position: absolute; z-index: 4; top: 12px; right: 12px; display: flex; gap: 8px; }
-.drone-v4__pad { position: absolute; z-index: 4; right: 14px; bottom: 14px; }
+.drone-v4__pad { position: absolute; z-index: 4; right: 14px; bottom: 14px; grid-template-columns: repeat(4, 102px); gap: 8px; }
+.drone-v4__pad button { min-width: 102px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; }
+.drone-v4__pad button span,
+.drone-v4__pad button strong { flex: none; }
 .drone-v4__rec { position: absolute; z-index: 4; left: 50%; bottom: 14px; transform: translateX(-50%); min-width: 240px; min-height: 72px; font-size: 24px; }
 .drone-v4__rec.is-window { transform: translateX(-50%) scale(1.06); }
 .drone-v4__review { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; padding: 14px; }
-.drone-v4__review .photo-cards { grid-template-columns: 1fr; gap: 8px; min-height: 0; overflow: auto; }
+/* 사진 3장을 세로로 균등 분할 — 각 사진은 자기 칸에 맞춰 잘라 보이고, 이름표는 항상 보인다 */
+.drone-v4__review .photo-cards { grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 8px; height: 100%; min-height: 0; }
+.drone-v4__review .photo-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+.drone-v4__review .photo-card img { height: 100%; min-height: 0; aspect-ratio: auto; }
+.drone-v4__review .photo-card figcaption { display: flex; justify-content: space-between; padding: 4px 10px; font-size: 16px; }
 .drone-v4__review-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .drone-help .drone-map-key { margin: 10px 0; }

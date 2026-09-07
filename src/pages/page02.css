@@ -1,9 +1,9 @@
 /* 페이지 2 · 브리핑 (v4) — 1 사건 · 2 네 직업 · 3 명찰 */
 
-/* 1단계: 모모·루비 그림 + 탭하는 말풍선 */
+/* 1단계: 지구·젤리 그림 + 탭하는 말풍선 */
 .brief-story { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 18px; padding: 18px; }
 .brief-story__art { width: 100%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 12px 14px rgb(40 60 90 / 20%)); }
-.brief-line { position: relative; display: grid; gap: 8px; min-height: 60px; padding: 22px 26px; border: 3px solid var(--color-accent); border-radius: 26px; background: var(--color-surface); color: var(--ink); text-align: left; cursor: pointer; box-shadow: 0 6px 0 var(--color-accent-edge); transition: transform .12s ease, box-shadow .12s ease; }
+.brief-line { position: relative; display: grid; gap: 8px; min-height: 60px; padding: 22px 26px; border: 3px solid var(--color-accent); border-radius: 26px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); text-align: left; cursor: pointer; box-shadow: 0 6px 0 var(--color-accent-edge); transition: transform .12s ease, box-shadow .12s ease; }
 .brief-line::before { content: ""; position: absolute; left: -24px; top: 44px; border: 12px solid transparent; border-right-color: var(--color-accent); }
 .brief-line:active { transform: translateY(6px); box-shadow: 0 0 0 var(--color-accent-edge); }
 .brief-line.is-last { border-color: var(--color-secondary); box-shadow: 0 6px 0 var(--color-secondary-edge); cursor: default; }
@@ -26,7 +26,7 @@
 .brief-badge { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 12px; height: 100%; min-height: 0; }
 .brief-name { display: grid; align-content: start; gap: 10px; height: auto; align-self: start; padding: 16px 20px; }
 .brief-name span { color: var(--color-primary-deep); font-family: var(--font-display); font-size: 24px; }
-.brief-name input { min-height: 60px; padding: 0 18px; border: 3px solid var(--color-border-soft); border-radius: 16px; background: var(--color-surface); color: var(--ink); font-size: 24px; font-weight: 800; }
+.brief-name input { width: 100%; min-width: 0; min-height: 60px; padding: 0 18px; border: 3px solid var(--color-border-soft); border-radius: 16px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); font-size: 24px; font-weight: 800; }
 .brief-name input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-soft); }
 .brief-badge .v4-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0; }
 

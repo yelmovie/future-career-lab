@@ -7,7 +7,7 @@
 /* ----- 1단계: 탭 · 장면 · 도감 ----- */
 .p7-field { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; height: 100%; min-height: 0; }
 .p7-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.p7-tab { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: var(--color-surface); color: var(--ink); font-family: var(--font-display); font-size: 22px; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }
+.p7-tab { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); font-family: var(--font-display); font-size: 22px; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }
 .p7-tab img { width: 46px; height: 46px; object-fit: contain; }
 .p7-tab small { padding: 2px 10px; border-radius: 999px; background: var(--color-bg); color: var(--color-text-sub); font-size: 16px; font-weight: 900; }
 .p7-tab.is-active { border-color: var(--color-primary); background: var(--color-primary-soft); box-shadow: 0 4px 0 var(--color-primary-deep); }
@@ -31,7 +31,7 @@
 
 /* ----- 2단계: 지점 그림 3장, 새가 제일 적은 곳 ----- */
 .p7-places { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px; }
-.p7-place { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; padding: 10px; border: 3px solid var(--color-border-soft); border-radius: 22px; background: #fff; color: var(--ink); cursor: pointer; box-shadow: 0 5px 0 var(--color-border-soft); }
+.p7-place { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; padding: 10px; border: 3px solid var(--color-border-soft); border-radius: 22px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); cursor: pointer; box-shadow: 0 5px 0 var(--color-border-soft); }
 .p7-place:not(:disabled):hover { border-color: var(--color-primary); }
 .p7-place.is-picked { border-color: var(--color-secondary); background: var(--color-secondary-soft); box-shadow: 0 5px 0 var(--color-secondary-edge); }
 .p7-place.is-dim { opacity: .45; }
@@ -52,14 +52,14 @@
 .p7-edge[data-change='logging']::after { background: rgb(80 200 90 / 55%); }
 .p7-edge[data-change='noise']::after { background: rgb(120 170 255 / 45%); }
 .p7-edge[data-change='water']::after { background: rgb(90 210 240 / 50%); }
-.p7-edge__count { position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; background: rgb(255 255 255 / 92%); color: var(--ink); font-size: 22px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
+.p7-edge__count { position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; background: var(--glass-3); color: var(--ink); font-size: 22px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
 .p7-edge__count img { width: 28px; height: 28px; object-fit: contain; }
 .p7-edge__count s { color: var(--color-text-sub); text-decoration: line-through; }
 .p7-edge__count b { color: var(--color-secondary-edge); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
 .p7-edge__tag { position: absolute; left: 12px; top: 12px; padding: 6px 14px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 18px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
 .p7-side { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; }
 .p7-actions { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; }
-.p7-action { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: #fff; color: var(--ink); font-size: 22px; font-weight: 850; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }
+.p7-action { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); font-size: 22px; font-weight: 850; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }
 .p7-action img { width: 60px; height: 60px; object-fit: contain; }
 .p7-action small { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--color-secondary-soft); color: var(--ink); font-size: 18px; font-weight: 900; }
 .p7-action small img { width: 22px; height: 22px; }

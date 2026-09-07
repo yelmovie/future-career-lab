@@ -26,6 +26,14 @@
   --color-bg: #eef5ff;
   --color-surface: #ffffff;
   --color-surface-glass: rgb(255 255 255 / 84%);
+  /* 유리 패널 3단계 — 배경 그림이 비치되 글자는 읽힌다 (dokdo §4). 1=큰 무대, 2=카드·선택지, 3=칩·말풍선(글 위주) */
+  --glass-1: rgb(255 255 255 / 46%);
+  --glass-2: rgb(255 255 255 / 66%);
+  --glass-3: rgb(255 255 255 / 84%);
+  --glass-blur: blur(14px) saturate(1.25);
+  --glass-line: rgb(255 255 255 / 88%);
+  --glass-inset: inset 0 1.5px 0 rgb(255 255 255 / 95%), inset 0 0 0 1px rgb(255 255 255 / 40%);
+  --glass-shadow: 0 16px 40px hsl(var(--page-h, 205) 55% 38% / 16%), 0 2px 6px hsl(var(--page-h, 205) 50% 40% / 8%);
   --color-panel: #ffffff;
   --color-panel-cream: #fff8e6;
   --color-primary: #3d8bff;
@@ -136,37 +144,63 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 }
 .skip-link:focus { top: var(--space-8); }
 
-/* 배경 그림 위에 밝은 크림·하늘 워시를 깔아 파스텔 톤으로 만든다 */
+/*
+ * 바탕: 흰 워시 대신 페이지 색(--page-h, GameShell 이 넣음)의 파스텔 그라데이션 + 색 얼룩 두 개 + 잔잔한 점 무늬.
+ * 원래 배경 그림은 ::before 로 34% 만 비쳐서 "어디인지"만 알려 주고 UI 를 방해하지 않는다.
+ */
 .game-shell {
   position: relative; isolation: isolate; height: 100%; overflow: hidden;
   display: grid; grid-template-rows: var(--topbar-h) minmax(0, 1fr) auto;
-  background-color: var(--color-bg);
-  background-image: linear-gradient(180deg, rgb(238 246 255 / 84%), rgb(255 250 240 / 82%) 55%, rgb(232 244 255 / 88%)), var(--page-bg);
-  background-size: cover; background-position: center;
+  --page-h: 205;
+  --page-tint: hsl(var(--page-h) 62% 93%);
+  --page-tint-deep: hsl(var(--page-h) 55% 82%);
+  --page-ink: hsl(var(--page-h) 45% 32%);
+  background-color: var(--page-tint);
+  background-image:
+    radial-gradient(ellipse 58% 52% at 10% 14%, hsl(var(--page-h) 92% 86% / .95), transparent 62%),
+    radial-gradient(ellipse 52% 48% at 90% 84%, hsl(calc(var(--page-h) + 46) 88% 86% / .85), transparent 62%),
+    radial-gradient(ellipse 40% 36% at 70% 8%, hsl(calc(var(--page-h) - 30) 90% 90% / .7), transparent 60%),
+    linear-gradient(180deg, hsl(var(--page-h) 70% 92%) 0%, #fdf8ee 100%);
+}
+.game-shell::before {
+  content: ""; pointer-events: none; position: absolute; inset: 0; z-index: -2;
+  background: var(--page-bg) center / cover no-repeat; opacity: .72;
 }
 .game-shell::after {
   content: ""; pointer-events: none; position: absolute; inset: 0; z-index: -1;
-  background: linear-gradient(180deg, rgb(255 255 255 / 35%) 0%, transparent 25%, transparent 78%, rgb(255 255 255 / 40%) 100%);
+  background: linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 22%, transparent 80%, rgb(255 255 255 / 22%) 100%);
 }
 .ambient {
-  pointer-events: none; position: absolute; z-index: -1; inset: 0; opacity: .9;
-  background: radial-gradient(circle at 18% 12%, rgb(255 197 61 / 22%), transparent 32%), radial-gradient(circle at 84% 78%, rgb(61 139 255 / 16%), transparent 30%), radial-gradient(circle at 70% 10%, rgb(53 196 138 / 14%), transparent 26%);
+  pointer-events: none; position: absolute; z-index: -1; inset: 0; opacity: 1;
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 38%) 1.4px, transparent 2px) 0 0 / 36px 36px,
+    radial-gradient(circle at 18% 12%, rgb(255 197 61 / 18%), transparent 32%),
+    radial-gradient(circle at 84% 78%, hsl(var(--page-h) 80% 70% / 14%), transparent 30%);
 }
 
-/* 상단바 60px: 홈 · 제목 · 스테이지 길 · 도구 */
+/* 상단바 60px: 홈 · 제목 · 스테이지 길 · 도구 — 반투명 유리 + 페이지 색 밑줄 */
 .topbar {
   display: grid; grid-template-columns: auto minmax(200px, 1fr) auto auto; align-items: center;
   gap: var(--space-16); padding: 0 var(--space-16);
-  background: rgb(255 255 255 / 92%);
-  border-bottom: 2px solid var(--color-border-soft); box-shadow: var(--shadow-soft);
+  background: rgb(255 255 255 / 74%); backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--page-tint-deep); box-shadow: 0 4px 14px hsl(var(--page-h) 50% 40% / 12%);
 }
 .title-lockup { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
 .title-lockup span, .panel-header span {
-  display: block; color: var(--color-primary-deep); font-size: 16px; font-weight: 900; letter-spacing: .08em; white-space: nowrap;
+  display: block; color: var(--page-ink); font-size: 16px; font-weight: 900; letter-spacing: .08em; white-space: nowrap;
 }
 .title-lockup h1 { margin: 0; overflow: hidden; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; text-overflow: ellipsis; }
 .topbar-actions { display: flex; align-items: center; gap: var(--space-8); }
 .teacher-mode-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid #8fdcb9; border-radius: 999px; background: var(--color-secondary-soft); color: #14704b; font-size: 16px; font-weight: 850; white-space: nowrap; }
+/* 교사용 해금 중 다음 화면 바로가기 — 상단바 안에 두어 무대 높이를 뺏지 않는다 */
+.teacher-next {
+  display: inline-flex; align-items: center; gap: 6px; height: 60px; padding: 0 14px 0 12px; border: 2px solid #8fdcb9; border-radius: 16px;
+  background: var(--color-secondary-soft); color: #14704b; font-size: 15px; font-weight: 900; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 3px 0 #8fdcb9; transition: transform .12s ease, box-shadow .12s ease;
+}
+.teacher-next b { font-family: var(--font-display); font-size: 19px; font-weight: 400; }
+.teacher-next svg { width: 20px; height: 20px; }
+.teacher-next:active { transform: translateY(3px); box-shadow: none; }
 
 .stage-rail { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .stage-rail li { position: relative; display: flex; align-items: center; gap: 6px; color: var(--color-text-sub); }
@@ -194,7 +228,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .game-content > * { min-height: 0; }
 .game-footer {
   height: var(--footer-h); display: flex; align-items: center; justify-content: center; gap: var(--space-16);
-  padding: 0 var(--space-16); background: rgb(255 255 255 / 90%); border-top: 2px solid var(--color-border-soft);
+  padding: 0 var(--space-16); background: rgb(255 255 255 / 78%); backdrop-filter: blur(10px); border-top: 2px solid var(--page-tint-deep);
 }
 
 .game-grid { display: grid; grid-template-columns: minmax(200px, .82fr) minmax(400px, 2.2fr) minmax(230px, 1fr); gap: var(--content-pad); align-items: stretch; height: 100%; min-height: 0; }
@@ -209,9 +243,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 /* 패널: 흰 카드 + 부드러운 테두리 + 얕은 그림자 */
 .panel {
   min-width: 0;
-  padding: var(--content-pad); border: 2px solid var(--color-border-soft); border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 94%);
-  box-shadow: var(--shadow-soft);
+  padding: var(--content-pad); border: 3px solid #fff; border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 10px 28px hsl(var(--page-h) 50% 40% / 14%);
 }
 .panel--cream { color: var(--ink); background: var(--color-panel-cream); border-color: #f3dfae; }
 .panel--transparent { background: rgb(255 255 255 / 78%); backdrop-filter: blur(3px); }
@@ -252,13 +286,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .mission-guide__more:active { transform: translateY(3px); box-shadow: none; }
 .mission-guide__more svg { width: 18px; height: 18px; }
 
-.flow-goal, .flow-result { margin: 0; padding: var(--space-8) var(--space-16); border-radius: var(--radius-sm); background: var(--color-primary-soft); }
+.flow-goal, .flow-result { margin: 0; padding: 6px var(--space-16); border-radius: var(--radius-sm); background: var(--color-primary-soft); line-height: 1.45; }
 .flow-goal strong { color: var(--color-primary-deep); margin-right: 6px; }
 .flow-goal + .flow-goal, .flow-goal + .stack, .modal-body > .flow-goal + * { margin-top: var(--space-8); }
-.flow-steps { display: grid; gap: var(--space-8); margin: var(--space-16) 0; padding: 0; list-style: none; }
-.flow-steps li { display: grid; grid-template-columns: 56px 1fr; gap: var(--space-8); align-items: center; padding: var(--space-8); border: 2px solid var(--color-border-soft); border-radius: var(--radius-sm); background: #fff; }
+.flow-steps { display: grid; gap: 4px; margin: 8px 0; padding: 0; list-style: none; }
+.flow-steps li { display: grid; grid-template-columns: 48px 1fr; gap: var(--space-8); align-items: center; padding: 4px 10px; border: 2px solid var(--color-border-soft); border-radius: var(--radius-sm); background: #fff; }
 .flow-steps li.is-current { border-color: var(--color-primary); background: var(--color-primary-soft); }
-.flow-steps li > span { display: grid; place-items: center; width: 56px; height: 56px; overflow: hidden; border-radius: 14px; background: var(--color-panel-cream); }
+.flow-steps li > span { display: grid; place-items: center; width: 48px; height: 48px; overflow: hidden; border-radius: 12px; background: var(--color-panel-cream); }
 .flow-steps li > span img { width: 100%; height: 100%; object-fit: contain; }
 .flow-steps strong { color: var(--ink); }
 .flow-steps p { margin: 2px 0 0; color: var(--color-text-sub); font-size: var(--fs-cap); line-height: 1.4; }
@@ -306,11 +340,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .guided-footer { width: min(100%, 1160px); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
 .guided-footer > .task-cue { min-height: 54px; }
 .guided-footer > .button { min-width: 220px; }
-.teacher-preview-next .task-cue { border-color: var(--color-secondary); background: var(--color-secondary-soft); }
-.teacher-preview-next__button { min-width: 300px !important; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 10px; text-align: left; }
-.teacher-preview-next__button > span { grid-column: 1; grid-row: 1; font-weight: 900; line-height: 1.05; }
-.teacher-preview-next__button > small { grid-column: 1; grid-row: 2; font-family: var(--font-body); font-size: 16px; font-weight: 800; opacity: .78; }
-.teacher-preview-next__button > svg { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 
 .choice-card {
   position: relative; min-height: 120px; width: 100%; padding: var(--space-16); text-align: left; color: var(--ink);
@@ -371,13 +400,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .toast--warning { border-color: #ffd98a; background: var(--color-accent-soft); }
 .toast--success { border-color: #a9e6c8; background: var(--color-secondary-soft); }
 
-.modal-backdrop { position: fixed; z-index: var(--z-modal); inset: 0; display: grid; place-items: center; padding: var(--space-16); background: rgb(37 56 79 / 55%); backdrop-filter: blur(4px); }
-.modal { width: min(680px, 100%); max-height: 640px; overflow: auto; padding: 24px 28px; border: 3px solid #fff; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-popover); animation: modal-pop .26s cubic-bezier(.2, .9, .3, 1.3); }
+/* 팝업: 제목·탭·하단 버튼은 고정, 본문만 스크롤. 무대(720px) 안에 항상 들어온다. */
+.modal-backdrop { position: fixed; z-index: var(--z-modal); inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(37 56 79 / 55%); backdrop-filter: blur(4px); }
+.modal { display: flex; flex-direction: column; width: min(680px, 100%); max-height: 100%; overflow: hidden; padding: 0; border: 3px solid #fff; border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-popover); animation: modal-pop .26s cubic-bezier(.2, .9, .3, 1.3); }
 @keyframes modal-pop { from { transform: scale(.86); opacity: 0; } }
 .modal--wide { width: min(1000px, 100%); }
-.modal h2 { margin: 0 0 var(--space-16); color: var(--ink); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-title); line-height: 1.25; }
-.modal-body { font-size: var(--fs-body); line-height: 1.55; }
-.modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-8); margin-top: var(--space-16); }
+.modal > h2 { flex: none; margin: 0; padding: 20px 28px 10px; color: var(--ink); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-title); line-height: 1.25; }
+.modal-subheader { flex: none; padding: 0 28px 10px; }
+.modal-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 4px 28px 16px; font-size: var(--fs-body); line-height: 1.55; scrollbar-width: auto; }
+.modal-body::-webkit-scrollbar { width: 12px; }
+.modal-body::-webkit-scrollbar-thumb { border: 3px solid var(--color-surface); border-radius: 99px; background: var(--color-border-soft); }
+.modal-actions { flex: none; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-8); margin: 0; padding: 12px 28px 18px; border-top: 2px solid var(--color-border-soft); background: var(--color-surface); }
+.modal-actions .button { min-width: 120px; }
 
 /* 하단 완료 띠: 완료 사실과 다음 화면 버튼을 한 번에 보여 준다. */
 .stage-complete { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-16); width: min(100%, 1160px); padding: 0 var(--space-16); border: 2px solid #a9e6c8; border-radius: var(--radius-md); height: 60px; background: var(--color-secondary-soft); box-shadow: var(--shadow-soft); }

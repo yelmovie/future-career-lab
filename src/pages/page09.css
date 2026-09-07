@@ -1,6 +1,6 @@
 /* 게임 페이지 10 · 탐험 돌아보기 (v4) — 예측 vs 실제 / 능력 문장 2개 */
 .p10-compare { display: grid; grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); align-items: center; gap: 12px; padding: 18px; }
-.p10-job { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; justify-items: center; gap: 6px; height: 100%; min-height: 0; padding: 14px; border: 3px solid var(--color-border-soft); border-radius: 22px; background: var(--color-surface); text-align: center; }
+.p10-job { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; justify-items: center; gap: 6px; height: 100%; min-height: 0; padding: 14px; border: 3px solid var(--color-border-soft); border-radius: 22px; background: var(--glass-2); backdrop-filter: var(--glass-blur); text-align: center; }
 .p10-job.is-actual { border-color: var(--color-accent); background: var(--color-accent-soft); }
 .p10-job > span { padding: 4px 14px; border-radius: 999px; background: var(--color-primary); color: var(--color-surface); font-size: 17px; font-weight: 900; }
 .p10-job.is-actual > span { background: var(--color-accent-deep); }

@@ -5,7 +5,7 @@
 .p9-crisis h3 { margin: 0; color: var(--color-text-main); font-family: var(--font-display); font-size: 26px; font-weight: 400; line-height: 1.2; }
 .p9-crisis img { justify-self: center; width: auto; max-width: 100%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 8px 10px rgb(40 60 90 / 18%)); }
 .p9-hints { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.p9-hints li { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 4px 12px; border: 2px solid var(--color-surface); border-radius: 999px; background: var(--color-surface); color: var(--color-primary-deep); font-size: 19px; font-weight: 850; }
+.p9-hints li { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 4px 12px; border: 2px solid var(--color-surface); border-radius: 999px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--color-primary-deep); font-size: 19px; font-weight: 850; }
 .p9-hints svg { flex: none; }
 .p9-stage .v4-slotboard { padding: 0; }
 .p9-stage .v4-slot { min-height: 150px; }
@@ -24,7 +24,7 @@
 .p9-ending { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
 /* 장면 그림은 자르지 않고 담는다 — 남는 자리는 숲빛 그라데이션 */
 .p9-ending__scene { width: 100%; height: 100%; min-height: 0; object-fit: contain; background: linear-gradient(180deg, var(--color-secondary-soft), var(--color-primary-soft)); }
-.p9-ending__copy { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 14px; padding: 10px 18px; background: var(--color-surface); }
+.p9-ending__copy { display: grid; grid-template-columns: 80px minmax(0, 1fr); align-items: center; gap: 14px; padding: 10px 18px; background: var(--glass-2); backdrop-filter: var(--glass-blur); }
 .p9-ending__copy img { width: 80px; height: 80px; object-fit: contain; }
 .p9-ending__copy strong { color: var(--color-text-main); font-family: var(--font-display); font-size: 24px; font-weight: 400; line-height: 1.3; }
 
