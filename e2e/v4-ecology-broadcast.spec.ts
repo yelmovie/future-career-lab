@@ -179,7 +179,7 @@ test('page 8: audio, four segments of screen + caption, rumor bounces, mic incid
   const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(save.artifacts.clip).toEqual({ trust: 80, corrections: 1 });
   expect(save.stageProgress.completedPages).toContain(8);
-  await page.getByRole('button', { name: /연합 작전으로/ }).click();
+  await page.getByRole('button', { name: /숲 살리기 작전으로/ }).click();
   await expect(page).toHaveURL(/page\/9/);
   expect(errors).toEqual([]);
 });

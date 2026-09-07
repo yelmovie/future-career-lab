@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { audioService } from '../services/audioService';
-import { backgroundFor, fallbackTo, pageAsset, v2Asset, v5Asset } from '../shared/assets';
+import { backgroundFor, fallbackTo, pageAsset, v2Asset, v5Asset, v6Asset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -35,18 +35,23 @@ const POINT_SCENE: Record<PointId, { src: string; fallback: string }> = {
   B: { src: v5Asset('scene-stream'), fallback: v2Asset('photo-stream') },
   C: { src: v5Asset('scene-deep'), fallback: backgroundFor(7) },
 };
-/** 행동별 장면 변화: 그림이 없으면 before 사진 위에 색 필터만 얹는다(.p7-edge[data-change]). */
-const ACTION_SCENE: Record<CauseId, { src: string; fallback: string }> = {
-  logging: { src: v5Asset('scene-edge-trees'), fallback: v2Asset('photo-logging') },
-  noise: { src: v5Asset('scene-edge-quiet'), fallback: v2Asset('photo-logging') },
-  water: { src: v5Asset('scene-edge-water'), fallback: v2Asset('photo-logging') },
+const COMPARE_BEFORE = v6Asset('ecology-compare-before');
+/** 같은 카메라에서 변수 하나만 바뀐 장면. 전후 슬라이더가 실험 조건을 그대로 보여 준다. */
+const ACTION_SCENE: Record<CauseId, string> = {
+  logging: v6Asset('ecology-compare-trees'),
+  noise: v6Asset('ecology-compare-quiet'),
+  water: v6Asset('ecology-compare-water'),
 };
 const ACTION_ICON: Record<CauseId, { src: string; fallback: string }> = {
   logging: { src: v5Asset('act-plant-tree', 'png'), fallback: v2Asset('trace-fruit') },
   noise: { src: v5Asset('act-quiet', 'png'), fallback: pageAsset(7, 3) },
   water: { src: v5Asset('act-fill-water', 'png'), fallback: pageAsset(6, 7) },
 };
-const BIRD = { src: v5Asset('bird-small', 'png'), fallback: pageAsset(7, 4) };
+const BIRDS = [
+  v6Asset('forest-bird-1', 'png'), v6Asset('forest-bird-2', 'png'), v6Asset('forest-bird-3', 'png'),
+  v6Asset('forest-bird-4', 'png'), v6Asset('forest-bird-5', 'png'), v6Asset('forest-bird-6', 'png'),
+] as const;
+const BIRD_FALLBACK = pageAsset(7, 4);
 /** 새 아이콘이 앉는 자리(장면 안 %). 새 수만큼 앞에서부터 쓴다. */
 const PERCHES: [number, number][] = [[18, 62], [70, 40], [46, 30], [82, 66], [30, 40], [58, 70], [12, 34], [90, 28], [40, 58], [64, 22], [24, 76], [76, 52], [52, 46], [8, 50], [86, 80], [34, 20]];
 const GUESSES: { id: Prediction; label: string }[] = [
@@ -96,7 +101,7 @@ function Birds({ count, className }: { count: number; className?: string }) {
   return (
     <span className={`p7-birds${className ? ` ${className}` : ''}`} aria-hidden="true">
       {PERCHES.slice(0, Math.min(count, PERCHES.length)).map(([x, y], i) => (
-        <img key={i} src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${(i % 5) * 0.3}s` } as CSSProperties} />
+        <img key={i} src={BIRDS[i % BIRDS.length]} onError={fallbackTo(BIRD_FALLBACK)} alt="" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${(i % 5) * 0.3}s` } as CSSProperties} />
       ))}
     </span>
   );
@@ -114,6 +119,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [prediction, setPrediction] = useState<Prediction | null>(stored.prediction);
   const [lastTrial, setLastTrial] = useState<Trial | null>(stored.lastTrial);
   const [main, setMain] = useState<CauseId | null>(stored.main);
+  const [comparePosition, setComparePosition] = useState(50);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(7));
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
   const [intro, setIntro] = useState(() => !completed && stored.step === 1 && stored.found.length === 0 && !(save.pageData.page07Intro === true));
@@ -165,6 +171,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const execute = () => {
     if (!active || !prediction) return;
     const trial = applyAction(active, prediction);
+    setComparePosition(50);
     setTrials([...trials, trial]);
     setLastTrial(trial);
     audioService.playSfx(actualDirection(trial.before, trial.after) === prediction ? 'success' : 'record');
@@ -294,7 +301,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
                   <Birds count={birds} />
                 </span>
                 <strong>{p.id} {p.title}</strong>
-                <em><img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />새 {birds}마리</em>
+                <em><img src={BIRDS[POINTS.indexOf(p) % BIRDS.length]} onError={fallbackTo(BIRD_FALLBACK)} alt="" />새 {birds}마리</em>
               </button>
             );
           })}
@@ -303,13 +310,35 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
 
       {step === 3 && (
         <div className="v4-card p7-lab">
-          <div className={`p7-edge${lastTrial ? ' has-change' : ''}`} data-change={lastTrial?.variable ?? ''} aria-live="polite">
-            {lastTrial
-              ? <img key={lastTrial.variable} className="p7-edge__scene" src={ACTION_SCENE[lastTrial.variable].src} onError={fallbackTo(ACTION_SCENE[lastTrial.variable].fallback)} alt={`${getAction(lastTrial.variable).label} 뒤의 숲 가장자리`} />
-              : <img key="before" className="p7-edge__scene" src={POINT_SCENE.A.src} onError={fallbackTo(POINT_SCENE.A.fallback)} alt="지금의 숲 가장자리" />}
+          <div className={`p7-edge${lastTrial ? ' has-comparison' : ''}`} aria-live="polite">
+            <img className="p7-edge__scene" src={COMPARE_BEFORE} alt="행동하기 전: 나무가 적고 기계가 움직이며 개울이 마른 숲 가장자리" />
+            {lastTrial && (
+              <>
+                <img
+                  key={lastTrial.variable}
+                  className="p7-edge__scene p7-edge__scene--after"
+                  src={ACTION_SCENE[lastTrial.variable]}
+                  alt={`${getAction(lastTrial.variable).label} 뒤의 숲 가장자리`}
+                  style={{ '--compare-position': `${comparePosition}%` } as CSSProperties}
+                />
+                <span className="p7-edge__before-label">전</span>
+                <span className="p7-edge__after-label">후</span>
+                <span className="p7-edge__divider" style={{ left: `${comparePosition}%` }} aria-hidden="true"><b>↔</b></span>
+                <input
+                  className="p7-edge__range"
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={comparePosition}
+                  aria-label="숲 변화 전후 비교 막대"
+                  aria-valuetext={`복원 후 장면 ${comparePosition}% 보기`}
+                  onChange={(event) => setComparePosition(Number(event.target.value))}
+                />
+              </>
+            )}
             <Birds count={shownBirds} className={lastTrial ? 'is-arriving' : ''} />
             <span className="p7-edge__count">
-              <img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />
+              <img src={BIRDS[0]} onError={fallbackTo(BIRD_FALLBACK)} alt="" />
               {lastTrial ? <><s>{lastTrial.before}</s> → <b>{lastTrial.after}</b>마리</> : <><b>{before}</b>마리</>}
             </span>
             {activeAction && <span className="p7-edge__tag">{activeAction.label}{lastTrial ? ' 했더니' : ' 해 보기'}</span>}
@@ -326,7 +355,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
                       <button key={action.id} type="button" className={`p7-action${isActive ? ' is-active' : ''}${done ? ' is-done' : ''}${active && !isActive ? ' is-dim' : ''}${react?.shake === action.id ? ' v4-shake' : ''}`} aria-pressed={isActive} onClick={() => pickAction(action.id)} aria-label={`${action.label}${done ? ` 해 봄, 새 ${done.after}마리` : ''}`}>
                         <img src={ACTION_ICON[action.id].src} onError={fallbackTo(ACTION_ICON[action.id].fallback)} alt="" />
                         <span>{action.label}</span>
-                        {done && <small><img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />{done.after}마리</small>}
+                        {done && <small><img src={BIRDS[ACTIONS.indexOf(action) % BIRDS.length]} onError={fallbackTo(BIRD_FALLBACK)} alt="" />{done.after}마리</small>}
                       </button>
                     );
                   })}

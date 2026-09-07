@@ -21,7 +21,7 @@
 .p7-stamps img { width: 40px; height: 40px; object-fit: contain; }
 
 /* ----- 공통: 장면 위 작은 새 ----- */
-.p7-birds { position: absolute; inset: 0; pointer-events: none; }
+.p7-birds { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
 .p7-birds img { position: absolute; width: 34px; height: 34px; object-fit: contain; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 4px rgb(0 0 0 / 30%)); animation: p7-hop 1.8s ease-in-out infinite; }
 .p7-birds.is-arriving img { animation: p7-arrive .9s ease-out both, p7-hop 1.8s ease-in-out 1s infinite; }
 .p7-birds--row { position: static; display: flex; justify-content: center; gap: 2px; flex-wrap: wrap; }
@@ -44,19 +44,21 @@
 
 /* ----- 3단계: 장면 + 행동 카드 ----- */
 .p7-lab { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; padding: 14px 18px; }
-.p7-edge { position: relative; min-height: 0; overflow: hidden; border-radius: 22px; background: var(--color-bg); }
-.p7-edge__scene { width: 100%; height: 100%; object-fit: cover; animation: p7-fade .6s ease both; }
+.p7-edge { position: relative; min-height: 0; overflow: hidden; border: 3px solid rgb(255 255 255 / 88%); border-radius: 22px; background: var(--color-bg); box-shadow: 0 12px 24px rgb(20 54 38 / 20%); }
+.p7-edge__scene { display: block; width: 100%; height: 100%; object-fit: cover; animation: p7-fade .6s ease both; }
+.p7-edge__scene--after { position: absolute; inset: 0; z-index: 2; clip-path: inset(0 calc(100% - var(--compare-position)) 0 0); }
 @keyframes p7-fade { from { opacity: 0; } to { opacity: 1; } }
-/* v6 그림이 없을 때 before 사진 위에 얹는 "달라진 느낌" 필터 */
-.p7-edge.has-change::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; }
-.p7-edge[data-change='logging']::after { background: rgb(80 200 90 / 55%); }
-.p7-edge[data-change='noise']::after { background: rgb(120 170 255 / 45%); }
-.p7-edge[data-change='water']::after { background: rgb(90 210 240 / 50%); }
-.p7-edge__count { position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; background: var(--glass-3); color: var(--ink); font-size: 22px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
+.p7-edge__before-label, .p7-edge__after-label { position: absolute; top: 12px; z-index: 7; display: grid; place-items: center; min-width: 46px; min-height: 38px; border: 2px solid rgb(255 255 255 / 90%); border-radius: 999px; color: #fff; font-size: 19px; font-weight: 950; text-shadow: 0 1px 3px rgb(0 0 0 / 50%); box-shadow: 0 5px 12px rgb(0 0 0 / 22%); }
+.p7-edge__after-label { left: 12px; background: rgb(24 158 105 / 90%); }
+.p7-edge__before-label { right: 12px; background: rgb(56 68 83 / 82%); }
+.p7-edge__divider { position: absolute; inset-block: 0; z-index: 6; width: 5px; background: #fff; box-shadow: 0 0 0 1px rgb(24 70 58 / 30%), 0 0 16px rgb(0 0 0 / 35%); transform: translateX(-50%); pointer-events: none; }
+.p7-edge__divider b { position: absolute; left: 50%; top: 54%; display: grid; place-items: center; width: 48px; height: 48px; border: 4px solid #fff; border-radius: 50%; background: var(--color-secondary); color: #fff; font-family: sans-serif; font-size: 24px; line-height: 1; box-shadow: 0 5px 16px rgb(0 0 0 / 30%); transform: translate(-50%, -50%); }
+.p7-edge__range { position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.p7-edge__count { position: absolute; right: 12px; bottom: 12px; z-index: 9; display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; background: var(--glass-3); color: var(--ink); font-size: 22px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); pointer-events: none; }
 .p7-edge__count img { width: 28px; height: 28px; object-fit: contain; }
 .p7-edge__count s { color: var(--color-text-sub); text-decoration: line-through; }
 .p7-edge__count b { color: var(--color-secondary-edge); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
-.p7-edge__tag { position: absolute; left: 12px; top: 12px; padding: 6px 14px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 18px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
+.p7-edge__tag { position: absolute; left: 12px; bottom: 12px; z-index: 9; padding: 6px 14px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 18px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); pointer-events: none; }
 .p7-side { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; }
 .p7-actions { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; }
 .p7-action { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); font-size: 22px; font-weight: 850; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }

@@ -1,69 +1,61 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { SlotBoard } from '../components/v4/SlotBoard';
 import { audioService } from '../services/audioService';
-import { fallbackTo, homeAsset, pageAsset, v2Asset, v3Asset } from '../shared/assets';
+import { fallbackTo, homeAsset, pageAsset, v2Asset, v3Asset, v5Asset } from '../shared/assets';
 import { JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
-import { CRISES, HINT_BY_JOB, JOB_ORDER, cardQualities, ecologyTrials, pairVerdict, type CrisisId } from './page08CrisisModel';
+import { JOB_BRINGS, JOB_ORDER, MISSIONS, isClean, isRightPair, type MissionId } from './page09AllianceModel';
 import './page07-08.css';
 
 interface PageProps { onNavigate: (page: PageNumber) => void }
 
 const STAGE = STAGE_META[4]!;
-/** 연합 작전의 멘토는 탐험단장 — 넷을 한자리에 모은 사람. */
+/** 작전의 멘토는 탐험단장 — 넷을 한자리에 모은 사람. */
 const MENTOR = homeAsset('mentor');
-const SAVE_KEY = 'p9Crisis';
+const SAVE_KEY = 'p9Alliance';
 
-function readProgress(value: unknown): { index: number; attempts: number } {
-  const raw = (value && typeof value === 'object' ? value : {}) as Partial<Record<'index' | 'attempts', unknown>>;
-  const index = typeof raw.index === 'number' ? Math.max(0, Math.min(CRISES.length - 1, Math.floor(raw.index))) : 0;
-  const attempts = typeof raw.attempts === 'number' && raw.attempts >= 0 ? Math.floor(raw.attempts) : 0;
-  return { index, attempts };
-}
 const BADGE_IMAGE: Record<JobId, string> = {
   drone: pageAsset(8, 5),
   care: pageAsset(8, 4),
   ecology: v2Asset('badge-ecology'),
   broadcast: v2Asset('badge-broadcast'),
 };
-const CRISIS_IMAGE: Record<CrisisId, string> = { fire: pageAsset(8, 9), flock: pageAsset(8, 7), citizens: pageAsset(8, 3) };
-const BUBBLE: Record<CrisisId, string> = {
-  fire: '불이 어디까지 번졌는지 누가 볼 수 있지?',
-  flock: '다친 새를 받아 줄 사람은 누구지?',
-  citizens: '소문을 잠재우려면 뭐가 필요하지?',
+/** 작전 전·후 장면. v6 그림이 없으면 앞 스테이지 사진 위에 색만 얹는다(.p9-scene[data-after]). */
+const SCENE: Record<MissionId, { before: string; after: { src: string; fallback: string } }> = {
+  trees: { before: v2Asset('photo-logging'), after: { src: v5Asset('scene-edge-trees'), fallback: v2Asset('photo-logging') } },
+  water: { before: v2Asset('photo-stream'), after: { src: v5Asset('scene-edge-water'), fallback: v2Asset('photo-stream') } },
+  quiet: { before: v2Asset('photo-construction'), after: { src: v5Asset('scene-edge-quiet'), fallback: v2Asset('photo-construction') } },
 };
 
 type SlotId = 'a' | 'b';
 const SLOTS = [{ id: 'a' as const, label: '힘 1' }, { id: 'b' as const, label: '힘 2' }];
 const EMPTY: Record<SlotId, JobId[]> = { a: [], b: [] };
 
-/** 힌트 아이콘 — 직업 이름 대신 "무엇이 필요한지"를 그림으로. */
-function HintIcon({ job }: { job: JobId }) {
-  const common = { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  switch (job) {
-    case 'drone': return <svg {...common}><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>;
-    case 'ecology': return <svg {...common}><path d="M4 20V4M4 20h16" /><rect x="7" y="11" width="3" height="6" /><rect x="12" y="7" width="3" height="10" /><rect x="17" y="13" width="3" height="4" /></svg>;
-    case 'care': return <svg {...common}><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-5h4v5" /></svg>;
-    case 'broadcast': return <svg {...common}><path d="M3 10v4h3l8 4V6l-8 4H3Z" /><path d="M17 9a4 4 0 0 1 0 6" /></svg>;
-  }
+interface Progress { index: number; attempts: number; showing: boolean }
+function readProgress(value: unknown): Progress {
+  const raw = (value && typeof value === 'object' ? value : {}) as Partial<Record<keyof Progress, unknown>>;
+  const index = typeof raw.index === 'number' ? Math.max(0, Math.min(MISSIONS.length - 1, Math.floor(raw.index))) : 0;
+  const attempts = typeof raw.attempts === 'number' && raw.attempts >= 0 ? Math.floor(raw.attempts) : 0;
+  return { index, attempts, showing: raw.showing === true };
 }
 
 export default function Page08Crisis({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, addBadge, addJobCard, grantReward, setArtifacts, setPageData } = useGame();
   const alreadyCompleted = save.stageProgress.completedPages.includes(9);
-  const cards = useMemo(() => cardQualities(save.artifacts, ecologyTrials(save.pageData)), [save.artifacts, save.pageData]);
   const [stored] = useState(() => readProgress(save.pageData[SAVE_KEY]));
   const [index, setIndex] = useState(stored.index);
-  const [placed, setPlaced] = useState<Record<SlotId, JobId[]>>(EMPTY);
   const [attempts, setAttempts] = useState(stored.attempts);
-  useEffect(() => { setPageData(SAVE_KEY, { index, attempts }); }, [index, attempts, setPageData]);
+  /** 출동 성공 뒤 "무슨 일이 생겼는지" 보여 주는 화면 */
+  const [showing, setShowing] = useState(stored.showing);
+  const [placed, setPlaced] = useState<Record<SlotId, JobId[]>>(EMPTY);
   const [ended, setEnded] = useState(alreadyCompleted);
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null);
   const [react, setReact] = useState<string | null>(null);
+  useEffect(() => { setPageData(SAVE_KEY, { index, attempts, showing } satisfies Progress); }, [index, attempts, showing, setPageData]);
 
-  const crisis = CRISES[index]!;
+  const mission = MISSIONS[index]!;
   const jobs = [...placed.a, ...placed.b];
   const ready = jobs.length === 2;
 
@@ -75,9 +67,9 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     setReact(null);
   };
 
-  const finish = (turns: number) => {
+  const finish = () => {
     setEnded(true);
-    setArtifacts({ allianceTurns: turns });
+    setArtifacts({ allianceTurns: attempts });
     completePage(9);
     addBadge(STAGE.badgeName);
     addJobCard(STAGE.jobTitle);
@@ -85,71 +77,104 @@ export default function Page08Crisis({ onNavigate }: PageProps) {
     logEvent({
       page: 9,
       type: 'alliance-clear',
-      summary: `위기 3개를 ${turns}번 출동으로 다 지켰어. 각 위기에 필요한 두 직업의 힘을 짝지었어.`,
+      summary: `숲 살리기 작전 3개를 ${attempts}번 출동으로 끝냈어. 작전마다 필요한 두 직업이 가져온 것을 짝지었어.`,
       tags: ['직업 협업', '연합 대응', '협업'],
       traits: { collaboration: 2, analysis: 1, execution: 1 },
-      contextRef: 'run-1',
+      contextRef: isClean(attempts) ? 'clean' : 'run-1',
     });
     audioService.playSfx('reward');
   };
 
   const dispatch = () => {
-    const turns = attempts + 1;
-    setAttempts(turns);
-    if (pairVerdict(crisis, jobs) === 'pair') {
+    setAttempts(attempts + 1);
+    if (isRightPair(mission, jobs)) {
       audioService.playSfx('success');
       setFlash('ok');
       window.setTimeout(() => {
         setFlash(null);
         setPlaced(EMPTY);
-        if (index + 1 < CRISES.length) setIndex(index + 1);
-        else finish(turns);
-      }, 900);
+        setShowing(true);
+        audioService.playCue('parrotHappy', 1200);
+      }, 700);
     } else {
       audioService.playSfx('warning');
       setFlash('no');
-      setReact('이 힌트는 누구 힘이지?');
+      setReact(mission.wrong);
       window.setTimeout(() => { setFlash(null); setPlaced(EMPTY); }, 500);
     }
   };
 
+  const nextMission = () => {
+    audioService.playSfx('tap');
+    setShowing(false);
+    if (index + 1 < MISSIONS.length) setIndex(index + 1);
+    else finish();
+  };
+
   const help = (
     <div className="p9-help">
-      <p>위기 카드의 힌트 두 개를 보고, 그 힘을 가진 배지 두 개를 자리에 놓고 <b>출동!</b>을 눌러.</p>
-      <ul>{cards.map((card) => <li key={card.job}><img src={BADGE_IMAGE[card.job]} alt="" /><span>{JOB_LABELS[card.job]}</span><small>{card.chip}</small></li>)}</ul>
-      <p>끝내면 <b>{STAGE.reward}</b>을 받아.</p>
+      <p>작전 카드에 "필요한 것" 두 개가 적혀 있어. 그걸 가져온 직업 배지 두 개를 자리에 놓고 <b>출동!</b>을 눌러.</p>
+      <ul>{JOB_ORDER.map((job) => <li key={job}><img src={BADGE_IMAGE[job]} alt="" /><span>{JOB_LABELS[job]}</span><small>{JOB_BRINGS[job]}</small></li>)}</ul>
+      <p>끝내면 <b>{STAGE.reward}</b>을 받아. 헛 출동 없이 세 번에 끝내면 최고!</p>
     </div>
   );
 
   if (ended) {
     return (
-      <StepShell page={9} step={3} steps={3} instruction="푸른솔 숲에 새소리가 돌아왔어" mentor={MENTOR} mentorName="탐험단장" bubble="넷이 함께라서 셋을 다 막았지?" onNavigate={onNavigate} className="page09-alliance"
+      <StepShell page={9} step={3} steps={3} instruction="푸른솔 숲에 새소리가 돌아왔어" mentor={MENTOR} mentorName="탐험단장" bubble="넷이 각자 찾은 걸 합치니까 숲이 살아났지?" onNavigate={onNavigate} className="p9-page"
         next={{ label: '탐험 돌아보기', onClick: () => onNavigate(10) }}>
-        <section className="v4-card p9-ending" aria-label="연합 작전 완료">
-          <img className="p9-ending__scene" src={v3Asset('scene-reunion')} onError={fallbackTo(homeAsset('parrot-pair'))} alt="숲에 새들이 돌아온 장면" />
-          <div className="p9-ending__copy">
-            <img src={pageAsset(8, 10)} alt="연합 엠블럼" />
-            <strong>혼자였다면 하나도 못 막았어. 넷이 이어 붙어서 셋을 다 지켰어.</strong>
+        <section className="v4-card p9-ending" aria-label="숲 살리기 작전 완료">
+          <img className="p9-ending__scene" src={v3Asset('scene-reunion')} onError={fallbackTo(v2Asset('scene-restored'))} alt="새들이 돌아온 푸른솔 숲" />
+          <div className="p9-ending__copy" role="status">
+            <img src={pageAsset(8, 10)} alt={STAGE.badgeName} />
+            <div>
+              <strong>{STAGE.badgeName}을 얻었어</strong>
+              <p>{isClean(attempts) ? '헛 출동 없이 세 작전을 다 끝냈어! 지구와 젤리도, 숲의 새들도 돌아왔어.' : '나무를 심고, 물길을 트고, 소음을 줄였어. 지구와 젤리도, 숲의 새들도 돌아왔어.'}</p>
+            </div>
           </div>
         </section>
       </StepShell>
     );
   }
 
+  if (showing) {
+    return (
+      <StepShell page={9} step={index + 1} steps={MISSIONS.length} instruction={`${mission.title} 성공!`} mentor={MENTOR} mentorName="탐험단장" bubble={index + 1 < MISSIONS.length ? '둘이 가져온 걸 합치니 풀렸어. 다음 작전!' : '마지막 작전까지 끝났어!'} onNavigate={onNavigate} className="p9-page"
+        status={`작전 ${index + 1} / ${MISSIONS.length}`}
+        next={{ label: index + 1 < MISSIONS.length ? '다음 작전' : '숲 보러 가기', onClick: nextMission }}>
+        <div className="v4-card p9-result" role="status">
+          <div className="p9-scene p9-scene--before">
+            <img src={SCENE[mission.id].before} alt="작전 전" />
+            <span>전</span>
+          </div>
+          <div className="p9-scene p9-scene--after" data-after={mission.id}>
+            <img src={SCENE[mission.id].after.src} onError={fallbackTo(SCENE[mission.id].after.fallback)} alt="작전 후" />
+            <span>후</span>
+          </div>
+          <div className="p9-result__copy">
+            <ul className="p9-result__pair">{mission.needs.map((job) => <li key={job}><img src={BADGE_IMAGE[job]} alt="" />{JOB_LABELS[job]}의 {JOB_BRINGS[job]}</li>)}</ul>
+            <strong>{mission.result}</strong>
+          </div>
+        </div>
+      </StepShell>
+    );
+  }
+
   return (
-    <StepShell page={9} step={index + 1} steps={CRISES.length} instruction="힌트에 맞는 힘 두 개를 놓아" mentor={MENTOR} mentorName="탐험단장" bubble={BUBBLE[crisis.id]} help={help} onNavigate={onNavigate} className="page09-alliance"
-      status={`위기 ${index + 1} / ${CRISES.length}`}
+    <StepShell page={9} step={index + 1} steps={MISSIONS.length} instruction="필요한 것을 가져온 직업 둘을 놓아" mentor={MENTOR} mentorName="탐험단장" bubble={mission.bubble} help={help} onNavigate={onNavigate} className="p9-page"
+      status={`작전 ${index + 1} / ${MISSIONS.length}`}
       next={{ label: '출동!', disabled: !ready || flash !== null, hint: '배지 두 개를 자리에 놓아', onClick: dispatch }}>
       <div className={`v4-card p9-stage${flash === 'no' ? ' v4-shake' : ''}`}>
-        <article className={`p9-crisis${flash === 'ok' ? ' is-ok' : ''}`} aria-label={crisis.title}>
-          <h3>{crisis.title}</h3>
-          <img src={CRISIS_IMAGE[crisis.id]} alt="" />
-          <ul className="p9-hints" aria-label="필요한 힘">
-            {crisis.needs.map((job) => <li key={job}><HintIcon job={job} />{HINT_BY_JOB[job]}</li>)}
+        <article className={`p9-mission${flash === 'ok' ? ' is-ok' : ''}`} aria-label={mission.title}>
+          <h3>{mission.title}</h3>
+          <div className="p9-scene p9-scene--card"><img src={SCENE[mission.id].before} alt="" /></div>
+          <p className="p9-problem">{mission.problem}</p>
+          <ul className="p9-hints" aria-label="필요한 것">
+            {mission.needs.map((job) => <li key={job}>{mission.hints[job]}</li>)}
           </ul>
         </article>
         <SlotBoard<JobId, SlotId>
-          chips={JOB_ORDER.map((job) => ({ id: job, image: BADGE_IMAGE[job], label: JOB_LABELS[job] }))}
+          chips={JOB_ORDER.map((job) => ({ id: job, image: BADGE_IMAGE[job], label: `${JOB_LABELS[job]} · ${JOB_BRINGS[job]}` }))}
           slots={SLOTS}
           placed={placed}
           onPlace={place}

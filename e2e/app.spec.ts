@@ -105,7 +105,7 @@ test('teacher password unlocks every screen at once without changing progress', 
     '새 정원 다시 만들기',
     '숲 생태 조사',
     '생방송 컨트롤룸',
-    '네 직업 연합 작전',
+    '숲 살리기 연합 작전',
     '탐험 돌아보기',
     '탐험 수료증',
   ];

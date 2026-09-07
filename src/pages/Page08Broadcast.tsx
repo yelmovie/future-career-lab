@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { PictureChoice } from '../components/v4/PictureChoice';
 import { audioService } from '../services/audioService';
-import { pageAsset, v2Asset } from '../shared/assets';
+import { pageAsset, v6Asset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -19,7 +19,6 @@ import {
   createBroadcast,
   currentSegment,
   isFinished,
-  photoIds,
   resolveIncident,
   restoreBroadcast,
   segmentCards,
@@ -35,16 +34,50 @@ const SAVE_KEY = 'p8Broadcast';
 const STAGE = STAGE_META[3]!;
 const MENTOR = pageAsset(3, 3);
 const SOURCES: SourceId[] = ['drone', 'studio', 'reporter'];
-/** 카드 종류별 그림. 소문 카드는 "?" 표식 없이 휴대 기기 그림 — 출처 글을 읽어야 가려낼 수 있다. */
-const KIND_IMAGE: Record<CaptionCard['kind'], string> = { graph: pageAsset(5, 9), photo: v2Asset('photo-logging'), action: pageAsset(7, 5), rumor: pageAsset(3, 9) };
-const cardImage = (card: CaptionCard) => (card.photo ? v2Asset(`photo-${card.photo}`) : KIND_IMAGE[card.kind]);
-const INCIDENT_ICON: Record<string, string> = { 'mic-swap': pageAsset(4, 5), 'mic-ignore': pageAsset(4, 7) };
+/** 한 뉴스 특집처럼 톤을 맞춘 근거 이미지. 소문은 출처 글을 읽어 가려낸다. */
+const KIND_IMAGE: Record<CaptionCard['kind'], string> = {
+  graph: v6Asset('broadcast-evidence-graph'),
+  photo: v6Asset('broadcast-field-poster'),
+  action: v6Asset('broadcast-action-poster'),
+  rumor: v6Asset('broadcast-rumor-social'),
+};
+const PHOTO_IMAGE = {
+  logging: v6Asset('broadcast-field-poster'),
+  stream: v6Asset('ecology-compare-before'),
+  construction: v6Asset('broadcast-field-poster'),
+} as const;
+const cardImage = (card: CaptionCard) => (card.photo ? PHOTO_IMAGE[card.photo] : KIND_IMAGE[card.kind]);
+const INCIDENT_ICON: Record<string, string> = {
+  'mic-swap': v6Asset('broadcast-mic-swap'),
+  'mic-ignore': v6Asset('broadcast-mic-ignore'),
+};
 const WAVE_BARS = [.35, .7, 1, .55, .85, .45, .95, .6, .8, .4, 1, .65, .5, .9, .3];
+
+type ProgramMediaProps = { poster: string; video?: string; label: string; play?: boolean };
+
+function ProgramMedia({ poster, video, label, play = false }: ProgramMediaProps) {
+  const [videoFailed, setVideoFailed] = useState(false);
+  useEffect(() => setVideoFailed(false), [video]);
+  return (
+    <span className="p8-program-media" role="img" aria-label={label}>
+      {play && video && !videoFailed
+        ? <video autoPlay muted loop playsInline poster={poster} onError={() => setVideoFailed(true)} aria-hidden="true"><source src={video} type="video/mp4" /></video>
+        : <img src={poster} alt="" />}
+    </span>
+  );
+}
+
+const VIDEO_PATH = {
+  opening: '/video/broadcast/opening.mp4',
+  scene: '/video/broadcast/field.mp4',
+  cause: '/video/broadcast/cause.mp4',
+  action: '/video/broadcast/action.mp4',
+  incident: '/video/broadcast/mic-failure.mp4',
+} as const;
 
 export default function Page08Broadcast({ onNavigate }: PageProps) {
   const { save, completePage, logEvent, setPageData, addBadge, addJobCard, setArtifacts } = useGame();
   const cards = useMemo(() => buildCaptionCards(save.artifacts), [save.artifacts]);
-  const photos = useMemo(() => photoIds(save.artifacts.photos), [save.artifacts.photos]);
   const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast(save.sessionSeed));
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(8));
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
@@ -59,7 +92,24 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   const incident = INCIDENTS.find((item) => item.id === state.pendingIncident) ?? null;
   const options = useMemo(() => segmentCards(cards, state.index, save.sessionSeed), [cards, state.index, save.sessionSeed]);
   const caption = options.find((card) => card.id === state.draft.captionId) ?? null;
-  const sourceImage: Record<SourceId, string> = { drone: v2Asset(`photo-${photos[0] ?? 'logging'}`), studio: pageAsset(4, 7), reporter: v2Asset('reporter') };
+  const studioPoster = segment?.id === 'cause' || segment?.id === 'correction'
+    ? v6Asset('broadcast-cause-poster')
+    : v6Asset('broadcast-opening-poster');
+  const sourceImage: Record<SourceId, string> = {
+    drone: v6Asset('broadcast-field-poster'),
+    studio: studioPoster,
+    reporter: v6Asset('broadcast-action-poster'),
+  };
+  const programPoster = incident
+    ? v6Asset('broadcast-mic-failure-poster')
+    : state.draft.source
+      ? sourceImage[state.draft.source]
+      : v6Asset('broadcast-standby-poster');
+  const programVideo = incident
+    ? VIDEO_PATH.incident
+    : state.draft.source && segment
+      ? VIDEO_PATH[segment.id === 'correction' ? 'cause' : segment.id as keyof Omit<typeof VIDEO_PATH, 'incident'>]
+      : undefined;
   const result = done ? (isFinished(state) ? clipResult(state) : save.artifacts.clip ?? clipResult(state)) : null;
 
   const bounce = (text: string, shake?: string) => {
@@ -130,7 +180,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
     caption ? (caption.sourced ? '좋아, 송출!' : '출처가 어디서 왔지?') : '출처를 잘 봐.'
   );
   const next = done
-    ? { label: '연합 작전으로', onClick: () => onNavigate(9) }
+    ? { label: '숲 살리기 작전으로', onClick: () => onNavigate(9) }
     : audioPhase
       ? { label: '방송 시작', disabled: zone !== 'ok', hint: '초록 칸에 맞추면 켜져요', onClick: () => { setAudioDone(true); audioService.playSfx('success'); } }
       : { label: '송출', disabled: Boolean(incident) || !caption, hint: incident ? '사고부터 처리해' : !state.draft.source ? '화면부터 골라' : '자막을 골라', onClick: air };
@@ -148,7 +198,8 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
       <div className="p8-stage">
         <div className={`v4-card p8-screen${done ? ' is-off' : ''}`} aria-label="송출 화면">
           <span className="p8-onair">{done ? 'OFF AIR' : 'ON AIR'}</span>
-          {state.draft.source ? <img className="p8-screen__art" src={sourceImage[state.draft.source]} alt={SOURCE_LABEL[state.draft.source]} /> : <span className="p8-screen__empty">{segment?.title}</span>}
+          <ProgramMedia poster={programPoster} video={programVideo} play={Boolean(incident || state.draft.source)} label={incident ? '마이크가 끊긴 현장 영상' : state.draft.source ? SOURCE_LABEL[state.draft.source] : '방송 대기 화면'} />
+          {!state.draft.source && !incident && <span className="p8-screen__empty">{audioPhase ? '방송 준비' : segment?.title}</span>}
           {caption && <p className={`p8-screen__caption${caption.sourced ? '' : ' is-rumor'}`}>{caption.text}</p>}
         </div>
 

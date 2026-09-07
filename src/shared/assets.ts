@@ -38,6 +38,16 @@ export type V5Asset =
   | 'trace-machine-sound' | 'trace-parrot-call' | 'trace-parrot-footprint'
   | 'drone-map-wide';
 export const v5Asset = (name: V5Asset, extension: 'webp' | 'png' = 'webp') => `/assets/v5/${name}.${extension}`;
+
+export type V6Asset =
+  | 'ecology-compare-before' | 'ecology-compare-trees' | 'ecology-compare-quiet' | 'ecology-compare-water'
+  | 'broadcast-control-room' | 'broadcast-standby-poster' | 'broadcast-opening-poster' | 'broadcast-field-poster'
+  | 'broadcast-cause-poster' | 'broadcast-action-poster' | 'broadcast-mic-failure-poster'
+  | 'broadcast-evidence-graph' | 'broadcast-rumor-social'
+  | 'broadcast-mic-swap' | 'broadcast-mic-ignore'
+  | 'forest-bird-1' | 'forest-bird-2' | 'forest-bird-3'
+  | 'forest-bird-4' | 'forest-bird-5' | 'forest-bird-6';
+export const v6Asset = (name: V6Asset, extension: 'webp' | 'png' = 'webp') => `/assets/v6/${name}.${extension}`;
 /** v3 그림이 없을 때 v2 그림으로 조용히 되돌린다 (한 번만). */
 export const fallbackTo = (src: string) => (event: { currentTarget: HTMLImageElement }) => {
   const img = event.currentTarget;

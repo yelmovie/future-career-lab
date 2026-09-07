@@ -60,39 +60,44 @@ test('alliance: three crises in a row, a wrong pair bounces back, the ending han
   await seed(page);
   await page.goto('/#/page/9');
 
-  await expect(page.getByRole('heading', { name: '힌트에 맞는 힘 두 개를 놓아' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '필요한 것을 가져온 직업 둘을 놓아' })).toBeVisible();
   await expect(page.locator('.v4-bubble span')).toHaveText('탐험단장');
-  await expect(page.locator('.p9-crisis h3')).toHaveText('숲 가장자리 화재');
-  await expect(page.locator('.p9-hints')).not.toContainText(/드론|방송|돌봄|생태/);
+  await expect(page.locator('.p9-mission h3')).toHaveText('열매 나무 다시 심기');
+  await expect(page.locator('.p9-hints')).not.toContainText(/드론|방송기술자|돌봄 전문가|생태연구가/);
 
   // 비활성 출동 버튼은 힌트 토스트만 띄운다
   await page.getByRole('button', { name: '출동!' }).click();
   await expect(page.locator('.v4-hint')).toHaveText('배지 두 개를 자리에 놓아');
 
-  // 틀린 짝 → 튕기고 질문 한 줄
-  await placePair(page, '드론 현장가', '동물돌봄 전문가');
+  // 틀린 짝 → 튕기고 되묻는 한 줄
+  await placePair(page, '드론 현장가 · 하늘 사진', '동물돌봄 전문가 · 돌봄 기록');
   await page.getByRole('button', { name: '출동!' }).click();
-  await expect(page.locator('.v4-react')).toHaveText('이 힌트는 누구 힘이지?');
-  await expect(page.locator('.p9-crisis h3')).toHaveText('숲 가장자리 화재');
+  await expect(page.locator('.v4-react')).toContainText('누가 가지고 있었지');
+  await expect(page.locator('.p9-mission h3')).toHaveText('열매 나무 다시 심기');
   await expect(page.locator('.v4-slot.has-chip')).toHaveCount(0);
 
-  await placePair(page, '드론 현장가', '미래방송기술자');
+  // 맞는 짝 → 전·후 결과 화면 → 다음 작전
+  await placePair(page, '드론 현장가 · 하늘 사진', '생태연구가 · 실험 결과');
   await page.getByRole('button', { name: '출동!' }).click();
-  await expect(page.locator('.p9-crisis h3')).toHaveText('새 둥지 구역 대피');
-
-  // 새로고침해도 위기 순서와 시도 횟수가 남는다
+  await expect(page.getByRole('heading', { name: '열매 나무 다시 심기 성공!' })).toBeVisible();
+  await expect(page.locator('.p9-result__copy strong')).toContainText('열매 나무');
+  // 새로고침해도 결과 화면과 순서가 남는다
   await page.reload();
-  await expect(page.locator('.p9-crisis h3')).toHaveText('새 둥지 구역 대피');
-  await expect(page.locator('.v4-status')).toHaveText('위기 2 / 3');
+  await expect(page.getByRole('heading', { name: '열매 나무 다시 심기 성공!' })).toBeVisible();
+  await page.getByRole('button', { name: '다음 작전' }).click();
+  await expect(page.locator('.p9-mission h3')).toHaveText('물길 트고 쉴 곳 만들기');
+  await expect(page.locator('.v4-status')).toHaveText('작전 2 / 3');
 
-  await placePair(page, '생태연구가', '동물돌봄 전문가');
+  await placePair(page, '동물돌봄 전문가 · 돌봄 기록', '드론 현장가 · 하늘 사진');
   await page.getByRole('button', { name: '출동!' }).click();
-  await expect(page.locator('.p9-crisis h3')).toHaveText('시민 오해');
+  await page.getByRole('button', { name: '다음 작전' }).click();
+  await expect(page.locator('.p9-mission h3')).toHaveText('공사 소음 줄이기 약속');
 
-  await placePair(page, '미래방송기술자', '생태연구가');
+  await placePair(page, '미래방송기술자 · 방송 클립', '생태연구가 · 실험 결과');
   await page.getByRole('button', { name: '출동!' }).click();
+  await page.getByRole('button', { name: '숲 보러 가기' }).click();
 
-  await expect(page.getByText('혼자였다면 하나도 못 막았어. 넷이 이어 붙어서 셋을 다 지켰어.')).toBeVisible();
+  await expect(page.getByText('연합 엠블럼을 얻었어')).toBeVisible();
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(saved.artifacts.allianceTurns).toBe(4);
   expect(saved.stageProgress.completedPages).toContain(9);
@@ -107,7 +112,7 @@ test('alliance revisit after completion shows the ending straight away', async (
   await seed(page, true);
   await page.goto('/#/page/9');
   await expect(page.getByRole('button', { name: '탐험 돌아보기' })).toBeVisible();
-  await expect(page.locator('.p9-crisis')).toHaveCount(0);
+  await expect(page.locator('.p9-mission')).toHaveCount(0);
 });
 
 test('reflection: prediction vs actual, then two picture statements unlock the certificate', async ({ page }) => {
