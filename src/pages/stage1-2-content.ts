@@ -34,9 +34,10 @@ export function windZonesFor(seed: number): WindZone[] {
 
 export type WindRelation = 'head' | 'side' | 'tail' | 'calm';
 export const WIND_LABEL: Record<WindRelation, string> = { head: '맞바람', side: '옆바람', tail: '뒷바람', calm: '잔잔함' };
-/** 맞바람은 3배, 뒷바람은 오히려 덜 든다. 균형은 simulateFlight 테스트가 지킨다. */
-export const DRAIN_MULTIPLIER: Record<WindRelation, number> = { head: 3, side: 1.3, tail: .6, calm: 1 };
-export const BASE_DRAIN_PER_SECOND = 3.8;
+/** 맞바람은 2.4배, 뒷바람은 오히려 덜 든다. 균형은 simulateFlight 테스트가 지킨다. */
+export const DRAIN_MULTIPLIER: Record<WindRelation, number> = { head: 2.4, side: 1.3, tail: .6, calm: 1 };
+/** 균형: 원 1·2·3 직행은 3번에 ≥29% 로 도착해 사진은 다 찍지만 잔량 9~26% 라 정밀 도장(≥30%)은 못 받고, 바람을 읽은 경로만 ≥48% 로 도장을 받는다. */
+export const BASE_DRAIN_PER_SECOND = 3.2;
 export const NUDGE_DRAIN = .3;
 export const DRONE_SPEED = .17;
 export const REC_DWELL_MS = 900;

@@ -2,7 +2,7 @@
 .drone-v4 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; height: 100%; min-height: 0; }
 .drone-v4.is-review { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
 .drone-v4__map { position: relative; }
-.drone-v4__tools { position: absolute; z-index: 4; top: 12px; right: 12px; display: flex; gap: 8px; }
+.drone-v4__tools { position: absolute; z-index: 4; right: 14px; bottom: 14px; display: flex; gap: 8px; }
 .drone-v4__pad { position: absolute; z-index: 4; right: 14px; bottom: 14px; grid-template-columns: repeat(4, 102px); gap: 8px; }
 .drone-v4__pad button { min-width: 102px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; }
 .drone-v4__pad button span,

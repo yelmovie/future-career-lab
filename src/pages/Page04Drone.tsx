@@ -182,8 +182,8 @@ class DroneFlightScene extends Phaser.Scene {
     if (!quality) return null;
     const photo = { id: this.recTarget, quality };
     this.photos.set(photo.id, quality);
-    this.rings.get(photo.id)?.setFillStyle(0x3ab76b, .35).setStrokeStyle(3, 0x74e49a, 1);
     this.recTarget = null;
+    this.drawMap(); // 배지 ✓ · 초록 이름표까지 바로 바뀌게 전체 다시 그림
     this.emitTelemetry();
     return photo;
   }
@@ -229,7 +229,7 @@ class DroneFlightScene extends Phaser.Scene {
     for (const [id, ring] of this.rings) {
       if (this.photos.has(id)) continue;
       const open = id === this.recTarget;
-      ring.setFillStyle(open ? 0xff6b5c : 0xe4a63c, open ? .38 : .22).setStrokeStyle(open ? 5 : 3, open ? 0xffb3aa : 0xffd37b, .95);
+      ring.setFillStyle(open ? 0xff6f61 : 0xffc53d, open ? .32 : .16).setStrokeStyle(open ? 5 : 3, 0xffffff, .95);
     }
   }
 
@@ -258,16 +258,19 @@ class DroneFlightScene extends Phaser.Scene {
     map.setScale(mapScale);
     this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, .10);
 
+    // 팔레트: 바람 = 하늘색(문맥, 얇게) / 목표 = 금색 → 찍으면 초록, 놓치면 산호 / 경로·점 = 파랑. 글자는 흰 알약 위 잉크색.
+    const PAL = { sky: 0x3d8bff, skyLine: 0xffffff, gold: 0xffc53d, goldDeep: 0xf2a51d, green: 0x35c48a, greenDeep: 0x219968, coral: 0xff6f61, coralDeep: 0xd94f43, ink: '#25384f', route: 0x3d8bff };
+
     this.zones.forEach((zone) => {
       const hot = this.highlightZone === zone.id;
-      const color = hot ? 0xd65b4a : 0x36b9bf;
-      this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, color, hot ? .3 : .12)
-        .setStrokeStyle(hot ? 5 : 2, color, hot ? 1 : .6).setDepth(1);
+      const color = hot ? PAL.coral : PAL.sky;
+      this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, color, hot ? .22 : .07)
+        .setStrokeStyle(hot ? 4 : 2, hot ? PAL.coral : PAL.skyLine, hot ? 1 : .7).setDepth(1);
       const g = this.add.graphics().setDepth(2);
-      g.lineStyle(hot ? 5 : 3, color, hot ? 1 : .8).fillStyle(color, hot ? 1 : .8);
+      g.lineStyle(hot ? 4 : 3, hot ? PAL.coralDeep : 0xffffff, hot ? 1 : .85).fillStyle(hot ? PAL.coralDeep : 0xffffff, hot ? 1 : .85);
       const cols = 3; const rows = 3;
       for (let c = 0; c < cols; c += 1) for (let r = 0; r < rows; r += 1) {
-        this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.wind, hot ? 16 : 11);
+        this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.wind, hot ? 15 : 11);
       }
       if (hot) this.add.text((zone.x + .01) * width, (zone.y + .01) * height, '여기서 배터리가 많이 닳았어', {
         fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff', backgroundColor: '#d94f43ee', padding: { x: 8, y: 4 },
@@ -278,35 +281,41 @@ class DroneFlightScene extends Phaser.Scene {
       const done = this.photos.has(target.id);
       const missed = !done && this.mode === 'review';
       const radius = REC_RADIUS * Math.min(width, height);
-      const ring = this.add.circle(target.x * width, target.y * height, radius, done ? 0x3ab76b : missed ? 0xd65b4a : 0xe4a63c, done ? .35 : missed ? .3 : .22)
-        .setStrokeStyle(missed ? 5 : 3, done ? 0x74e49a : missed ? 0xff8176 : 0xffd37b, .95).setDepth(5);
+      const cx = target.x * width; const cy = target.y * height;
+      const fill = done ? PAL.green : missed ? PAL.coral : PAL.gold;
+      const ring = this.add.circle(cx, cy, radius, fill, done ? .34 : missed ? .26 : .16).setStrokeStyle(3, 0xffffff, .95).setDepth(5);
       this.rings.set(target.id, ring);
-      this.add.circle(target.x * width, target.y * height, 7, 0xfff1ca, .9).setDepth(6);
-      // 원 위쪽 번호 배지 — 지시문 "원 1·2·3" 과 같은 숫자. 찍으면 초록, 놓치면 산호색.
-      const badgeY = target.y * height - radius - 2;
-      this.add.circle(target.x * width, badgeY, 21, done ? 0x35c48a : missed ? 0xff6f61 : 0xffc53d, 1).setStrokeStyle(4, 0xffffff, 1).setDepth(7);
-      this.add.text(target.x * width, badgeY, String(index + 1), {
+      // 원 위 번호 배지 — 지시문 "원 1·2·3" 과 같은 숫자. 찍으면 초록 ✓, 놓치면 산호.
+      const badgeY = cy - radius - 4;
+      this.add.circle(cx, badgeY, 22, done ? PAL.green : missed ? PAL.coral : PAL.gold, 1).setStrokeStyle(4, 0xffffff, 1).setDepth(9);
+      this.add.text(cx, badgeY, done ? '✓' : String(index + 1), {
         fontFamily: FONT, fontSize: CANVAS_FONT.head, fontStyle: 'bold', color: done || missed ? '#ffffff' : '#3a2a00',
-      }).setOrigin(.5, .52).setDepth(8);
-      this.add.text(target.x * width, target.y * height + 14, `${target.name}${done ? ' · 찍음' : missed ? ' · 놓침' : ''}`, {
-        fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff1ca', backgroundColor: '#061426d8', padding: { x: 6, y: 4 },
-      }).setOrigin(.5, 0).setDepth(6);
+      }).setOrigin(.5, .54).setDepth(10);
+      // 이름표는 원 아래, 점 마커에 가려지지 않게
+      this.add.text(cx, cy + radius + 6, `${target.name}${done ? ' · 찍음' : missed ? ' · 놓침' : ''}`, {
+        fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: done ? '#ffffff' : missed ? '#ffffff' : PAL.ink,
+        backgroundColor: done ? '#219968ee' : missed ? '#d94f43ee' : '#ffffffee', padding: { x: 8, y: 4 },
+      }).setOrigin(.5, 0).setDepth(9);
     });
 
-    this.add.circle(DRONE_START.x * width, DRONE_START.y * height, 22, 0x0d9e9b, .35).setStrokeStyle(2, 0x9ee9e2, .9).setDepth(4);
-    this.add.text(DRONE_START.x * width, DRONE_START.y * height + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff', backgroundColor: '#25384fd8', padding: { x: 6, y: 3 } }).setOrigin(.5, 0).setDepth(4);
+    this.add.circle(DRONE_START.x * width, DRONE_START.y * height, 22, 0xffffff, .55).setStrokeStyle(3, PAL.route, .95).setDepth(4);
+    this.add.text(DRONE_START.x * width, DRONE_START.y * height + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: PAL.ink, backgroundColor: '#ffffffee', padding: { x: 8, y: 4 } }).setOrigin(.5, 0).setDepth(4);
 
     if (this.waypoints.length > 0) {
       const line = this.add.graphics().setDepth(7);
-      line.lineStyle(4, 0xffd37b, .88).beginPath().moveTo(DRONE_START.x * width, DRONE_START.y * height);
-      this.waypoints.forEach((point) => line.lineTo(point.x * width, point.y * height));
-      line.strokePath();
+      const trace = (g: Phaser.GameObjects.Graphics) => {
+        g.beginPath().moveTo(DRONE_START.x * width, DRONE_START.y * height);
+        this.waypoints.forEach((point) => g.lineTo(point.x * width, point.y * height));
+        g.strokePath();
+      };
+      line.lineStyle(8, 0xffffff, .9); trace(line);
+      line.lineStyle(4, PAL.route, .95); trace(line);
       this.waypoints.forEach((point, index) => {
-        const dot = this.add.circle(point.x * width, point.y * height, 32, 0x0d9e9b, .94).setStrokeStyle(4, 0xb5fff6, 1).setDepth(8);
-        const label = this.add.text(point.x * width, point.y * height, String(index + 1), { fontFamily: FONT, fontSize: CANVAS_FONT.body, fontStyle: 'bold', color: '#04101d' }).setOrigin(.5).setDepth(9);
+        // 점 마커: 숫자 없이 흰 원 + 파란 테. 번호는 목표 원 위 배지 하나로만 읽는다.
+        const dot = this.add.circle(point.x * width, point.y * height, 18, 0xffffff, 1).setStrokeStyle(5, PAL.route, 1).setDepth(8);
         if (this.mode === 'plan') {
           dot.setInteractive({ useHandCursor: true, draggable: true });
-          dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG, (_p: Phaser.Input.Pointer, dragX: number, dragY: number) => { dot.setPosition(dragX, dragY); label.setPosition(dragX, dragY); });
+          dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG, (_p: Phaser.Input.Pointer, dragX: number, dragY: number) => { dot.setPosition(dragX, dragY); });
           dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG_END, () => this.callbacks.moveWaypoint(index, {
             x: Phaser.Math.Clamp(dot.x / width, .04, .96), y: Phaser.Math.Clamp(dot.y / height, .06, .94),
           }));

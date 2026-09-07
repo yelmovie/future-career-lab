@@ -60,7 +60,7 @@ describe('drone wind and battery', () => {
     for (const target of DRONE_TARGETS) expect(inside(target)).toBe(true);
   });
 
-  it('balance: the straight left-to-right route runs dry, a wind-aware route keeps the precision battery', () => {
+  it('balance: the straight 1-2-3 route finishes all photos but misses the precision stamp; a wind-aware route earns it', () => {
     const naive = DRONE_TARGETS.map(({ x, y }) => ({ x, y }));
     const [logging, stream, construction] = naive as [typeof naive[0], typeof naive[0], typeof naive[0]];
     // 왼쪽 바람 구간은 오른쪽에서 들어가 왼쪽으로 통과, 나머지는 순서를 바꿔 뒷바람으로.
@@ -77,7 +77,9 @@ describe('drone wind and battery', () => {
       const zones = windZonesFor(seed);
       const key = zones.map((zone) => (zone.wind.x === -1 ? 'left' : zone.wind.y === -1 ? 'up' : 'down')).join(',');
       seen.add(key);
-      expect(simulateFlight(naive, zones), `naive ${key}`).toBe(0);
+      const naiveEnd = simulateFlight(naive, zones);
+      expect(naiveEnd, `naive ${key} should land with battery left`).toBeGreaterThan(5);
+      expect(naiveEnd, `naive ${key} should not earn precision`).toBeLessThan(PRECISION_BATTERY);
       expect(simulateFlight(aware[key]!, zones), `aware ${key}`).toBeGreaterThanOrEqual(PRECISION_BATTERY);
     }
     expect(seen.size).toBe(6);
