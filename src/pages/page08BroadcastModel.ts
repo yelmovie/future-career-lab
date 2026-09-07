@@ -18,7 +18,7 @@ export interface Segment {
 export const SOURCE_LABEL: Record<SourceId, string> = { drone: '드론 사진', studio: '스튜디오 카메라', reporter: '현장 리포터' };
 
 export const SEGMENTS: readonly Segment[] = [
-  { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '모모·루비 구조 소식과 숲 문제를 소개해', fit: 'any' },
+  { id: 'opening', title: '오프닝', requiredSource: 'studio', need: '지구·젤리 구조 소식과 숲 문제를 소개해', fit: 'any' },
   { id: 'scene', title: '현장 상황', requiredSource: 'drone', need: '숲이 지금 어떤지 보여 줘', fit: 'photo' },
   { id: 'cause', title: '원인 설명', requiredSource: 'studio', need: '숲의 새가 왜 줄었는지 근거로 설명해', fit: 'graph' },
   { id: 'action', title: '시민 부탁', requiredSource: 'reporter', need: '시민에게 도움을 요청해', fit: 'action' },

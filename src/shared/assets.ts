@@ -35,7 +35,8 @@ export type V5Asset =
   | 'scene-edge-before' | 'scene-edge-trees' | 'scene-edge-quiet' | 'scene-edge-water'
   | 'scene-stream' | 'scene-deep'
   | 'act-plant-tree' | 'act-quiet' | 'act-fill-water' | 'bird-small'
-  | 'trace-machine-sound' | 'trace-parrot-call' | 'trace-parrot-footprint';
+  | 'trace-machine-sound' | 'trace-parrot-call' | 'trace-parrot-footprint'
+  | 'drone-map-wide';
 export const v5Asset = (name: V5Asset, extension: 'webp' | 'png' = 'webp') => `/assets/v5/${name}.${extension}`;
 /** v3 그림이 없을 때 v2 그림으로 조용히 되돌린다 (한 번만). */
 export const fallbackTo = (src: string) => (event: { currentTarget: HTMLImageElement }) => {

@@ -51,11 +51,10 @@ test('briefing: three steps, then the drone page', async ({ page }) => {
   const progress = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').pageData.p2Progress, SAVE_KEY);
   expect(progress).toEqual({ line: 2, met: ['drone', 'care', 'ecology', 'broadcast'] });
   await page.reload();
-  await expect(page.getByRole('heading', { name: '이름을 적고 직업 하나를 골라' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '제일 잘 맞을 것 같은 직업을 골라' })).toBeVisible();
 
   // 3 명찰: 이름 + 직업 아이콘
-  await expect(page.getByRole('heading', { name: '이름을 적고 직업 하나를 골라' })).toBeVisible();
-  await page.getByPlaceholder('이름을 적어 봐').fill('하늘');
+  await expect(page.getByRole('heading', { name: '제일 잘 맞을 것 같은 직업을 골라' })).toBeVisible();
   await page.getByRole('group', { name: '제일 잘 맞을 것 같은 직업' }).getByRole('button').first().click();
   await expect(next).toHaveText(/출발/);
   await next.click();
@@ -80,6 +79,20 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
     const box = (await zoom.boundingBox())!;
     await zoom.click({ position: { x: box.width * detail.x, y: box.height * detail.y } });
     await expect(page.locator('.zoom-mark')).toBeVisible();
+    const label = page.locator('.zoom-mark__label');
+    await expect(label).toBeVisible();
+    const geometry = await label.evaluate((node) => {
+      const labelRect = node.getBoundingClientRect();
+      const frameRect = node.closest('.zoom-frame')!.getBoundingClientRect();
+      const textRange = document.createRange();
+      textRange.selectNodeContents(node);
+      const textRect = textRange.getBoundingClientRect();
+      return {
+        noTextOverflow: textRect.left >= labelRect.left && textRect.right <= labelRect.right && textRect.top >= labelRect.top && textRect.bottom <= labelRect.bottom,
+        insideFrame: labelRect.left >= frameRect.left && labelRect.right <= frameRect.right && labelRect.top >= frameRect.top && labelRect.bottom <= frameRect.bottom,
+      };
+    });
+    expect(geometry).toEqual({ noTextOverflow: true, insideFrame: true });
     await page.getByRole('button', { name: '찾았어! 닫기' }).click();
   }
   await expect(page.locator('.p4-photo.is-done')).toHaveCount(3);
@@ -87,12 +100,12 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   await next.click();
 
   // 가설 카드 1장
-  await expect(page.getByRole('heading', { name: '모모와 루비는 왜 떠났을까?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '지구와 젤리 주변, 새가 왜 줄었을까?' })).toBeVisible();
   await expect(page.locator('.p4-found li')).toHaveText(['톱 자국 그루터기', '물길 막은 자재', '소음 작업 표지']);
   await page.getByRole('group', { name: '가설 고르기' }).getByRole('button', { name: /소음 때문/ }).click();
   await expect(page.locator('.v4-done')).toContainText('드론 현장가 배지 획득!');
-  await expect(page.locator('.v4-done')).toContainText('조용한 깊은 숲에서 모모와 루비를 찾았대!');
-  await expect(next).toHaveText(/모모와 루비 살피러/);
+  await expect(page.locator('.v4-done')).toContainText('조용한 깊은 숲에서 지구와 젤리를 찾았대!');
+  await expect(next).toHaveText(/지구와 젤리 살피러/);
 
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(saved.artifacts.hypothesis).toBe('noise');
@@ -101,5 +114,5 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   expect(saved.badges).toContain('드론 현장가 배지');
 
   await next.click();
-  await expect(page.getByRole('heading', { level: 1, name: /모모와 루비/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /지구와 젤리/ })).toBeVisible();
 });

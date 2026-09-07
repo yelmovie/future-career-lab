@@ -41,7 +41,7 @@ export const PAGE_META: Record<PageNumber, { title: string; stage?: StageNumber;
   2: { title: '탐험단 브리핑', short: '사건 접수', background: 2 },
   3: { title: '드론 정찰 비행', stage: 1, short: '하늘에서 보기', background: 4 },
   4: { title: '현장 증거판', stage: 1, short: '단서 잇기', background: 3 },
-  5: { title: '구조된 모모와 루비 살피기', stage: 2, short: '살펴보기', background: 5 },
+  5: { title: '구조된 지구와 젤리 살피기', stage: 2, short: '살펴보기', background: 5 },
   6: { title: '새 정원 다시 만들기', stage: 2, short: '다시 만들기', background: 7 },
   7: { title: '숲 생태 조사', stage: 3, short: '하나씩 바꿔 보기', background: 6 },
   8: { title: '생방송 컨트롤룸', stage: 4, short: '정확하게 알리기', background: 9 },
@@ -74,8 +74,8 @@ export interface StageMeta {
 }
 
 export const STAGE_META: StageMeta[] = [
-  { id: 1, job: 'drone', label: '드론 현장가', jobTitle: '드론 현장가', subtitle: '찍고 잇기', goal: '바람을 읽고 푸른솔 숲 위를 날아 숲 가장자리에서 달라진 곳 3곳을 찍어. 사진을 증거판에 이어 모모와 루비가 왜 떠났을지 짐작해.', reward: '드론 배지 + 현장 사진 3장', learn: '제약 속에서 계획하고, 사진을 근거로 잇기', page: 3, badge: '/assets/page-08/slot-05.webp', badgeName: '드론 현장가 배지' },
-  { id: 2, job: 'care', label: '동물돌봄 전문가', jobTitle: '동물돌봄 전문가', subtitle: '살피고 고치기', goal: '구조된 모모와 루비는 상태가 달라. 따로 살피고, 찢어진 새 정원을 다시 만들어.', reward: '돌봄 배지 + 돌봄 기록', learn: '관찰 → 기록 → 개체마다 다른 돌봄', page: 5, badge: '/assets/page-08/slot-04.webp', badgeName: '동물돌봄 배지' },
+  { id: 1, job: 'drone', label: '드론 현장가', jobTitle: '드론 현장가', subtitle: '찍고 잇기', goal: '바람을 읽고 푸른솔 숲 위를 날아 숲 가장자리에서 달라진 곳 3곳을 찍어. 사진을 증거판에 이어 지구와 젤리가 왜 떠났을지 짐작해.', reward: '드론 배지 + 현장 사진 3장', learn: '제약 속에서 계획하고, 사진을 근거로 잇기', page: 3, badge: '/assets/page-08/slot-05.webp', badgeName: '드론 현장가 배지' },
+  { id: 2, job: 'care', label: '동물돌봄 전문가', jobTitle: '동물돌봄 전문가', subtitle: '살피고 고치기', goal: '구조된 지구와 젤리는 상태가 달라. 따로 살피고, 찢어진 새 정원을 다시 만들어.', reward: '돌봄 배지 + 돌봄 기록', learn: '관찰 → 기록 → 개체마다 다른 돌봄', page: 5, badge: '/assets/page-08/slot-04.webp', badgeName: '동물돌봄 배지' },
   { id: 3, job: 'ecology', label: '생태연구가', jobTitle: '생태연구가', subtitle: '하나씩 바꾸기', goal: '숲 가장자리에서 새가 사라진 이유를 찾아. 흔적을 모으고, 조건을 하나씩 바꿔 진짜 원인을 확인해.', reward: '생태 배지 + 연구 그래프', learn: '변인을 하나씩 바꿔 원인 찾기', page: 7, badge: '/assets/v2/badge-ecology.webp', badgeName: '생태연구가 배지' },
   { id: 4, job: 'broadcast', label: '미래방송기술자', jobTitle: '미래방송기술자', subtitle: '정확히 알리기', goal: '근거 있는 자막만 골라 생방송을 완성해. 사고가 나면 순서를 정해 복구해.', reward: '방송 배지 + 방송 클립', learn: '출처가 있는 정보만 내보내기', page: 8, badge: '/assets/v2/badge-broadcast.webp', badgeName: '방송기술자 배지' },
   { id: 5, job: 'alliance', label: '네 직업 연합', jobTitle: '탐험단 연합', subtitle: '함께 풀기', goal: '위기 3개가 동시에 왔어. 네 직업의 힘을 짝지어 푸른솔 숲의 새들을 지켜.', reward: '연합 엠블럼 + 숲의 새소리 복귀', learn: '협업은 역할의 조합이다', page: 9, badge: '/assets/page-08/slot-10.webp', badgeName: '연합 엠블럼' },

@@ -83,3 +83,10 @@
 @media (prefers-reduced-motion: reduce) { .p7-stamps li.is-found, .p7-birds img, .p7-edge__scene { animation: none; } }
 
 .p7-places ~ .v4-react, .p7-lab ~ .v4-react { top: 12px; bottom: auto; }
+
+/* ----- 연결 화면: 지구·젤리 → 숲의 다른 새들 ----- */
+.p7-intro { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: 24px; padding: 20px 28px; }
+.p7-intro__scene { width: 100%; height: 100%; min-height: 0; object-fit: cover; border-radius: 20px; box-shadow: var(--glass-shadow); }
+.p7-intro__copy { display: grid; gap: 14px; }
+.p7-intro__copy strong { color: var(--color-primary-deep); font-family: var(--font-display); font-size: 30px; font-weight: 400; line-height: 1.3; }
+.p7-intro__copy p { margin: 0; color: var(--ink); font-size: 22px; font-weight: 700; line-height: 1.55; }

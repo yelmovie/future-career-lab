@@ -24,8 +24,10 @@ const SFX_PATHS = {
   success: '/audio/sfx/stage-success-chime.mp3',
   reward: '/audio/sfx/final-reward.mp3',
   // v2 단서 소리 — 파일이 없으면 play() 가 거부되고 조용히 무시된다.
-  parrotCall: '/audio/v2/parrot-call.mp3',
-  parrotAlarm: '/audio/v2/parrot-alarm.mp3',
+  parrotCall: '/audio/v2/parrot-call-audible.mp3',
+  parrotAlarm: '/audio/v2/parrot-alarm-audible.mp3',
+  /** 회복·3별 순간의 짧은 기쁜 지저귐 */
+  parrotHappy: '/audio/v2/parrot-happy.mp3',
   chainsaw: '/audio/v2/chainsaw-far.mp3',
   droneLoop: '/audio/v2/drone-loop.mp3',
 } as const;
@@ -34,6 +36,7 @@ export type SfxId = keyof typeof SFX_PATHS;
 
 class AudioService {
   private bgm: HTMLAudioElement | null = null;
+  private cue: HTMLAudioElement | null = null;
   private settings: AudioSettings = { bgmVolume: 0.28, sfxVolume: 0.7, muted: false };
   private activeTrack = '';
   private unlocked = false;
@@ -60,9 +63,15 @@ class AudioService {
 
   configure(settings: AudioSettings): void {
     this.settings = settings;
+    if (settings.muted) {
+      this.cue?.pause();
+      this.cue = null;
+    }
     if (this.bgm) {
       this.bgm.volume = this.bgmVolume();
-      if (settings.muted) this.bgm.pause();
+      if (settings.muted) {
+        this.bgm.pause();
+      }
       else if (this.unlocked) void this.bgm.play().catch(() => undefined);
     }
   }
@@ -89,8 +98,19 @@ class AudioService {
 
   /** 단서 소리처럼 들어야 하는 소리를 낼 때 BGM 을 잠시 낮춘다. 겹침 사고 방지. */
   playCue(id: SfxId, durationMs = 2200): void {
+    if (!this.unlocked || this.settings.muted) return;
     this.duck(durationMs);
-    this.playSfx(id);
+    this.cue?.pause();
+    const audio = new Audio(SFX_PATHS[id]);
+    audio.preload = 'auto';
+    audio.volume = this.settings.sfxVolume;
+    this.cue = audio;
+    audio.addEventListener('ended', () => {
+      if (this.cue === audio) this.cue = null;
+    }, { once: true });
+    void audio.play().catch(() => {
+      if (this.cue === audio) this.cue = null;
+    });
   }
 
   duck(durationMs: number): void {

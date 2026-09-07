@@ -20,15 +20,20 @@
 /* 무대 */
 .v4-stage { position: relative; min-height: 0; margin: 0 24px; border-radius: var(--radius-lg); }
 .v4-stage > * { min-height: 0; }
-.v4-card { position: relative; height: 100%; min-height: 0; overflow: hidden; border: 2px solid var(--glass-line); border-radius: var(--radius-lg); background: linear-gradient(180deg, rgb(255 255 255 / 58%), var(--glass-1)); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow), var(--glass-inset); }
+.v4-card { position: relative; height: 100%; min-height: 0; overflow: hidden; border: 2px solid var(--glass-line); border-radius: var(--radius-lg); background: linear-gradient(180deg, rgb(255 255 255 / 50%), rgb(255 255 255 / 38%)); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow), var(--glass-inset); }
 .v4-card::before { content: ''; position: absolute; inset: 0 0 auto; z-index: 1; height: 5px; pointer-events: none; background: linear-gradient(90deg, hsl(var(--page-h, 205) 85% 62%), hsl(calc(var(--page-h, 205) + 40) 85% 70%)); opacity: .85; }
-.v4-done { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; place-items: center; gap: 8px; border-radius: inherit; background: rgb(255 255 255 / 70%); backdrop-filter: blur(8px); text-align: center; animation: v4-fade .3s ease; }
-.v4-done__stamp { display: grid; place-items: center; width: 110px; height: 110px; border: 6px solid #fff; border-radius: 50%; background: var(--color-secondary); color: #fff; box-shadow: 0 10px 24px rgb(53 196 138 / 40%); animation: v4-stamp .5s cubic-bezier(.3, 1.4, .4, 1); }
-.v4-done__stamp svg { width: 64px; height: 64px; stroke-width: 3; }
-.v4-done strong { color: var(--ink); font-family: var(--font-display); font-size: 34px; font-weight: 400; }
-.v4-done p { max-width: 640px; margin: 0; color: var(--color-text-main); font-size: 20px; line-height: 1.5; }
+.v4-shell.is-done .v4-stage > :not(.v4-done) { visibility: hidden; pointer-events: none; }
+.v4-done { position: absolute; left: 50%; top: 50%; z-index: 5; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; width: min(560px, calc(100% - 40px)); padding: 18px 22px; border: 3px solid #fff; border-radius: 26px; background: rgb(255 255 255 / 94%); backdrop-filter: blur(6px); text-align: left; box-shadow: 0 18px 48px rgb(40 60 90 / 24%); transform: translate(-50%, -50%); animation: v4-done-pop .3s ease; }
+.v4-done__stamp { display: grid; place-items: center; width: 82px; height: 82px; border: 5px solid #fff; border-radius: 50%; background: var(--color-secondary); color: #fff; box-shadow: 0 8px 20px rgb(53 196 138 / 34%); animation: v4-stamp .5s cubic-bezier(.3, 1.4, .4, 1); }
+.v4-done__stamp.has-badge { width: 104px; height: 104px; border: 0; background: transparent; box-shadow: none; }
+.v4-done__stamp img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 12px rgb(40 60 90 / 28%)); }
+.v4-done__stamp svg { width: 46px; height: 46px; stroke-width: 3; }
+.v4-done__copy { display: grid; gap: 5px; min-width: 0; }
+.v4-done strong { color: var(--ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; line-height: 1.2; }
+.v4-done p { max-width: 42ch; margin: 0; color: var(--color-text-main); font-size: 18px; line-height: 1.45; word-break: keep-all; }
 @keyframes v4-stamp { from { transform: scale(2.6) rotate(-14deg); opacity: 0; } }
 @keyframes v4-fade { from { opacity: 0; } }
+@keyframes v4-done-pop { from { opacity: 0; transform: translate(-50%, calc(-50% + 14px)) scale(.96); } }
 
 /* 하단: 멘토 말풍선 · 다음 버튼 */
 .v4-foot { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 16px; padding: 0 24px 14px; }

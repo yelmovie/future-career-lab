@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { PictureChoice } from '../components/v4/PictureChoice';
 import { audioService } from '../services/audioService';
-import { homeAsset, pageAsset } from '../shared/assets';
+import { homeAsset, pageAsset, v3Asset } from '../shared/assets';
 import { JOB_LABELS, STAGE_META } from '../shared/constants';
 import type { JobId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -12,7 +12,7 @@ const MENTOR = homeAsset('mentor');
 const MENTOR_NAME = '탐험단장';
 
 const BRIEF_LINES = [
-  '새 정원 그물이 태풍에 찢어져서 모모와 루비가 푸른솔 숲으로 날아갔어.',
+  '새 정원 그물이 태풍에 찢어져서 지구와 젤리가 푸른솔 숲으로 날아갔어.',
   '사육사 혼자선 넓은 숲을 다 뒤질 수 없어.',
   '하늘에서 보고, 살피고, 조사하고, 알리는 넷이 필요해. 네가 차례로 맡아 줘.',
 ];
@@ -21,7 +21,7 @@ const BRIEF_LINES = [
 const badgeOf = (id: JobId) => STAGE_META.find((stage) => stage.job === id)!.badge;
 const JOBS: { id: JobId; character: string; icon: string; says: string; tools: { image: string; label: string }[] }[] = [
   { id: 'drone', character: pageAsset(4, 1), icon: badgeOf('drone'), says: '나는 하늘에서 숲을 찍어.', tools: [{ image: pageAsset(4, 3), label: '드론' }, { image: pageAsset(4, 4), label: '조종기' }, { image: pageAsset(4, 9), label: '바람 센서' }] },
-  { id: 'care', character: pageAsset(5, 1), icon: badgeOf('care'), says: '나는 아픈 동물을 살펴.', tools: [{ image: pageAsset(5, 5), label: '돌봄 기록판' }, { image: pageAsset(5, 6), label: '먹이 세트' }, { image: pageAsset(5, 9), label: '건강 태블릿' }] },
+  { id: 'care', character: v3Asset('keeper-haneul'), icon: badgeOf('care'), says: '나는 아픈 동물을 살펴.', tools: [{ image: pageAsset(5, 5), label: '돌봄 기록판' }, { image: pageAsset(5, 6), label: '먹이 세트' }, { image: pageAsset(5, 9), label: '건강 태블릿' }] },
   { id: 'ecology', character: pageAsset(7, 1), icon: badgeOf('ecology'), says: '나는 흔적으로 원인을 찾아.', tools: [{ image: pageAsset(3, 9), label: '녹음기' }, { image: pageAsset(7, 7), label: '환경 측정기' }, { image: pageAsset(3, 6), label: '돋보기' }] },
   { id: 'broadcast', character: pageAsset(3, 3), icon: badgeOf('broadcast'), says: '나는 정확한 소식을 알려.', tools: [{ image: pageAsset(4, 5), label: '방송 카메라' }, { image: pageAsset(4, 7), label: '송출 모니터' }, { image: pageAsset(3, 4), label: '현장 카메라' }] },
 ];
@@ -36,13 +36,13 @@ function readProgress(value: unknown): { line: number; met: JobId[] } {
 }
 
 const STEP_TEXT = [
-  { instruction: '말풍선을 눌러 이야기를 들어', bubble: '모모와 루비에게 무슨 일이 생겼을까?' },
+  { instruction: '말풍선을 눌러 이야기를 들어', bubble: '지구와 젤리에게 무슨 일이 생겼을까?' },
   { instruction: '직업 캐릭터를 하나씩 눌러 봐', bubble: '누가 어떤 일을 할 수 있을까?' },
-  { instruction: '이름을 적고 직업 하나를 골라', bubble: '어떤 직업이 너한테 제일 잘 맞을 것 같아?' },
+  { instruction: '제일 잘 맞을 것 같은 직업을 골라', bubble: '어떤 직업이 너한테 제일 잘 맞을 것 같아?' },
 ] as const;
 
 export default function Page02Briefing({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, setPlayerName, setPrediction, setPageData, logEvent } = useGame();
+  const { save, setPrediction, setPageData, logEvent } = useGame();
   const [progress] = useState(() => readProgress(save.pageData.p2Progress));
   const [step, setStep] = useState(() => (progress.met.length === JOBS.length ? 3 : progress.line >= BRIEF_LINES.length - 1 ? 2 : 1));
   const [line, setLine] = useState(progress.line);
@@ -51,13 +51,12 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
 
   const briefed = line >= BRIEF_LINES.length - 1;
   const allMet = met.length === JOBS.length;
-  const named = save.playerName.trim().length > 0;
-  const ready = named && Boolean(save.prediction);
+  const ready = Boolean(save.prediction);
   const stepDone = [briefed, allMet, ready][step - 1]!;
   const hint = [
     '이야기 3줄을 다 들으면 켜져요',
     `캐릭터 ${JOBS.length - met.length}명을 더 눌러 보면 켜져요`,
-    named ? '직업 하나를 고르면 켜져요' : '이름을 적으면 켜져요',
+    '직업 하나를 고르면 켜져요',
   ][step - 1]!;
 
   const nextLine = () => {
@@ -109,13 +108,13 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
         <div className="brief-reward">
           <p>끝내면 얻는 것</p>
           <ul>{STAGE_META.map((stage) => <li key={stage.id}><img src={stage.badge} alt="" />{stage.reward}</li>)}</ul>
-          <p>그리고 모모와 루비가 새 정원으로 건강하게 돌아가. 수료증도 인쇄할 수 있어.</p>
+          <p>그리고 지구와 젤리가 새 정원으로 건강하게 돌아가. 수료증도 저장하거나 인쇄할 수 있어.</p>
         </div>
       }
     >
       {step === 1 && (
         <div className="brief-story v4-card">
-          <img className="brief-story__art" src={homeAsset('parrot-pair')} alt="초록 앵무 모모와 빨강 앵무 루비" />
+          <img className="brief-story__art" src={homeAsset('parrot-pair')} alt="초록 앵무 지구와 빨강 앵무 젤리" />
           <button type="button" className={`brief-line${briefed ? ' is-last' : ''}`} onClick={nextLine} aria-live="polite">
             <span className="brief-line__who">{MENTOR_NAME}</span>
             <strong>{BRIEF_LINES[line]}</strong>
@@ -148,10 +147,6 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
 
       {step === 3 && (
         <div className="brief-badge">
-          <label className="brief-name v4-card">
-            <span>내 이름</span>
-            <input value={save.playerName} maxLength={12} placeholder="이름을 적어 봐" onChange={(event) => setPlayerName(event.target.value)} />
-          </label>
           <PictureChoice
             size="md"
             ariaLabel="제일 잘 맞을 것 같은 직업"

@@ -10,6 +10,13 @@ import { SettingsModal } from './SettingsModal';
 
 const GAME_FLOW = STAGE_META.map((stage) => ({ stage: stage.id, short: stage.subtitle, title: `${stage.label} · ${stage.subtitle}`, goal: stage.goal, image: stage.badge }));
 
+/**
+ * 페이지별 바탕 색상(hue). 흰 워시 대신 스테이지마다 다른 파스텔 톤을 깔아
+ * "지금 어느 직업 화면인지"가 색으로도 읽히게 한다. 값은 index.css 의 hsl(var(--page-h) …) 가 쓴다.
+ * 드론 = 하늘, 돌봄 = 앵무 초록, 생태 = 숲 청록, 방송 = 코랄, 연합 = 보라, 정리·수료 = 햇빛 노랑.
+ */
+const PAGE_HUE: Record<PageNumber, number> = { 1: 205, 2: 215, 3: 205, 4: 198, 5: 148, 6: 152, 7: 168, 8: 18, 9: 262, 10: 42, 11: 42 };
+
 function GearIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -37,61 +44,49 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
   const activeStage = meta.stage ?? GAME_FLOW.find((item) => !save.stageProgress.completed[item.stage])?.stage;
   const isHome = page === 1;
   const teacherNextPage = teacherMode && page >= 2 && page < 11 ? (page + 1) as PageNumber : null;
-  const visibleFooter = teacherNextPage ? (
-    <div className="guided-footer teacher-preview-next">
-      <TaskCue
-        action="교사용 해금 중 · 미션을 하지 않아도 다음 화면을 볼 수 있어"
-        target="오른쪽 교사용 다음 화면"
-        done
-      />
-      <button
-        type="button"
-        className="button button--primary button--large is-next-action teacher-preview-next__button"
-        aria-label={`교사용 다음 화면: ${PAGE_META[teacherNextPage].title}`}
-        onClick={() => {
-          audioService.unlock();
-          audioService.playSfx('tap');
-          onNavigate(teacherNextPage);
-        }}
-      >
-        <span>교사용 다음 화면</span>
-        <small>{PAGE_META[teacherNextPage].title}</small>
-        <ArrowIcon />
-      </button>
-    </div>
-  ) : footer;
+  // 교사용 해금 바로가기는 상단바에 둔다. 하단 띠로 두면 무대 높이를 64px 뺏어 v4 화면이 잘린다.
+  const teacherShortcut = !teacherMode ? null : teacherNextPage ? (
+    <button
+      type="button"
+      className="teacher-next"
+      aria-label={`교사용 다음 화면: ${PAGE_META[teacherNextPage].title}`}
+      title={`교사용 해금 중 · 미션을 하지 않아도 다음 화면(${PAGE_META[teacherNextPage].title})으로 갈 수 있어`}
+      onClick={() => {
+        audioService.unlock();
+        audioService.playSfx('tap');
+        onNavigate(teacherNextPage);
+      }}
+    >
+      <span>교사용</span><b>다음 화면</b><ArrowIcon />
+    </button>
+  ) : <span className="teacher-mode-chip">교사용 해금</span>;
   const toggleMuted = () => {
     audioService.unlock();
     setAudio({ muted: !save.audio.muted });
   };
 
   return (
-    <div className={`game-shell page-${page} ${className}`} data-eyebrow={eyebrow} style={{ '--page-bg': `url("${backgroundFor(page)}")` } as React.CSSProperties}>
+    <div className={`game-shell page-${page} ${className}`} data-eyebrow={eyebrow} style={{ '--page-bg': `url("${backgroundFor(page)}")`, '--page-h': PAGE_HUE[page] } as React.CSSProperties}>
       <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
       <div className="ambient" aria-hidden="true" />
       <header className={`topbar${isHome ? ' topbar--home' : ''}`}>
         {isHome ? (
           <div className="topbar-actions home-topbar-actions" aria-label="메인 화면 도구">
-            {teacherMode && <span className="teacher-mode-chip">교사용 해금</span>}
+            {teacherShortcut}
             <button className="icon-button" onClick={toggleMuted} aria-label={save.audio.muted ? '소리 켜기' : '소리 끄기'} title={save.audio.muted ? '소리 켜기' : '소리 끄기'}>
               {save.audio.muted ? <MutedIcon /> : <SoundIcon />}
             </button>
             <button className="icon-button" onClick={() => setSettingsOpen(true)} aria-label="설정 열기" title="설정"><GearIcon /></button>
           </div>
         ) : <>
+          <button className="icon-button icon-button--back" onClick={() => onNavigate((page - 1) as PageNumber)} aria-label="이전 화면으로" title="이전 화면"><ArrowIcon /></button>
           <button className="icon-button" onClick={() => onNavigate(1)} aria-label="메인으로 이동"><HomeIcon /></button>
           <div className="title-lockup">
             <span>{sectionLabel}</span>
             <h1>{meta.title}</h1>
           </div>
-          <ol className="stage-rail" aria-label={meta.stage ? `현재 스테이지 ${meta.stage} / 5` : '전체 스테이지 길'}>
-            {GAME_FLOW.map((item) => {
-              const done = Boolean(save.stageProgress.completed[item.stage]);
-              return <li key={item.stage} className={`${done ? 'is-done' : ''}${activeStage === item.stage ? ' is-current' : ''}`}><span>{done ? <CheckIcon /> : item.stage}</span><small>{item.short}</small></li>;
-            })}
-          </ol>
           <div className="topbar-actions">
-            {teacherMode && <span className="teacher-mode-chip">교사용 해금</span>}
+            {teacherShortcut}
             <button className="icon-button" onClick={() => setHelpOpen(true)} aria-label="도움말" title="게임 흐름 보기"><HelpIcon /></button>
             <button className="icon-button" onClick={toggleMuted} aria-label={save.audio.muted ? '소리 켜기' : '소리 끄기'}>
               {save.audio.muted ? <MutedIcon /> : <SoundIcon />}
@@ -101,10 +96,10 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
         </>}
       </header>
       <main id="main-content" className="game-content">{children}</main>
-      {visibleFooter && <footer className="game-footer">{visibleFooter}</footer>}
+      {footer && <footer className="game-footer">{footer}</footer>}
       {helpOpen && (
-        <Modal title="게임은 이렇게 이어져" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
-          <p className="flow-goal"><strong>목표</strong> 동물원에서 날아간 앵무새 모모와 루비를 네 직업의 힘으로 찾고, 푸른솔 숲의 새들을 지키려면 마지막에 넷을 한 팀으로 묶어야 하는 게임이야.</p>
+        <Modal title="게임은 이렇게 이어져" className="modal--wide" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
+          <p className="flow-goal"><strong>목표</strong> 동물원에서 날아간 앵무새 지구와 젤리를 네 직업의 힘으로 찾고, 푸른솔 숲의 새들을 지키려면 마지막에 넷을 한 팀으로 묶어야 하는 게임이야.</p>
           <ol className="flow-steps">
             {GAME_FLOW.map((item) => (
               <li key={item.stage} className={meta.stage === item.stage ? 'is-current' : ''}>
@@ -112,7 +107,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
               </li>
             ))}
           </ol>
-          <p className="flow-result">앞 미션에서 얻은 사진·기록·그래프·방송 클립이 다음 미션의 재료가 돼. 끝나면 <strong>처음 예측과 실제 플레이</strong>를 비교하고 수료증을 인쇄해.</p>
+          <p className="flow-result">앞 미션에서 얻은 사진·기록·그래프·방송 클립이 다음 미션의 재료가 돼. 끝나면 <strong>처음 예측과 실제 플레이</strong>를 비교하고 수료증을 저장하거나 인쇄해.</p>
         </Modal>
       )}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onNavigate={onNavigate} />}

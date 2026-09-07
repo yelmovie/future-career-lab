@@ -269,11 +269,11 @@ export function evaluateSimulation(placements: HabitatPlacement[], conditions: H
   const safety = 50 + (evaluation.entranceClear ? 18 : 0) + (evaluation.noCollisions ? 18 : 0) + (evaluation.withinBudget ? 8 : 0);
   const missing = (Object.keys(behaviors) as Behavior[]).filter((key) => !behaviors[key]);
   const summary = missing.length === 0
-    ? '먹고, 놀고, 쉬는 모습이 다 보였어. 모모와 루비 모두 편안해 보여.'
+    ? '먹고, 놀고, 쉬는 모습이 다 보였어. 지구와 젤리 모두 편안해 보여.'
     : missing.map((key) => key === 'eat'
-      ? '루비가 물까지 가다 말고 돌아왔어. 물이 쉬는 곳에서 너무 멀지 않았을까?'
+      ? '젤리가 물까지 가다 말고 돌아왔어. 물이 쉬는 곳에서 너무 멀지 않았을까?'
       : key === 'rest'
-        ? '모모가 쉴 곳을 찾다 계속 두리번거려. 숨을 곳이 있고, 시끄러운 쪽에서 떨어져 있을까?'
+        ? '지구가 쉴 곳을 찾다 계속 두리번거려. 숨을 곳이 있고, 시끄러운 쪽에서 떨어져 있을까?'
         : '놀이 기구까지 가는 길이 이어지지 않아 오가지 못했어. 어디가 끊겼을까?').join(' ');
   return { route: Math.min(100, route), comfort: Math.min(100, comfort), safety: Math.min(100, safety), summary, behaviors, stars };
 }

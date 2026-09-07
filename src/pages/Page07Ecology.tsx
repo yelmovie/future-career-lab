@@ -116,6 +116,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [main, setMain] = useState<CauseId | null>(stored.main);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(7));
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
+  const [intro, setIntro] = useState(() => !completed && stored.step === 1 && stored.found.length === 0 && !(save.pageData.page07Intro === true));
 
   useEffect(() => {
     setPageData('page07Ecology', { step, point, found, fewest, trials, active, prediction, lastTrial, main } satisfies Stored);
@@ -193,9 +194,10 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const shownBirds = lastTrial ? lastTrial.after : before;
   const activeAction = active ? getAction(active) : null;
   const matched = lastTrial ? actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction : false;
-  const stepDone = completed ? { title: '숲 생태 조사 완료', message: '나무가 사라져서 새가 줄었어. 시민에게 알려야 해.' } : undefined;
+  const stepDone = completed ? { title: `${META.badgeName}를 얻었어`, message: '나무가 사라져서 새가 줄었어. 시민에게 알려야 해.', badge: { src: META.badge, alt: META.badgeName } } : undefined;
 
   const instruction = completed ? '조사 끝!' :
+    intro ? '지구와 젤리 말고, 숲의 다른 새들은?' :
     step === 1 ? '반짝이는 흔적을 눌러 봐' :
     step === 2 ? (fewest ? '숲 가장자리엔 새가 거의 없네' : '새가 제일 적은 곳은?') :
     trialsDone && !lastTrial ? '새를 제일 많이 돌아오게 한 건?' :
@@ -205,6 +207,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
 
   const bubble = react?.text ?? (
     completed ? '숲의 새가 줄고 있어. 방송국에 알리자!' :
+    intro ? '숲에 새소리가 줄었대. 왜 그런지 흔적부터 찾아보자.' :
     step === 1 ? `${found.length}개 찾았어. 지점을 바꿔 볼까?` :
     step === 2 ? (fewest ? '왜 여기만 새가 없을까? 하나씩 바꿔서 알아보자.' : '새가 많이 앉은 곳과 적은 곳을 비교해 봐.') :
     lastTrial ? (lastTrial.after - lastTrial.before >= 4 ? `새가 ${lastTrial.after - lastTrial.before}마리나 돌아왔어!` : '새가 별로 안 돌아오네. 이건 큰 이유가 아닌가 봐.') :
@@ -214,6 +217,8 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
 
   const next = completed
     ? { label: '생방송으로', onClick: () => onNavigate(8) }
+    : intro
+      ? { label: '숲 둘러보기', onClick: () => { setIntro(false); setPageData('page07Intro', true); audioService.playSfx('success'); } }
     : step === 1
       ? { label: '새 세어 보기', disabled: !collectDone, hint: `흔적 ${FIELD_TRACES.length}개를 다 찾으면 켜져요`, onClick: () => { setStep(2); audioService.playSfx('success'); } }
       : step === 2
@@ -236,7 +241,17 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
 
   return (
     <StepShell page={7} step={completed ? 3 : step} steps={3} instruction={instruction} mentor={MENTOR} mentorName="생태 멘토" bubble={bubble} status={status} next={next} help={help} done={stepDone} onNavigate={onNavigate}>
-      {step === 1 && (
+      {intro && (
+        <div className="v4-card p7-intro">
+          <img src={POINT_SCENE.C.src} onError={fallbackTo(POINT_SCENE.C.fallback)} alt="" className="p7-intro__scene" />
+          <div className="p7-intro__copy">
+            <strong>지구와 젤리는 돌아왔어. 그런데…</strong>
+            <p>푸른솔 숲에 살던 다른 새들은 요즘 잘 안 보인대. 새소리도 줄었어.</p>
+            <p>생태연구가가 되어 숲 세 곳을 둘러보고, 새가 왜 줄었는지 알아보자.</p>
+          </div>
+        </div>
+      )}
+      {step === 1 && !intro && (
         <div className="p7-field">
           <div className="p7-tabs" role="tablist" aria-label="지점">
             {POINTS.map((p) => {

@@ -144,7 +144,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   );
 
   return (
-    <StepShell page={8} step={step} steps={SEGMENTS.length} instruction={instruction} mentor={MENTOR} mentorName="방송 멘토" bubble={bubble} status={`신뢰 ${result?.trust ?? state.trust}`} next={next} help={help} done={result ? { title: result.corrections === 0 ? '클린 방송 성공' : '생방송 완료', message: `시청자 신뢰 ${result.trust}점. 시민들이 푸른솔 숲의 새를 함께 지키기로 했어.` } : undefined} onNavigate={onNavigate}>
+    <StepShell page={8} step={step} steps={SEGMENTS.length} instruction={instruction} mentor={MENTOR} mentorName="방송 멘토" bubble={bubble} status={`신뢰 ${result?.trust ?? state.trust}`} next={next} help={help} done={result ? { title: `${STAGE.badgeName}를 얻었어`, message: `${result.corrections === 0 ? '클린 방송 성공!' : '생방송 완료.'} 시청자 신뢰 ${result.trust}점이야.`, badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined} onNavigate={onNavigate}>
       <div className="p8-stage">
         <div className={`v4-card p8-screen${done ? ' is-off' : ''}`} aria-label="송출 화면">
           <span className="p8-onair">{done ? 'OFF AIR' : 'ON AIR'}</span>

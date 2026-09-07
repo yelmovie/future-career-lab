@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { stat } from 'node:fs/promises';
 
 const SAVE_KEY = 'future-career-lab.save.v1';
 
@@ -54,11 +55,17 @@ test('drone controls keep elementary touch targets on a 1024px tablet', async ({
 
   const directions = page.locator('.direction-pad button');
   await expect(directions).toHaveCount(4);
+  const widths: number[] = [];
   for (const control of await directions.all()) {
     const size = await control.boundingBox();
     expect(Math.round(size?.width ?? 0)).toBeGreaterThanOrEqual(48);
     expect(Math.round(size?.height ?? 0)).toBeGreaterThanOrEqual(48);
+    widths.push(Math.round(size?.width ?? 0));
+    const label = await control.locator('strong').boundingBox();
+    expect((label?.x ?? 0) + (label?.width ?? 0)).toBeLessThanOrEqual((size?.x ?? 0) + (size?.width ?? 0));
+    expect(Math.abs(((label?.y ?? 0) + (label?.height ?? 0) / 2) - ((size?.y ?? 0) + (size?.height ?? 0) / 2))).toBeLessThanOrEqual(2);
   }
+  expect(new Set(widths).size).toBe(1);
   const record = page.getByRole('button', { name: /REC/ });
   const recordBox = await record.boundingBox();
   expect(Math.round(recordBox?.width ?? 0)).toBeGreaterThanOrEqual(48);
@@ -94,7 +101,7 @@ test('teacher password unlocks every screen at once without changing progress', 
   const nextHeadings = [
     '드론 정찰 비행',
     '현장 증거판',
-    '구조된 모모와 루비 살피기',
+    '구조된 지구와 젤리 살피기',
     '새 정원 다시 만들기',
     '숲 생태 조사',
     '생방송 컨트롤룸',
@@ -119,7 +126,7 @@ test('teacher password unlocks every screen at once without changing progress', 
   expect(progress?.certificateUnlocked).toBe(false);
 });
 
-test('unlocked certificate has a clean print view', async ({ page }) => {
+test('unlocked certificate saves as PNG and has a clean print view', async ({ page }) => {
   await page.goto('/#/page/11');
   await page.evaluate((key) => {
     const now = new Date().toISOString();
@@ -142,6 +149,15 @@ test('unlocked certificate has a clean print view', async ({ page }) => {
   await expect(page.getByLabel('미래 직업실 탐험 수료증')).toBeVisible();
   await expect(page.getByText('테스트 탐험가', { exact: true })).toBeVisible();
   await expect(page.getByText(/나는 이제 조건을 하나씩/)).toBeVisible();
+  await expect(page.getByText('다섯 스테이지 탐험 완료!')).toHaveCount(0);
+  await expect(page.getByText(/담임교사/)).toHaveCount(0);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: '수료증 이미지로 저장하기' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('미래-직업실-수료증-테스트 탐험가.png');
+  const downloadPath = await download.path();
+  expect(downloadPath).not.toBeNull();
+  if (downloadPath) expect((await stat(downloadPath)).size).toBeGreaterThan(10_000);
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.topbar')).toBeHidden();
   await expect(page.locator('.certificate-sheet')).toBeVisible();

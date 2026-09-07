@@ -16,7 +16,7 @@ const HYPOTHESIS_PHOTO: Record<CauseId, PhotoId> = { logging: 'logging', noise: 
 const HINT_RING_MS = 10_000;
 /** 완료 메시지는 고른 가설에 따라 찾은 장소가 달라진다. */
 const FOUND_PLACE: Record<CauseId, string> = { logging: '깊은 숲 열매 나무 아래서', noise: '조용한 깊은 숲에서', water: '깊은 숲 개울 근처에서' };
-const doneMessage = (id: CauseId) => `네 가설대로 뒤져서 사육사가 ${FOUND_PLACE[id]} 모모와 루비를 찾았대!`;
+const doneMessage = (id: CauseId) => `네 가설대로 뒤져서 사육사가 ${FOUND_PLACE[id]} 지구와 젤리를 찾았대!`;
 
 function detailList(value: unknown): DetailId[] {
   return Array.isArray(value) ? value.filter((item): item is DetailId => typeof item === 'string' && DETAIL_IDS.has(item)) : [];
@@ -84,20 +84,20 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
 
   const next = step === 1
     ? { label: '다음', disabled: !allFound, hint: `사진 ${PHOTO_DETAILS.length - found.length}장을 더 살펴보면 켜져요`, onClick: () => { audioService.playSfx('swipe'); setStep(2); } }
-    : { label: '모모와 루비 살피러', disabled: !hypothesis, hint: '카드 하나를 고르면 켜져요', onClick: () => onNavigate(5) };
+    : { label: '지구와 젤리 살피러', disabled: !hypothesis, hint: '카드 하나를 고르면 켜져요', onClick: () => onNavigate(5) };
 
   return (
     <StepShell
       page={4}
       step={step}
       steps={2}
-      instruction={step === 1 ? '사진을 눌러 이상한 곳을 찾아' : '모모와 루비는 왜 떠났을까?'}
+      instruction={step === 1 ? '사진을 눌러 이상한 곳을 찾아' : '지구와 젤리 주변, 새가 왜 줄었을까?'}
       mentor={pageAsset(4, 2)}
       mentorName="드론 멘토"
       bubble={step === 1 ? '사진 속에 뭔가 이상한 게 있지 않아?' : '찾은 것들이 어디를 가리키고 있어?'}
       status={step === 1 ? `${found.length} / ${PHOTO_DETAILS.length}` : undefined}
       next={next}
-      done={hypothesis && step === 2 ? { title: `${STAGE_META[0]!.badgeName} 획득!`, message: doneMessage(hypothesis) } : undefined}
+      done={hypothesis && step === 2 ? { title: `${STAGE_META[0]!.badgeName} 획득!`, message: doneMessage(hypothesis), badge: { src: STAGE_META[0]!.badge, alt: STAGE_META[0]!.badgeName } } : undefined}
       onNavigate={onNavigate}
     >
       {step === 1 && (
@@ -145,7 +145,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
             <img src={photoAsset(openPhoto)} alt={`${openMeta.label} 찾기`} onClick={inspect} />
             {openFound && (
               <span className="zoom-mark" style={{ left: `${openMeta.rect.x * 100}%`, top: `${openMeta.rect.y * 100}%`, width: `${openMeta.rect.width * 100}%`, height: `${openMeta.rect.height * 100}%` }}>
-                {openMeta.label}
+                <span className="zoom-mark__label">{openMeta.label}</span>
               </span>
             )}
             {!openFound && ring && (

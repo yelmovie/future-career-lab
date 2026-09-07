@@ -88,7 +88,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
 
   const perfect = result?.stars === 3;
   const next = completed
-    ? { label: '숲 생태 조사로 가기', onClick: () => onNavigate(7) }
+    ? { label: '숲의 다른 새들 보러 가기', onClick: () => onNavigate(7) }
     : step === 1
       ? { label: '다음', disabled: count < 4, hint: `물건을 ${4 - count}개 더 놓아 봐`, onClick: () => setStep(2) }
       : perfect
@@ -96,7 +96,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
         : { label: result ? '옮겨서 다시' : '시험하기', disabled: testing, hint: '잠깐만, 보는 중이야', onClick: result ? () => { setResult(null); setStep(1); } : runTest };
 
   const bubble = completed
-    ? '그런데 숲 가장자리엔 왜 새소리가 없었지?'
+    ? '지구와 젤리는 괜찮아졌어. 그런데 숲에 살던 다른 새들은? 요즘 새소리가 줄었대.'
     : step === 1
       ? gardenHint(placed)
       : result
@@ -118,7 +118,7 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       bubble={bubble}
       status={result ? <span aria-label={`별 ${result.stars}개`}>{'★'.repeat(result.stars)}{'☆'.repeat(3 - result.stars)}</span> : `물건 ${count}/4`}
       help={<p>지구와 젤리에게는 조용히 숨고 물 마실 곳, 먹고 놀 곳이 필요해. 물건 네 개를 어울리는 곳에 놓고, 사람이 지나는 길은 비워 두자.</p>}
-      done={completed ? { title: `${STAGE.badgeName}를 얻었어`, message: '지구와 젤리가 새 정원에서 쉬고 있어.' } : undefined}
+      done={completed ? { title: `${STAGE.badgeName}를 얻었어`, message: '지구와 젤리는 새 정원에서 쉬어. 이제 숲의 다른 새들을 둘러보자.', badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined}
       next={next}
       className="p6-page"
       onNavigate={onNavigate}

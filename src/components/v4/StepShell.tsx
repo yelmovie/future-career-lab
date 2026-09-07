@@ -32,7 +32,7 @@ export interface StepShellProps {
   /** ? 모달 내용 — 규칙·보상 등 첫 화면에서 치운 설명 */
   help?: ReactNode;
   /** 완료 모드: 무대 위에 도장 + 한 줄 */
-  done?: { title: string; message?: string };
+  done?: { title: string; message?: string; badge?: { src: string; alt: string } };
   className?: string;
   onNavigate: (page: PageNumber) => void;
   children: ReactNode;
@@ -80,9 +80,13 @@ export function StepShell({ page, step, steps, instruction, mentor, mentorName, 
           {children}
           {done && (
             <div className="v4-done" role="status">
-              <span className="v4-done__stamp"><CheckIcon /></span>
-              <strong>{done.title}</strong>
-              {done.message && <p>{done.message}</p>}
+              <span className={`v4-done__stamp${done.badge ? ' has-badge' : ''}`}>
+                {done.badge ? <img src={done.badge.src} alt={done.badge.alt} /> : <CheckIcon />}
+              </span>
+              <span className="v4-done__copy">
+                <strong>{done.title}</strong>
+                {done.message && <p>{done.message}</p>}
+              </span>
             </div>
           )}
         </div>

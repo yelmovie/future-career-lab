@@ -56,6 +56,9 @@ test('page 7: six traces, shortest bar, outlier, three one-slider trials, main c
   page.on('pageerror', (error) => errors.push(error.message));
   await seed(page);
   await page.goto('/#/page/7');
+  // 연결 화면: 지구·젤리 → 숲의 다른 새들
+  await expect(page.getByRole('heading', { name: '지구와 젤리 말고, 숲의 다른 새들은?' })).toBeVisible();
+  await page.getByRole('button', { name: /숲 둘러보기/ }).click();
   await expect(page.getByRole('heading', { name: '반짝이는 흔적을 눌러 봐' })).toBeVisible();
 
   // 1단계: 지점 탭 3개 × 흔적 2개. 다 찾기 전엔 다음 버튼이 힌트만 준다.
@@ -113,7 +116,7 @@ test('page 7: six traces, shortest bar, outlier, three one-slider trials, main c
   await expect(page.getByRole('heading', { name: '새를 제일 많이 돌아오게 한 건?' })).toBeVisible();
   await page.getByRole('group', { name: '가장 큰 원인' }).getByRole('button', { name: /나무 심기/ }).click();
   await page.getByRole('button', { name: /결과 확정/ }).click();
-  await expect(page.getByText('숲 생태 조사 완료')).toBeVisible();
+  await expect(page.getByText('생태연구가 배지를 얻었어')).toBeVisible();
   const artifacts = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').artifacts, SAVE_KEY);
   expect(artifacts.graphs).toEqual([
     { variable: 'logging', verdict: 'main' },

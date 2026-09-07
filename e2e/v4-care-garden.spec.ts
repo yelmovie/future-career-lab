@@ -36,6 +36,14 @@ function makeSave() {
 }
 
 async function seed(page: Page) {
+  await page.addInitScript(() => {
+    const played: Array<{ src: string; volume: number }> = [];
+    Object.defineProperty(window, '__playedAudio', { value: played, configurable: true });
+    HTMLMediaElement.prototype.play = function play() {
+      played.push({ src: this.currentSrc || this.src, volume: this.volume });
+      return Promise.resolve();
+    };
+  });
   await page.goto('/#/page/1');
   await page.evaluate(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, makeSave()]);
   await page.reload();
@@ -52,7 +60,7 @@ const GROUNDED: Record<string, string[]> = {
 };
 
 /** 핫스팟 제목 순서 (page05Data CARE_ZONES) */
-const ZONES: Record<string, string[]> = { 지구: ['눈', '깃털', '행동·주변'], 젤리: ['눈', '물·먹이', '날개·자세'] };
+const ZONES: Record<string, string[]> = { 지구: ['눈', '깃털', '주변 환경'], 젤리: ['눈', '물·먹이', '날개·자세'] };
 
 /** 한 마리: 돋보기 3개(보이는 것 고르기) → 소리 비교 → 처치 카드 탭 → 앵무 탭 */
 async function careBird(page: Page, name: string, verdict: '같아요' | '달라요', treatment: RegExp) {
@@ -79,7 +87,14 @@ async function careBird(page: Page, name: string, verdict: '같아요' | '달라
 
   await expect(page.getByRole('heading', { name: new RegExp(`${name}: 소리를 비교`) })).toBeVisible();
   await page.getByRole('button', { name: '건강한 앵무 소리 듣기' }).click();
+  await expect(page.getByRole('button', { name: '소리 끄기' })).toBeVisible();
+  await expect.poll(async () => (await readSave(page)).audio).toMatchObject({ muted: false, sfxVolume: 0.7 });
   await page.getByRole('button', { name: `${name} 소리 듣기` }).click();
+  const playedAudio = await page.evaluate(() => (window as Window & { __playedAudio?: Array<{ src: string; volume: number }> }).__playedAudio ?? []);
+  expect(playedAudio).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: expect.stringMatching(/\/audio\/v2\/parrot-call-audible\.mp3$/), volume: 0.7 }),
+    expect.objectContaining({ src: expect.stringMatching(new RegExp(`/audio/v2/${name === '지구' ? 'parrot-alarm' : 'parrot-call'}-audible\\.mp3$`)), volume: 0.7 }),
+  ]));
   await expect(page.locator('.p5-sound-hint')).toHaveCount(0);
   await page.getByRole('button', { name: verdict === '같아요' ? '달라요' : '같아요' }).click();
   await expect(page.locator('.v4-big-button.is-wrong')).toHaveCount(1);
@@ -159,11 +174,19 @@ test('page 6: place chips by tap, test to 3 stars, complete', async ({ page }) =
 
   await page.getByRole('button', { name: /새 정원 완성/ }).click();
   await expect(page.getByText('동물돌봄 배지를 얻었어')).toBeVisible();
+  await expect(page.getByRole('img', { name: '동물돌봄 배지' })).toBeVisible();
+  const completionLayout = await page.evaluate(() => {
+    const stage = document.querySelector('.v4-stage')!.getBoundingClientRect();
+    const panel = document.querySelector('.v4-done')!.getBoundingClientRect();
+    return { stageWidth: stage.width, stageHeight: stage.height, panelWidth: panel.width, panelHeight: panel.height };
+  });
+  expect(completionLayout.panelWidth).toBeLessThan(completionLayout.stageWidth * 0.6);
+  expect(completionLayout.panelHeight).toBeLessThan(completionLayout.stageHeight * 0.55);
   const save = await readSave(page);
   expect(save.stageProgress.completedPages).toContain(6);
   expect(save.artifacts.habitatStars).toBe(3);
   expect(save.badges).toContain('동물돌봄 배지');
 
-  await page.getByRole('button', { name: /숲 생태 조사로 가기/ }).click();
+  await page.getByRole('button', { name: /숲의 다른 새들 보러 가기/ }).click();
   await expect(page).toHaveURL(/#\/page\/7/);
 });

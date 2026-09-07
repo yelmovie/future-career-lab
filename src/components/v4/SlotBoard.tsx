@@ -2,7 +2,7 @@ import { useState, type DragEvent, type ReactNode } from 'react';
 import { audioService } from '../../services/audioService';
 
 export interface SlotChip<T extends string> { id: T; image: string; label: string; disabled?: boolean }
-export interface Slot<S extends string> { id: S; label: string; hint?: ReactNode; capacity?: number }
+export interface Slot<S extends string> { id: S; label: string; hint?: ReactNode; scene?: string; capacity?: number }
 
 interface SlotBoardProps<T extends string, S extends string> {
   chips: readonly SlotChip<T>[];
@@ -60,6 +60,7 @@ export function SlotBoard<T extends string, S extends string>({ chips, slots, pl
             <div
               key={slot.id}
               className={`v4-slot${over === slot.id ? ' is-over' : ''}${held && !full ? ' is-ready' : ''}${placed[slot.id].length ? ' has-chip' : ''}`}
+              data-slot={slot.id}
               role="button"
               tabIndex={0}
               aria-label={`${slot.label} 자리`}
@@ -69,6 +70,7 @@ export function SlotBoard<T extends string, S extends string>({ chips, slots, pl
               onClick={() => !full && drop(slot.id)}
               onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !full) { event.preventDefault(); drop(slot.id); } }}
             >
+              {slot.scene && <img className="v4-slot__scene" src={slot.scene} alt="" />}
               <strong className="v4-slot__label">{slot.label}</strong>
               {slot.hint && <div className="v4-slot__hint">{slot.hint}</div>}
               <div className="v4-slot__chips">

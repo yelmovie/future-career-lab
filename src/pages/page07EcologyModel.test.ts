@@ -93,6 +93,12 @@ describe('page 7 ecology model', () => {
     for (const point of ['A', 'B', 'C'] as const) expect(FIELD_TRACES.filter((t) => t.point === point)).toHaveLength(2);
   });
 
+  it('uses dedicated art for machine sound, parrot call, and parrot footprints', () => {
+    expect(FIELD_TRACES.find((trace) => trace.id === 'sound-chainsaw')?.image).toBe('/assets/v5/trace-machine-sound.webp');
+    expect(FIELD_TRACES.find((trace) => trace.id === 'sound-call')?.image).toBe('/assets/v5/trace-parrot-call.webp');
+    expect(FIELD_TRACES.find((trace) => trace.id === 'foot-parrot')?.image).toBe('/assets/v5/trace-parrot-footprint.webp');
+  });
+
   it('picks the sub cause from trial effect size', () => {
     const trials = [
       { variable: 'logging' as const, from: 5, to: 0, prediction: 'down' as const, before: 40, after: 10 },

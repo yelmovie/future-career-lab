@@ -220,6 +220,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 .icon-button:hover { border-color: var(--color-primary); }
+.icon-button--back svg { transform: rotate(180deg); }
+.topbar { grid-template-columns: auto auto minmax(200px, 1fr) auto; }
 .icon-button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--color-border-soft); }
 .icon-button svg { width: 24px; height: 24px; }
 

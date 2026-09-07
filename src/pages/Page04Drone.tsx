@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { PhaserStage } from '../components/PhaserStage';
 import { audioService } from '../services/audioService';
-import { pageAsset } from '../shared/assets';
+import { pageAsset, v5Asset } from '../shared/assets';
 import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -93,7 +93,7 @@ class DroneFlightScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('drone-map', pageAsset(4, 6));
+    this.load.image('drone-map', v5Asset('drone-map-wide'));
     this.load.image('drone-craft', pageAsset(4, 3));
   }
 
@@ -248,7 +248,9 @@ class DroneFlightScene extends Phaser.Scene {
     this.rings.clear();
     const width = Math.max(320, this.scale.width);
     const height = Math.max(300, this.scale.height);
-    this.add.image(width / 2, height / 2, 'drone-map').setDisplaySize(width, height).setAlpha(.92);
+    const map = this.add.image(width / 2, height / 2, 'drone-map').setAlpha(.96);
+    const mapScale = Math.min(width / map.width, height / map.height);
+    map.setScale(mapScale);
     this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, .10);
 
     this.zones.forEach((zone) => {
@@ -356,7 +358,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const [telemetry, setTelemetry] = useState<DroneTelemetry>(initialTelemetry);
   const [result, setResult] = useState<DroneResult | null>(() => savedResult(save.pageData.p3Result));
   const [precisionStamp, setPrecisionStamp] = useState(save.pageData.p3Precision === true);
-  const [bubble, setBubble] = useState('화살표를 거슬러 날면 배터리가 3배로 닳아. 어떻게 돌까?');
+  const [bubble, setBubble] = useState('지도 위 원 1, 2, 3을 차례로 눌러 점을 놓아. 화살표를 거슬러 가면 배터리가 빨리 닳아!');
   const callbacks = useRef<{
     addWaypoint: (point: DronePoint) => void;
     moveWaypoint: (index: number, point: DronePoint) => void;
@@ -373,9 +375,9 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const full = waypoints.length >= MAX_WAYPOINTS;
   callbacks.current.addWaypoint = (point) => {
     if (phase !== 'plan') return;
-    if (full) { setBubble(`점은 ${MAX_WAYPOINTS}개까지야. 점을 끌어 옮기거나 지워 봐.`); audioService.playSfx('warning'); return; }
+    if (full) { setBubble(`점은 ${MAX_WAYPOINTS}개까지야. 점을 끌어서 옮기거나, 위쪽 '점 하나 지우기'를 눌러.`); audioService.playSfx('warning'); return; }
     savePlan([...waypoints, point]);
-    setBubble(waypoints.length + 1 >= 2 ? '세 원을 다 지나가? 그럼 출발!' : '점을 하나 더 놓아 봐.');
+    setBubble(waypoints.length + 1 >= 3 ? '세 원 다 놓았어! 오른쪽 아래 노란 출발! 버튼을 눌러.' : waypoints.length + 1 === 2 ? '좋아, 하나 더! 세 번째 원도 눌러 점을 놓아.' : '점 하나 놓았어. 다음 원도 눌러 봐.');
     audioService.playSfx('drop');
   };
   callbacks.current.moveWaypoint = (index, point) => {
@@ -401,7 +403,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
         setPageData('p3Precision', true);
         logEvent({ page: 3, type: 'drone-precision', contextRef: 'p3-precision', summary: '배터리 30% 이상 남기고 3컷 모두 정중앙 — 정밀 비행.', tags: ['드론', '정밀'], traits: { execution: 1 } });
       }
-      setBubble(value.precision ? '정밀 비행 도장! 세 컷 다 정중앙이야.' : '세 곳을 다 찍었어! 사진을 증거판으로 가져가자.');
+      setBubble(value.precision ? '정밀 비행 도장! 세 컷 다 정중앙이야. 오른쪽 아래 버튼으로 증거판에 가자.' : '세 곳 다 찍었어! 오른쪽 아래 버튼을 눌러 사진을 증거판으로 가져가자.');
       audioService.playSfx(value.precision ? 'reward' : 'success');
       return;
     }
@@ -409,9 +411,9 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
       const worst = Object.entries(value.drainByZone).sort((a, b) => b[1] - a[1])[0];
       const zone = zones.find((item) => item.id === worst?.[0]);
       scene.highlight(zone?.id ?? null);
-      setBubble('배터리가 먼저 떨어졌어. 빨간 구간에서 화살표를 거슬렀지?');
+      setBubble('배터리가 먼저 떨어졌어. 빨간 구간을 피하도록 점을 끌어 옮기고, 다시 출발!을 눌러.');
     } else {
-      setBubble('빨간 원을 놓쳤어. 점을 원 한가운데로 옮겨 볼까?');
+      setBubble('빨간 원을 놓쳤어. 그 점을 끌어서 원 한가운데에 놓고, 다시 출발!을 눌러.');
     }
     audioService.playSfx('warning');
   };
@@ -422,14 +424,14 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
     setPhase('flight');
     setResult(null);
     setTelemetry(initialTelemetry);
-    setBubble('원 안에 들어오면 REC!');
+    setBubble('드론이 원 안에 들어오면 아래 빨간 REC 버튼을 눌러!');
     scene.launch();
     audioService.playSfx('record');
   };
 
   const tapRec = () => {
     const photo = scene.tapRec();
-    if (!photo) { setBubble('아직 원 밖이야. 원 안에서 눌러.'); audioService.playSfx('tap'); return; }
+    if (!photo) { setBubble('아직 원 밖이야. 드론이 원 안에 들어왔을 때 REC를 눌러.'); audioService.playSfx('tap'); return; }
     setBubble(photo.quality === 'center' ? `${targetName(photo.id)} 정중앙 컷!` : `${targetName(photo.id)} 찍었어. 한가운데면 더 좋아.`);
     audioService.playSfx(photo.quality === 'center' ? 'clue' : 'record');
   };
@@ -437,12 +439,12 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const retry = () => {
     setPhase('plan');
     setTelemetry(initialTelemetry);
-    setBubble('점을 끌어 화살표를 따라가 보자.');
+    setBubble('점을 끌어서 화살표 방향으로 돌게 옮기고, 다 되면 출발!을 눌러.');
     scene.resetFlight();
   };
 
   const step = phase === 'plan' ? 1 : phase === 'flight' ? 2 : 3;
-  const instruction = phase === 'plan' ? '지도를 눌러 지나갈 점을 놓아' : phase === 'flight' ? '원 안에 들어오면 REC 를 눌러' : result?.passed ? '사진 3장을 얻었어!' : completed ? '사진은 이미 있어. 다시 날아도 돼' : '놓친 곳을 보고 다시 계획해';
+  const instruction = phase === 'plan' ? '지도의 원 1·2·3을 눌러 점을 놓아' : phase === 'flight' ? '원 안에 들어오면 REC를 눌러' : result?.passed ? '사진 3장을 얻었어!' : completed ? '사진은 이미 있어. 다시 날아도 돼' : '놓친 곳을 보고 다시 계획해';
   const next = phase === 'plan'
     ? { label: '출발!', disabled: waypoints.length < 2, hint: '점을 2개 이상 놓으면 출발할 수 있어', onClick: launch }
     : phase === 'flight'
