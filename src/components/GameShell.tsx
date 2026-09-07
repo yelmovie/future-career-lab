@@ -41,7 +41,6 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
   const [helpOpen, setHelpOpen] = useState(false);
   const meta = PAGE_META[page];
   const sectionLabel = meta.stage ? `스테이지 ${meta.stage}` : page === 2 ? '사건 접수' : page === 10 ? '탐험 정리' : page === 11 ? '탐험 완료' : '게임 시작';
-  const activeStage = meta.stage ?? GAME_FLOW.find((item) => !save.stageProgress.completed[item.stage])?.stage;
   const isHome = page === 1;
   const teacherNextPage = teacherMode && page >= 2 && page < 11 ? (page + 1) as PageNumber : null;
   // 교사용 해금 바로가기는 상단바에 둔다. 하단 띠로 두면 무대 높이를 64px 뺏어 v4 화면이 잘린다.
