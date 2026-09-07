@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
+import { TapIcon } from '../components/Icons';
 import { PhaserStage } from '../components/PhaserStage';
 import { audioService } from '../services/audioService';
 import { pageAsset, v5Asset } from '../shared/assets';
@@ -59,6 +60,8 @@ function savedResult(value: unknown): DroneResult | null {
   return { photos: result.photos, batteryRemaining: result.batteryRemaining, drainByZone: result.drainByZone ?? {}, passed: result.passed, precision: result.precision ?? false };
 }
 
+/** 마지막 점은 다음 점으로 이어 가며 원을 지나지 않으니, 착륙 전에 더 오래 떠 있는다. */
+const LAST_DWELL_MS = 2600;
 const targetName = (id: PhotoId) => DRONE_TARGETS.find((target) => target.id === id)?.name ?? id;
 
 class DroneFlightScene extends Phaser.Scene {
@@ -114,7 +117,9 @@ class DroneFlightScene extends Phaser.Scene {
     if (this.mode !== 'flight' && this.mode !== 'return') return;
     const dt = Math.min(delta, 80) / 1000;
 
-    if (this.battery > 0) {
+    // 마지막 점에서는 착륙 전에 제자리 비행 — 배터리는 안 닳고, REC 창이 다른 점만큼 넉넉히 열린다.
+    const hoveringAtLast = this.mode === 'flight' && this.dwellRemaining > 0 && this.segmentIndex >= this.waypoints.length - 1;
+    if (this.battery > 0 && !hoveringAtLast) {
       const drain = batteryDrain(this.position, this.heading, this.zones, dt);
       const { zone } = windRelation(this.position, this.heading, this.zones);
       if (zone) this.drainByZone[zone.id] = (this.drainByZone[zone.id] ?? 0) + drain;
@@ -133,7 +138,7 @@ class DroneFlightScene extends Phaser.Scene {
       if (remaining <= step) {
         this.position = { ...goal };
         if (this.mode === 'return') { this.finishFlight(); return; }
-        this.dwellRemaining = REC_DWELL_MS;
+        this.dwellRemaining = this.segmentIndex >= this.waypoints.length - 1 ? LAST_DWELL_MS : REC_DWELL_MS;
       } else {
         this.position = { x: this.position.x + this.heading.x * step, y: this.position.y + this.heading.y * step };
       }
@@ -269,13 +274,20 @@ class DroneFlightScene extends Phaser.Scene {
       }).setDepth(3);
     });
 
-    DRONE_TARGETS.forEach((target) => {
+    DRONE_TARGETS.forEach((target, index) => {
       const done = this.photos.has(target.id);
       const missed = !done && this.mode === 'review';
-      const ring = this.add.circle(target.x * width, target.y * height, REC_RADIUS * Math.min(width, height), done ? 0x3ab76b : missed ? 0xd65b4a : 0xe4a63c, done ? .35 : missed ? .3 : .22)
+      const radius = REC_RADIUS * Math.min(width, height);
+      const ring = this.add.circle(target.x * width, target.y * height, radius, done ? 0x3ab76b : missed ? 0xd65b4a : 0xe4a63c, done ? .35 : missed ? .3 : .22)
         .setStrokeStyle(missed ? 5 : 3, done ? 0x74e49a : missed ? 0xff8176 : 0xffd37b, .95).setDepth(5);
       this.rings.set(target.id, ring);
       this.add.circle(target.x * width, target.y * height, 7, 0xfff1ca, .9).setDepth(6);
+      // 원 위쪽 번호 배지 — 지시문 "원 1·2·3" 과 같은 숫자. 찍으면 초록, 놓치면 산호색.
+      const badgeY = target.y * height - radius - 2;
+      this.add.circle(target.x * width, badgeY, 21, done ? 0x35c48a : missed ? 0xff6f61 : 0xffc53d, 1).setStrokeStyle(4, 0xffffff, 1).setDepth(7);
+      this.add.text(target.x * width, badgeY, String(index + 1), {
+        fontFamily: FONT, fontSize: CANVAS_FONT.head, fontStyle: 'bold', color: done || missed ? '#ffffff' : '#3a2a00',
+      }).setOrigin(.5, .52).setDepth(8);
       this.add.text(target.x * width, target.y * height + 14, `${target.name}${done ? ' · 찍음' : missed ? ' · 놓침' : ''}`, {
         fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff1ca', backgroundColor: '#061426d8', padding: { x: 6, y: 4 },
       }).setOrigin(.5, 0).setDepth(6);
@@ -495,6 +507,12 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
                 <button type="button" aria-label="드론을 아래로 조금 이동" onClick={() => scene.nudge(0, .035)}><span aria-hidden="true">↓</span><strong>아래</strong></button>
                 <button type="button" aria-label="드론을 오른쪽으로 조금 이동" onClick={() => scene.nudge(.035, 0)}><span aria-hidden="true">→</span><strong>오른쪽</strong></button>
               </div>
+              {telemetry.recTarget && !telemetry.returning && (
+                <span className="drone-v4__tap" aria-hidden="true">
+                  <span className="drone-v4__tap-pill">{telemetry.recCenter ? '한가운데! 지금 눌러' : '원 안이야, REC 눌러'}</span>
+                  <TapIcon />
+                </span>
+              )}
               <button className={`record-button drone-v4__rec${telemetry.recTarget ? ' is-window is-next-action' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
                 <span />{telemetry.recTarget ? `REC · ${targetName(telemetry.recTarget)}` : 'REC'}
               </button>

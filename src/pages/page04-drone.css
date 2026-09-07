@@ -8,7 +8,14 @@
 .drone-v4__pad button span,
 .drone-v4__pad button strong { flex: none; }
 .drone-v4__rec { position: absolute; z-index: 4; left: 50%; bottom: 14px; transform: translateX(-50%); min-width: 240px; min-height: 72px; font-size: 24px; }
-.drone-v4__rec.is-window { transform: translateX(-50%) scale(1.06); }
+.drone-v4__rec.is-window { transform: translateX(-50%) scale(1.06); animation: drone-rec-glow 1s ease-in-out infinite; }
+@keyframes drone-rec-glow { 0%, 100% { box-shadow: 0 6px 0 var(--color-coral-edge), 0 0 0 0 rgb(255 111 97 / 55%); } 50% { box-shadow: 0 6px 0 var(--color-coral-edge), 0 0 0 16px rgb(255 111 97 / 0%); } }
+/* REC 창이 열리면 버튼 위에 손가락 + 한 줄 안내가 톡톡 튄다 */
+.drone-v4__tap { position: absolute; z-index: 5; left: 50%; bottom: 96px; display: grid; justify-items: center; gap: 2px; transform: translateX(-50%); pointer-events: none; animation: drone-tap .7s ease-in-out infinite alternate; }
+.drone-v4__tap svg { width: 54px; height: 54px; color: #fff; filter: drop-shadow(0 4px 6px rgb(0 0 0 / 35%)); stroke-width: 2.2; }
+.drone-v4__tap-pill { padding: 6px 16px; border: 2px solid #fff; border-radius: 999px; background: var(--color-accent); color: #3a2a00; font-family: var(--font-display); font-size: 21px; white-space: nowrap; box-shadow: 0 4px 0 var(--color-accent-edge), 0 8px 18px rgb(0 0 0 / 22%); }
+@keyframes drone-tap { from { translate: 0 0; } to { translate: 0 10px; } }
+@media (prefers-reduced-motion: reduce) { .drone-v4__tap, .drone-v4__rec.is-window { animation: none; } }
 .drone-v4__review { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; padding: 14px; }
 /* 사진 3장을 세로로 균등 분할 — 각 사진은 자기 칸에 맞춰 잘라 보이고, 이름표는 항상 보인다 */
 .drone-v4__review .photo-cards { grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 8px; height: 100%; min-height: 0; }
