@@ -70,9 +70,9 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
 
         <article className="certificate-sheet" aria-label={CERTIFICATE_TITLE}>
           <div className="certificate-border">
-            <header><img src={pageAsset(10, 2)} alt="" /><span>FUTURE CAREER LAB</span><h2>{CERTIFICATE_TITLE}</h2><p>Certificate of Career Exploration</p></header>
+            <header><span>FUTURE CAREER LAB</span><h2>{CERTIFICATE_TITLE}</h2><p>Certificate of Career Exploration</p></header>
             <div className="certificate-name"><strong>{save.playerName || '　　　　　　　　　'}</strong><span>탐험가</span></div>
-            <p className="certificate-copy">위 학생은 「미래 직업실」에서 드론 현장가·동물돌봄 전문가·생태연구가·방송기술자의 일을 직접 해 보고<br />모모와 루비를 찾고 푸른솔 숲의 새들을 지키는 데 네 직업의 힘을 모았습니다.<br />네 직업을 한 팀으로 묶어 숲의 위기를 해결했기에 이 증서를 수여합니다.</p>
+            <p className="certificate-copy">위 학생은 「미래 직업실」에서 드론 현장가·동물돌봄 전문가·생태연구가·방송기술자의 일을 직접 해 보고,<br />네 직업의 힘을 모아 지구와 젤리를 찾고 푸른솔 숲의 새들을 지켰기에 이 증서를 수여합니다.</p>
             <div className="certificate-badges">{STAGE_META.map((stage) => <div key={stage.id}><span><img src={stage.badge} alt="" /></span><b>{stage.label}</b></div>)}</div>
             {save.abilityStatements.length > 0 && <ul className="certificate-abilities">{save.abilityStatements.map((statement) => <li key={statement}>나는 이제 {statement}</li>)}</ul>}
             <div className="certificate-info">
