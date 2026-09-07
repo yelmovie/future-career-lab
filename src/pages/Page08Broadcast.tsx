@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { PictureChoice } from '../components/v4/PictureChoice';
 import { audioService } from '../services/audioService';
-import { pageAsset, v6Asset } from '../shared/assets';
+import { pageAsset, v6Asset, v7Asset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -36,10 +36,10 @@ const MENTOR = pageAsset(3, 3);
 const SOURCES: SourceId[] = ['drone', 'studio', 'reporter'];
 /** 한 뉴스 특집처럼 톤을 맞춘 근거 이미지. 소문은 출처 글을 읽어 가려낸다. */
 const KIND_IMAGE: Record<CaptionCard['kind'], string> = {
-  graph: v6Asset('broadcast-evidence-graph'),
+  graph: v7Asset('broadcast-evidence-graph'),
   photo: v6Asset('broadcast-field-poster'),
-  action: v6Asset('broadcast-action-poster'),
-  rumor: v6Asset('broadcast-rumor-social'),
+  action: v7Asset('broadcast-action-poster'),
+  rumor: v7Asset('broadcast-rumor-social'),
 };
 const PHOTO_IMAGE = {
   logging: v6Asset('broadcast-field-poster'),
@@ -48,8 +48,8 @@ const PHOTO_IMAGE = {
 } as const;
 const cardImage = (card: CaptionCard) => (card.photo ? PHOTO_IMAGE[card.photo] : KIND_IMAGE[card.kind]);
 const INCIDENT_ICON: Record<string, string> = {
-  'mic-swap': v6Asset('broadcast-mic-swap'),
-  'mic-ignore': v6Asset('broadcast-mic-ignore'),
+  'mic-swap': v7Asset('broadcast-mic-swap'),
+  'mic-ignore': v7Asset('broadcast-mic-ignore'),
 };
 const WAVE_BARS = [.35, .7, 1, .55, .85, .45, .95, .6, .8, .4, 1, .65, .5, .9, .3];
 
@@ -93,18 +93,18 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   const options = useMemo(() => segmentCards(cards, state.index, save.sessionSeed), [cards, state.index, save.sessionSeed]);
   const caption = options.find((card) => card.id === state.draft.captionId) ?? null;
   const studioPoster = segment?.id === 'cause' || segment?.id === 'correction'
-    ? v6Asset('broadcast-cause-poster')
-    : v6Asset('broadcast-opening-poster');
+    ? v7Asset('broadcast-cause-poster')
+    : v7Asset('broadcast-opening-poster');
   const sourceImage: Record<SourceId, string> = {
     drone: v6Asset('broadcast-field-poster'),
     studio: studioPoster,
-    reporter: v6Asset('broadcast-action-poster'),
+    reporter: v7Asset('broadcast-action-poster'),
   };
   const programPoster = incident
-    ? v6Asset('broadcast-mic-failure-poster')
+    ? v7Asset('broadcast-mic-failure-poster')
     : state.draft.source
       ? sourceImage[state.draft.source]
-      : v6Asset('broadcast-standby-poster');
+      : v7Asset('broadcast-standby-poster');
   const programVideo = incident
     ? VIDEO_PATH.incident
     : state.draft.source && segment
@@ -219,7 +219,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
           )}
 
           {!audioPhase && !done && !incident && !state.draft.source && (
-            <div className={react?.shake && SOURCES.includes(react.shake as SourceId) ? 'v4-shake' : ''}>
+            <div className={`p8-sources${react?.shake && SOURCES.includes(react.shake as SourceId) ? ' v4-shake' : ''}`}>
               <PictureChoice size="lg" fit="cover" ariaLabel="화면 고르기" selected={null} onSelect={pickSource} options={SOURCES.map((id) => ({ id, image: sourceImage[id], label: SOURCE_LABEL[id] }))} />
             </div>
           )}

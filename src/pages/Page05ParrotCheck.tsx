@@ -229,7 +229,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
       mentorName={MENTOR_NAME}
       bubble={completed ? '두 아이가 왜 달랐는지 기억해 둬.' : reaction ?? BUBBLES[step - 1]!}
       status={<span className="p5-hearts" role="img" aria-label={`${bird.name} 기운 ${hearts} / 5`}>{Array.from({ length: 5 }, (_, index) => <i key={index} className={index < hearts ? 'is-on' : ''} />)}<b>{bird.name}</b></span>}
-      help={<ul className="p5-help"><li>1 반짝이는 곳을 누르면 돋보기가 열려. 돋보기에 <b>정말 보이는 것</b>을 골라 기록판에 붙여.</li><li>2 건강한 앵무 소리와 {bird.name} 소리를 듣고 같은지 다른지 골라.</li><li>3 기록판의 증상과 카드의 "언제 쓰나"를 맞춰 처치를 골라 앵무에게 줘. 틀려도 벌칙은 없어.</li></ul>}
+      help={<ul className="p5-help"><li>반짝이는 곳을 누르면 돋보기가 열려. 돋보기에 <b>정말 보이는 것</b>을 골라 기록판에 붙여.</li><li>건강한 앵무 소리와 {bird.name} 소리를 듣고 같은지 다른지 골라.</li><li>기록판의 증상과 카드의 "언제 쓰나"를 맞춰 처치를 골라 앵무에게 줘. 틀려도 벌칙은 없어.</li></ul>}
       done={completed ? { title: '지구와 젤리 모두 안정됐어', message: '돌봄 기록을 새 정원 다시 만들기로 보냈어.' } : undefined}
       next={next}
       className="p5-page"

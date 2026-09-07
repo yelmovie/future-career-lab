@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { audioService } from '../services/audioService';
-import { backgroundFor, fallbackTo, pageAsset, v2Asset, v5Asset, v6Asset } from '../shared/assets';
+import { backgroundFor, fallbackTo, pageAsset, v2Asset, v5Asset, v6Asset, v7Asset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -48,8 +48,8 @@ const ACTION_ICON: Record<CauseId, { src: string; fallback: string }> = {
   water: { src: v5Asset('act-fill-water', 'png'), fallback: pageAsset(6, 7) },
 };
 const BIRDS = [
-  v6Asset('forest-bird-1', 'png'), v6Asset('forest-bird-2', 'png'), v6Asset('forest-bird-3', 'png'),
-  v6Asset('forest-bird-4', 'png'), v6Asset('forest-bird-5', 'png'), v6Asset('forest-bird-6', 'png'),
+  v7Asset('forest-bird-1', 'png'), v7Asset('forest-bird-2', 'png'), v7Asset('forest-bird-3', 'png'),
+  v7Asset('forest-bird-4', 'png'), v7Asset('forest-bird-5', 'png'), v7Asset('forest-bird-6', 'png'),
 ] as const;
 const BIRD_FALLBACK = pageAsset(7, 4);
 /** 새 아이콘이 앉는 자리(장면 안 %). 새 수만큼 앞에서부터 쓴다. */
@@ -238,9 +238,9 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
 
   const help = (
     <ul className="p7-help">
-      <li>1 지점 A·B·C를 돌며 반짝이는 흔적 6개를 눌러.</li>
-      <li>2 그림 속 새를 세어 제일 적은 곳을 찾아.</li>
-      <li>3 행동 카드를 하나만 골라 해 보고, 새가 돌아오는지 봐. 세 가지를 다 해 보면 원인을 고를 수 있어.</li>
+      <li>지점 A·B·C를 돌며 반짝이는 흔적 6개를 눌러.</li>
+      <li>그림 속 새를 세어 제일 적은 곳을 찾아.</li>
+      <li>행동 카드를 하나만 골라 해 보고, 새가 돌아오는지 봐. 세 가지를 다 해 보면 원인을 고를 수 있어.</li>
     </ul>
   );
   const status = step === 1 ? `흔적 ${found.length}/${FIELD_TRACES.length}` :
