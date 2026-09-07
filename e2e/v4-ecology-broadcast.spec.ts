@@ -59,7 +59,7 @@ test('page 7: six traces, shortest bar, outlier, three one-slider trials, main c
   await expect(page.getByRole('heading', { name: '반짝이는 흔적을 눌러 봐' })).toBeVisible();
 
   // 1단계: 지점 탭 3개 × 흔적 2개. 다 찾기 전엔 다음 버튼이 힌트만 준다.
-  const next = page.getByRole('button', { name: /그래프 보기/ });
+  const next = page.getByRole('button', { name: /새 세어 보기/ });
   await next.click();
   await expect(page.getByText('흔적 6개를 다 찾으면 켜져요')).toBeVisible();
   for (const tab of ['A 숲 가장자리', 'B 개울가', 'C 깊은 숲']) {
@@ -73,53 +73,45 @@ test('page 7: six traces, shortest bar, outlier, three one-slider trials, main c
   await expect(page.locator('.p7-stamps li.is-found')).toHaveCount(6);
   await next.click();
 
-  // 2단계: 막대 → 튀는 값. 틀리면 튕기고 한 줄 질문.
+  // 2단계: 그림 속 새를 세어 제일 적은 곳. 틀리면 튕기고 한 줄 질문.
   await expect(page.getByRole('heading', { name: '새가 제일 적은 곳은?' })).toBeVisible();
-  await page.getByRole('button', { name: /C 깊은 숲 새 흔적/ }).click();
-  await expect(page.getByRole('status').filter({ hasText: '막대가 제일 짧은 곳은' })).toBeVisible();
-  await page.getByRole('button', { name: /A 숲 가장자리 새 흔적/ }).click();
-  await expect(page.getByRole('heading', { name: '여기서 제일 큰 값은?' })).toBeVisible();
-  const outliers = page.getByRole('group', { name: 'A 지점 값' });
-  // 정답은 소음(9) 하나뿐 — 먹이나무(3, 가장 적음)도 틀린다
-  await outliers.getByRole('button', { name: /^먹이나무/ }).click();
-  await expect(page.getByRole('status').filter({ hasText: '제일 큰 그림' })).toBeVisible();
-  await expect(page.locator('.p7-outliers')).toHaveClass(/v4-shake/);
-  await outliers.getByRole('button', { name: /^소음/ }).click();
-  await page.getByRole('button', { name: /실험하기/ }).click();
+  await page.getByRole('button', { name: /C 깊은 숲 새 8마리/ }).click();
+  await expect(page.getByRole('status').filter({ hasText: '새가 제일 적은 곳은 어디야' })).toBeVisible();
+  await page.getByRole('button', { name: /A 숲 가장자리 새 1마리/ }).click();
+  await expect(page.getByRole('heading', { name: '숲 가장자리엔 새가 거의 없네' })).toBeVisible();
+  await page.getByRole('button', { name: /왜 그럴까/ }).click();
 
-  // 3단계: 슬라이더 하나 → 예측 → 실행!(다음 버튼 자리). 세 값을 각각 한 번씩.
-  await expect(page.getByRole('heading', { name: '슬라이더 하나만 움직여' })).toBeVisible();
-  const run = page.getByRole('button', { name: /실행!/ });
+  // 3단계: 행동 카드 하나 → 예측 → 해 보기!(다음 버튼 자리) → 원래대로. 세 가지를 각각 한 번씩.
+  await expect(page.getByRole('heading', { name: '하나만 골라서 해 보자' })).toBeVisible();
+  const run = page.getByRole('button', { name: /해 보기!/ });
   await run.click();
-  await expect(page.locator('.v4-hint')).toHaveText('슬라이더 하나를 움직여');
-  const runTrial = async (label: string, value: string, prediction: string) => {
-    await page.getByLabel(`${label} 조절`).fill(value);
-    await page.getByRole('button', { name: prediction, exact: true }).click();
+  await expect(page.locator('.v4-hint')).toHaveText('행동 카드 하나를 골라');
+  const cards = page.getByRole('group', { name: '행동 카드' });
+  const tryAction = async (label: string, guess: string) => {
+    await cards.getByRole('button', { name: new RegExp('^' + label) }).click();
+    await page.getByRole('button', { name: guess, exact: true }).click();
     await run.click();
     await expect(page.locator('.p7-result')).toBeVisible();
-    await page.getByRole('button', { name: /다음 실험|원인 고르기/ }).click();
+    await page.getByRole('button', { name: /원래대로|원인 고르기/ }).click();
   };
-  await runTrial('먹이나무', '0', '줄어든다');
-  await expect(page.locator('.v4-status')).toHaveText('실험 1/3 · 남은: 소음, 물');
-  // 같은 값을 또 바꿔도 세지 않는다
-  await runTrial('먹이나무', '10', '늘어난다');
-  await expect(page.locator('.v4-status')).toHaveText('실험 1/3 · 남은: 소음, 물');
-  await expect(page.getByRole('heading', { name: '슬라이더 하나만 움직여' })).toBeVisible();
-  // 두 번째 슬라이더를 같이 만지면 잠기고 질문 한 줄
-  await page.getByLabel('소음 조절').fill('10');
-  await page.getByLabel('물 조절').fill('10');
-  await expect(page.getByRole('status').filter({ hasText: '하나만 바꿔 볼까' })).toBeVisible();
-  await expect(page.getByLabel('물 조절')).toHaveValue('5');
-  await page.getByRole('button', { name: '줄어든다', exact: true }).click();
+  // 두 번째 카드를 같이 고르면 막히고 질문 한 줄
+  await cards.getByRole('button', { name: /^나무 심기/ }).click();
+  await cards.getByRole('button', { name: /^물 채우기/ }).click();
+  await expect(page.getByRole('status').filter({ hasText: '한 번에 하나만' })).toBeVisible();
+  await page.getByRole('button', { name: '새가 돌아올 거야', exact: true }).click();
   await run.click();
-  await page.getByRole('button', { name: '다음 실험' }).click();
-  await expect(page.locator('.v4-status')).toHaveText('실험 2/3 · 남은: 물');
-  await run.click();
-  await expect(page.locator('.v4-hint')).toHaveText('아직 안 바꿔 본 값이 있어');
-  await runTrial('물', '10', '늘어난다');
+  await expect(page.locator('.p7-result')).toContainText('예측이 맞았어');
+  await page.getByRole('button', { name: '원래대로' }).click();
+  await expect(page.locator('.v4-status')).toHaveText('해 본 것 1/3');
+  // 이미 해 본 카드는 다시 못 고른다
+  await cards.getByRole('button', { name: /^나무 심기/ }).click();
+  await expect(page.getByRole('status').filter({ hasText: '벌써 해 봤어' })).toBeVisible();
+  await tryAction('기계 소리 멈추기', '새가 돌아올 거야');
+  await expect(page.locator('.v4-status')).toHaveText('해 본 것 2/3');
+  await tryAction('물 채우기', '그대로일 거야');
 
-  await expect(page.getByRole('heading', { name: '가장 큰 원인은?' })).toBeVisible();
-  await page.getByRole('group', { name: '가장 큰 원인' }).getByRole('button', { name: /먹이나무/ }).click();
+  await expect(page.getByRole('heading', { name: '새를 제일 많이 돌아오게 한 건?' })).toBeVisible();
+  await page.getByRole('group', { name: '가장 큰 원인' }).getByRole('button', { name: /나무 심기/ }).click();
   await page.getByRole('button', { name: /결과 확정/ }).click();
   await expect(page.getByText('숲 생태 조사 완료')).toBeVisible();
   const artifacts = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').artifacts, SAVE_KEY);

@@ -1,33 +1,25 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { StepShell } from '../components/v4/StepShell';
-import { PictureChoice } from '../components/v4/PictureChoice';
-import { SoundIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { backgroundFor, pageAsset, v2Asset } from '../shared/assets';
+import { backgroundFor, fallbackTo, pageAsset, v2Asset, v5Asset } from '../shared/assets';
 import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import {
-  BASE_LEVELS,
+  ACTIONS,
   FIELD_TRACES,
-  LEVEL_MAX,
   MIN_TRIALS,
   POINTS,
   POINT_STATS,
-  PREDICTIONS,
   VARIABLES,
-  VARIABLE_LABEL,
   actualDirection,
+  applyAction,
   buildGraphs,
-  changeLevel,
-  createExperiment,
+  edgeBirds,
   fewestTracePoint,
+  getAction,
   getTrace,
-  population,
-  runTrial,
   subCause,
-  type ExperimentState,
-  type Levels,
   type PointId,
   type Prediction,
   type Trial,
@@ -37,50 +29,77 @@ import './page07.css';
 const META = STAGE_META[2]!;
 const MENTOR = pageAsset(7, 1);
 const POINT_IMAGE: Record<PointId, string> = { A: v2Asset('trace-stump'), B: pageAsset(6, 7), C: v2Asset('trace-fruit') };
-const CAUSE_IMAGE: Record<CauseId, string> = { logging: v2Asset('trace-fruit'), noise: pageAsset(7, 3), water: pageAsset(6, 7) };
-const BIRD = pageAsset(7, 4);
-/** 지점 A 에서 제일 큰 값: 소음(9) 하나만 정답. */
-const OUTLIER: CauseId = 'noise';
+/** 지점 장면: v6 그림이 오면 그걸, 없으면 v2 사진·배경으로. */
+const POINT_SCENE: Record<PointId, { src: string; fallback: string }> = {
+  A: { src: v5Asset('scene-edge-before'), fallback: v2Asset('photo-logging') },
+  B: { src: v5Asset('scene-stream'), fallback: v2Asset('photo-stream') },
+  C: { src: v5Asset('scene-deep'), fallback: backgroundFor(7) },
+};
+/** 행동별 장면 변화: 그림이 없으면 before 사진 위에 색 필터만 얹는다(.p7-edge[data-change]). */
+const ACTION_SCENE: Record<CauseId, { src: string; fallback: string }> = {
+  logging: { src: v5Asset('scene-edge-trees'), fallback: v2Asset('photo-logging') },
+  noise: { src: v5Asset('scene-edge-quiet'), fallback: v2Asset('photo-logging') },
+  water: { src: v5Asset('scene-edge-water'), fallback: v2Asset('photo-logging') },
+};
+const ACTION_ICON: Record<CauseId, { src: string; fallback: string }> = {
+  logging: { src: v5Asset('act-plant-tree', 'png'), fallback: v2Asset('trace-fruit') },
+  noise: { src: v5Asset('act-quiet', 'png'), fallback: pageAsset(7, 3) },
+  water: { src: v5Asset('act-fill-water', 'png'), fallback: pageAsset(6, 7) },
+};
+const BIRD = { src: v5Asset('bird-small', 'png'), fallback: pageAsset(7, 4) };
+/** 새 아이콘이 앉는 자리(장면 안 %). 새 수만큼 앞에서부터 쓴다. */
+const PERCHES: [number, number][] = [[18, 62], [70, 40], [46, 30], [82, 66], [30, 40], [58, 70], [12, 34], [90, 28], [40, 58], [64, 22], [24, 76], [76, 52], [52, 46], [8, 50], [86, 80], [34, 20]];
+const GUESSES: { id: Prediction; label: string }[] = [
+  { id: 'up', label: '새가 돌아올 거야' },
+  { id: 'same', label: '그대로일 거야' },
+];
 
 interface Stored {
   step: 1 | 2 | 3;
   point: PointId;
   found: string[];
   fewest: boolean;
-  outlier: CauseId | null;
-  exp: ExperimentState;
   trials: Trial[];
+  active: CauseId | null;
   prediction: Prediction | null;
   lastTrial: Trial | null;
   main: CauseId | null;
 }
 
 const isCause = (v: unknown): v is CauseId => VARIABLES.some((x) => x.id === v);
-const isPrediction = (v: unknown): v is Prediction => PREDICTIONS.some((p) => p.id === v);
-const isLevels = (v: unknown): v is Levels => Boolean(v) && typeof v === 'object' && VARIABLES.every(({ id }) => Number.isFinite((v as Record<string, unknown>)[id]));
+const isPrediction = (v: unknown): v is Prediction => v === 'up' || v === 'down' || v === 'same';
 const isTrial = (v: unknown): v is Trial => {
   const t = v as Partial<Trial> | null;
   return Boolean(t) && typeof t === 'object' && isCause(t!.variable) && isPrediction(t!.prediction) && [t!.from, t!.to, t!.before, t!.after].every(Number.isFinite);
 };
 
 function readStored(value: unknown): Stored {
-  const base: Stored = { step: 1, point: 'A', found: [], fewest: false, outlier: null, exp: createExperiment(), trials: [], prediction: null, lastTrial: null, main: null };
+  const base: Stored = { step: 1, point: 'A', found: [], fewest: false, trials: [], active: null, prediction: null, lastTrial: null, main: null };
   if (!value || typeof value !== 'object') return base;
   const c = value as Omit<Partial<Stored>, 'step'> & { step?: unknown };
-  // 예전 저장(step: 'collect' | 'tablet' | 'experiment')도 받아 준다
-  const step = c.step === 'tablet' || c.step === 2 ? 2 : c.step === 'experiment' || c.step === 3 ? 3 : 1;
+  const step = c.step === 2 ? 2 : c.step === 3 ? 3 : 1;
+  const trials = Array.isArray(c.trials) ? c.trials.filter(isTrial).filter((t) => t.before === edgeBirds()) : [];
   return {
     step,
     point: POINTS.some((p) => p.id === c.point) ? (c.point as PointId) : 'A',
     found: Array.isArray(c.found) ? c.found.filter((id): id is string => typeof id === 'string' && FIELD_TRACES.some((t) => t.id === id)) : [],
     fewest: c.fewest === true || step === 3,
-    outlier: isCause(c.outlier) ? c.outlier : step === 3 ? 'noise' : null,
-    exp: c.exp && isLevels(c.exp.levels) ? { baseline: BASE_LEVELS, levels: c.exp.levels, active: isCause(c.exp.active) ? c.exp.active : null } : base.exp,
-    trials: Array.isArray(c.trials) ? c.trials.filter(isTrial) : [],
+    trials,
+    active: isCause(c.active) ? c.active : null,
     prediction: isPrediction(c.prediction) ? c.prediction : null,
     lastTrial: isTrial(c.lastTrial) ? c.lastTrial : null,
     main: isCause(c.main) ? c.main : null,
   };
+}
+
+function Birds({ count, className }: { count: number; className?: string }) {
+  return (
+    <span className={`p7-birds${className ? ` ${className}` : ''}`} aria-hidden="true">
+      {PERCHES.slice(0, Math.min(count, PERCHES.length)).map(([x, y], i) => (
+        <img key={i} src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${(i % 5) * 0.3}s` } as CSSProperties} />
+      ))}
+    </span>
+  );
 }
 
 export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
@@ -90,9 +109,8 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [point, setPoint] = useState<PointId>(stored.point);
   const [found, setFound] = useState<string[]>(stored.found);
   const [fewest, setFewest] = useState(stored.fewest);
-  const [outlier, setOutlier] = useState<CauseId | null>(stored.outlier);
-  const [exp, setExp] = useState<ExperimentState>(stored.exp);
   const [trials, setTrials] = useState<Trial[]>(stored.trials);
+  const [active, setActive] = useState<CauseId | null>(stored.active);
   const [prediction, setPrediction] = useState<Prediction | null>(stored.prediction);
   const [lastTrial, setLastTrial] = useState<Trial | null>(stored.lastTrial);
   const [main, setMain] = useState<CauseId | null>(stored.main);
@@ -100,8 +118,8 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
 
   useEffect(() => {
-    setPageData('page07Ecology', { step, point, found, fewest, outlier, exp, trials, prediction, lastTrial, main } satisfies Stored);
-  }, [step, point, found, fewest, outlier, exp, trials, prediction, lastTrial, main]);
+    setPageData('page07Ecology', { step, point, found, fewest, trials, active, prediction, lastTrial, main } satisfies Stored);
+  }, [step, point, found, fewest, trials, active, prediction, lastTrial, main]);
 
   const bounce = (text: string, shake?: string) => {
     audioService.playSfx('warning');
@@ -122,50 +140,47 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   };
   const collectDone = found.length >= FIELD_TRACES.length;
 
-  // ----- 2단계 그래프 -----
-  const tapBar = (id: PointId) => {
+  // ----- 2단계 새가 제일 적은 곳 -----
+  const tapPlace = (id: PointId) => {
     if (fewest) return;
-    if (id === fewestTracePoint()) { setFewest(true); setPoint(id); audioService.playSfx('success'); }
-    else bounce('막대가 제일 짧은 곳은 어디야?', id);
-  };
-  const tapOutlier = (id: CauseId) => {
-    if (outlier) return;
-    if (id === OUTLIER) {
-      setOutlier(id);
+    if (id === fewestTracePoint()) {
+      setFewest(true);
+      setPoint(id);
       audioService.playSfx('success');
-      logEvent({ page: 7, type: 'chart-pick', summary: `${fewestTracePoint()} 지점의 ${VARIABLE_LABEL[id]} 값을 제일 큰 값으로 골랐어.`, tags: ['생태', '그래프 읽기'], traits: { analysis: 1 }, contextRef: `chart-${id}` });
-    } else bounce('숫자가 제일 큰 그림은 뭐야?', id);
+      logEvent({ page: 7, type: 'chart-pick', summary: `${id} ${POINTS.find((p) => p.id === id)?.title}에 새가 제일 적다는 걸 찾았어.`, tags: ['생태', '비교하기'], traits: { analysis: 1 }, contextRef: `fewest-${id}` });
+    } else bounce('새가 제일 적은 곳은 어디야?', id);
   };
 
-  // ----- 3단계 실험 -----
-  const onSlide = (variable: CauseId, value: number) => {
-    if (lastTrial) return;
-    const result = changeLevel(exp, variable, value);
-    if (result.locked) { bounce('하나만 바꿔 볼까?', variable); return; }
-    setExp(result.state);
-    if (!result.state.active) setPrediction(null);
+  // ----- 3단계 하나씩 바꿔 보기 -----
+  const tried = (id: CauseId) => trials.find((t) => t.variable === id);
+  const trialsDone = new Set(trials.map((t) => t.variable)).size >= MIN_TRIALS;
+  const pickAction = (id: CauseId) => {
+    if (lastTrial || completed) return;
+    if (tried(id)) { bounce('이건 벌써 해 봤어. 다른 걸 골라 볼까?', id); return; }
+    if (active && active !== id) { bounce('한 번에 하나만! 먼저 고른 걸 해 보자.', id); return; }
+    setActive(id);
+    audioService.playSfx('tap');
   };
   const execute = () => {
-    if (!prediction) return;
-    const result = runTrial(exp, prediction);
-    if (!result) return;
-    setTrials([...trials, result.trial]);
-    setLastTrial(result.trial);
-    setPrediction(null);
-    setExp(result.state);
-    audioService.playSfx(actualDirection(result.trial.before, result.trial.after) === prediction ? 'success' : 'record');
+    if (!active || !prediction) return;
+    const trial = applyAction(active, prediction);
+    setTrials([...trials, trial]);
+    setLastTrial(trial);
+    audioService.playSfx(actualDirection(trial.before, trial.after) === prediction ? 'success' : 'record');
+    if (trial.after - trial.before >= 4) audioService.playCue('parrotHappy', 1200);
   };
-  const clearTrial = () => { setLastTrial(null); audioService.playSfx('tap'); };
-  /** 세 값을 각각 한 번씩은 바꿔 봐야 원인을 고를 수 있다. 같은 값만 반복하면 안 센다. */
-  const triedVariables = new Set(trials.map((t) => t.variable));
-  const untried = VARIABLES.filter((v) => !triedVariables.has(v.id)).map((v) => v.label);
-  const trialsDone = triedVariables.size >= MIN_TRIALS;
+  const resetScene = () => {
+    setLastTrial(null);
+    setActive(null);
+    setPrediction(null);
+    audioService.playSfx('tap');
+  };
 
   const finish = () => {
     if (!main) return;
     const sub = subCause(main, trials);
     setArtifacts({ graphs: buildGraphs(main, sub), traces: found });
-    logEvent({ page: 7, type: 'ecology-verdict', summary: `주원인 ${VARIABLE_LABEL[main]}, 보조원인 ${VARIABLE_LABEL[sub]}. 실험 ${trials.length}회.`, tags: ['생태', '변인 통제'], traits: { analysis: 2, exploration: 1 }, contextRef: `verdict-${main}-${sub}` });
+    logEvent({ page: 7, type: 'ecology-verdict', summary: `숲 가장자리에 새가 돌아오게 한 가장 큰 일: ${getAction(main).label}. 실험 ${trials.length}회.`, tags: ['생태', '변인 통제'], traits: { analysis: 2, exploration: 1 }, contextRef: `verdict-${main}-${sub}` });
     completePage(7);
     addBadge(META.badgeName);
     addJobCard(META.jobTitle);
@@ -174,48 +189,50 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   };
 
   // ----- 화면 -----
-  const basePop = population(exp.baseline);
-  const shownPop = lastTrial ? lastTrial.after : basePop;
-  const stepDone = completed ? { title: '숲 생태 조사 완료', message: '숲의 새가 줄고 있어. 시민에게 알려야 해.' } : undefined;
+  const before = edgeBirds();
+  const shownBirds = lastTrial ? lastTrial.after : before;
+  const activeAction = active ? getAction(active) : null;
+  const matched = lastTrial ? actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction : false;
+  const stepDone = completed ? { title: '숲 생태 조사 완료', message: '나무가 사라져서 새가 줄었어. 시민에게 알려야 해.' } : undefined;
 
   const instruction = completed ? '조사 끝!' :
     step === 1 ? '반짝이는 흔적을 눌러 봐' :
-    step === 2 ? (fewest ? '여기서 제일 큰 값은?' : '새가 제일 적은 곳은?') :
-    trialsDone && !lastTrial ? '가장 큰 원인은?' :
-    lastTrial ? '결과를 보고 다음 실험' :
-    !exp.active ? '슬라이더 하나만 움직여' :
-    !prediction ? '새는 어떻게 될까?' : '실행을 눌러';
+    step === 2 ? (fewest ? '숲 가장자리엔 새가 거의 없네' : '새가 제일 적은 곳은?') :
+    trialsDone && !lastTrial ? '새를 제일 많이 돌아오게 한 건?' :
+    lastTrial ? (matched ? '예측대로야!' : '예측이랑 달랐네') :
+    !active ? '하나만 골라서 해 보자' :
+    !prediction ? activeAction!.ask : '해 보기를 눌러';
 
   const bubble = react?.text ?? (
     completed ? '숲의 새가 줄고 있어. 방송국에 알리자!' :
     step === 1 ? `${found.length}개 찾았어. 지점을 바꿔 볼까?` :
-    step === 2 ? (fewest ? '어떤 값이 제일 커?' : '막대가 짧을수록 새가 적어.') :
-    lastTrial ? (actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction ? '예측대로야!' : '예측이랑 달랐네. 왜일까?') :
-    trialsDone ? '어느 값이 새를 제일 크게 움직였어?' :
-    trials.length >= MIN_TRIALS ? `${untried.join(', ')}도 바꿔 봐야 비교가 되지.` : '한 번에 하나만 바꾸는 게 실험이야.'
+    step === 2 ? (fewest ? '왜 여기만 새가 없을까? 하나씩 바꿔서 알아보자.' : '새가 많이 앉은 곳과 적은 곳을 비교해 봐.') :
+    lastTrial ? (lastTrial.after - lastTrial.before >= 4 ? `새가 ${lastTrial.after - lastTrial.before}마리나 돌아왔어!` : '새가 별로 안 돌아오네. 이건 큰 이유가 아닌가 봐.') :
+    trialsDone ? '세 가지를 다 해 봤어. 어느 게 새를 제일 많이 불렀지?' :
+    active ? '다른 건 그대로 두고 이것만 바꿔 볼게.' : '한 번에 하나만 바꿔야 뭐 때문인지 알 수 있어.'
   );
 
   const next = completed
     ? { label: '생방송으로', onClick: () => onNavigate(8) }
     : step === 1
-      ? { label: '그래프 보기', disabled: !collectDone, hint: `흔적 ${FIELD_TRACES.length}개를 다 찾으면 켜져요`, onClick: () => { setStep(2); audioService.playSfx('success'); } }
+      ? { label: '새 세어 보기', disabled: !collectDone, hint: `흔적 ${FIELD_TRACES.length}개를 다 찾으면 켜져요`, onClick: () => { setStep(2); audioService.playSfx('success'); } }
       : step === 2
-        ? { label: '실험하기', disabled: !outlier, hint: '막대 하나, 그림 하나를 골라', onClick: () => { setStep(3); audioService.playSfx('success'); } }
+        ? { label: '왜 그럴까?', disabled: !fewest, hint: '새가 제일 적은 곳을 골라', onClick: () => { setStep(3); audioService.playSfx('success'); } }
         : lastTrial
-          ? { label: trialsDone ? '원인 고르기' : '다음 실험', onClick: clearTrial }
+          ? { label: trialsDone ? '원인 고르기' : '원래대로', onClick: resetScene }
           : trialsDone
-            ? { label: '결과 확정', disabled: !main, hint: '가장 큰 원인을 골라', onClick: finish }
-            : { label: '실행!', disabled: !(exp.active && prediction), hint: !exp.active ? (trials.length >= MIN_TRIALS ? '아직 안 바꿔 본 값이 있어' : '슬라이더 하나를 움직여') : '새가 어떻게 될지 골라', onClick: execute };
+            ? { label: '결과 확정', disabled: !main, hint: '카드 하나를 골라', onClick: finish }
+            : { label: '해 보기!', disabled: !(active && prediction), hint: !active ? '행동 카드 하나를 골라' : '새가 어떻게 될지 골라', onClick: execute };
 
   const help = (
     <ul className="p7-help">
       <li>1 지점 A·B·C를 돌며 반짝이는 흔적 6개를 눌러.</li>
-      <li>2 막대가 짧은 곳에서 제일 큰 값을 찾아.</li>
-      <li>3 슬라이더를 하나만 움직이고, 새가 늘지 줄지 맞혀 봐. 세 값을 다 한 번씩!</li>
+      <li>2 그림 속 새를 세어 제일 적은 곳을 찾아.</li>
+      <li>3 행동 카드를 하나만 골라 해 보고, 새가 돌아오는지 봐. 세 가지를 다 해 보면 원인을 고를 수 있어.</li>
     </ul>
   );
   const status = step === 1 ? `흔적 ${found.length}/${FIELD_TRACES.length}` :
-    step === 3 ? `실험 ${triedVariables.size}/${MIN_TRIALS}${untried.length ? ` · 남은: ${untried.join(', ')}` : ''}` : undefined;
+    step === 3 ? `해 본 것 ${new Set(trials.map((t) => t.variable)).size}/${MIN_TRIALS}` : undefined;
 
   return (
     <StepShell page={7} step={completed ? 3 : step} steps={3} instruction={instruction} mentor={MENTOR} mentorName="생태 멘토" bubble={bubble} status={status} next={next} help={help} done={stepDone} onNavigate={onNavigate}>
@@ -236,7 +253,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
               const has = found.includes(t.id);
               return (
                 <button key={t.id} type="button" className={`v4-hotspot${has ? ' is-done' : ''}`} style={{ left: `${t.x}%`, top: `${t.y}%` } as CSSProperties} onClick={() => tapTrace(t.id)} aria-label={t.kind === 'sound' ? `${t.title} 듣기` : t.title}>
-                  {t.kind === 'sound' ? <SoundIcon /> : <img src={t.image} alt="" className={t.tint ? `tint-${t.tint}` : ''} />}
+                  <img src={t.image} alt="" className={t.tint ? `tint-${t.tint}` : ''} />
                 </button>
               );
             })}
@@ -251,85 +268,82 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
       )}
 
       {step === 2 && (
-        <div className={`v4-card p7-chart-card${fewest ? ' has-pick' : ''}`}>
-          <div className="p7-chart" role="group" aria-label="지점별 새 흔적 막대">
-            {POINTS.map((p) => {
-              const stats = POINT_STATS[p.id];
-              const picked = fewest && p.id === fewestTracePoint();
-              return (
-                <button key={p.id} type="button" className={`p7-bar${picked ? ' is-picked' : ''}${react?.shake === p.id ? ' v4-shake' : ''}`} aria-pressed={picked} disabled={fewest} onClick={() => tapBar(p.id)} aria-label={`${p.id} ${p.title} 새 흔적 ${stats.traces}`}>
-                  <span className="p7-bar__birds" aria-hidden="true">{Array.from({ length: stats.traces }, (_, i) => <img key={i} src={BIRD} alt="" />)}</span>
-                  <i style={{ '--h': `${(stats.traces / LEVEL_MAX) * 100}%` } as CSSProperties}><b>{stats.traces}</b></i>
-                  <strong><img src={POINT_IMAGE[p.id]} alt="" />{p.id} {p.title}</strong>
-                  <span className="p7-bar__env" aria-hidden="true">
-                    {VARIABLES.map((v) => <img key={v.id} src={CAUSE_IMAGE[v.id]} alt="" style={{ '--s': `${0.5 + stats[v.id] / LEVEL_MAX}` } as CSSProperties} />)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {fewest && (
-            <div className={`p7-outliers${react?.shake && isCause(react.shake) ? ' v4-shake' : ''}`}>
-              <PictureChoice
-                size="lg"
-                ariaLabel={`${fewestTracePoint()} 지점 값`}
-                selected={outlier}
-                onSelect={tapOutlier}
-                options={VARIABLES.map((v) => ({ id: v.id, image: CAUSE_IMAGE[v.id], label: v.label, caption: `${POINT_STATS[fewestTracePoint()][v.id]} / ${LEVEL_MAX}`, disabled: Boolean(outlier) && outlier !== v.id }))}
-              />
-            </div>
-          )}
+        <div className="v4-card p7-places" role="group" aria-label="지점별 새">
+          {POINTS.map((p) => {
+            const birds = POINT_STATS[p.id].traces;
+            const picked = fewest && p.id === fewestTracePoint();
+            return (
+              <button key={p.id} type="button" className={`p7-place${picked ? ' is-picked' : ''}${fewest && !picked ? ' is-dim' : ''}${react?.shake === p.id ? ' v4-shake' : ''}`} aria-pressed={picked} disabled={fewest} onClick={() => tapPlace(p.id)} aria-label={`${p.id} ${p.title} 새 ${birds}마리`}>
+                <span className="p7-place__scene">
+                  <img src={POINT_SCENE[p.id].src} onError={fallbackTo(POINT_SCENE[p.id].fallback)} alt="" />
+                  <Birds count={birds} />
+                </span>
+                <strong>{p.id} {p.title}</strong>
+                <em><img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />새 {birds}마리</em>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {step === 3 && (
         <div className="v4-card p7-lab">
-          <div className="p7-pop" aria-live="polite">
-            <span>숲의 새</span>
-            <b>{shownPop}</b>
-            <span className="p7-pop__birds" aria-hidden="true">{Array.from({ length: Math.max(1, Math.round(shownPop / 4)) }, (_, i) => <img key={i} src={BIRD} alt="" />)}</span>
-            {lastTrial && <em>{lastTrial.before} → {lastTrial.after}</em>}
+          <div className={`p7-edge${lastTrial ? ' has-change' : ''}`} data-change={lastTrial?.variable ?? ''} aria-live="polite">
+            {lastTrial
+              ? <img key={lastTrial.variable} className="p7-edge__scene" src={ACTION_SCENE[lastTrial.variable].src} onError={fallbackTo(ACTION_SCENE[lastTrial.variable].fallback)} alt={`${getAction(lastTrial.variable).label} 뒤의 숲 가장자리`} />
+              : <img key="before" className="p7-edge__scene" src={POINT_SCENE.A.src} onError={fallbackTo(POINT_SCENE.A.fallback)} alt="지금의 숲 가장자리" />}
+            <Birds count={shownBirds} className={lastTrial ? 'is-arriving' : ''} />
+            <span className="p7-edge__count">
+              <img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />
+              {lastTrial ? <><s>{lastTrial.before}</s> → <b>{lastTrial.after}</b>마리</> : <><b>{before}</b>마리</>}
+            </span>
+            {activeAction && <span className="p7-edge__tag">{activeAction.label}{lastTrial ? ' 했더니' : ' 해 보기'}</span>}
           </div>
 
-          {!trialsDone || lastTrial ? (
-            <>
-              <div className="p7-sliders">
-                {VARIABLES.map((v) => {
-                  const isActive = exp.active === v.id;
-                  const isLocked = Boolean(exp.active) && !isActive;
+          <div className="p7-side">
+            {!trialsDone || lastTrial ? (
+              <>
+                <div className="p7-actions" role="group" aria-label="행동 카드">
+                  {ACTIONS.map((action) => {
+                    const done = tried(action.id);
+                    const isActive = active === action.id;
+                    return (
+                      <button key={action.id} type="button" className={`p7-action${isActive ? ' is-active' : ''}${done ? ' is-done' : ''}${active && !isActive ? ' is-dim' : ''}${react?.shake === action.id ? ' v4-shake' : ''}`} aria-pressed={isActive} onClick={() => pickAction(action.id)} aria-label={`${action.label}${done ? ` 해 봄, 새 ${done.after}마리` : ''}`}>
+                        <img src={ACTION_ICON[action.id].src} onError={fallbackTo(ACTION_ICON[action.id].fallback)} alt="" />
+                        <span>{action.label}</span>
+                        {done && <small><img src={BIRD.src} onError={fallbackTo(BIRD.fallback)} alt="" />{done.after}마리</small>}
+                      </button>
+                    );
+                  })}
+                </div>
+                {lastTrial ? (
+                  <div className={`p7-result${matched ? ' is-match' : ' is-miss'}`} role="status">
+                    <strong>새 {lastTrial.before}마리 → {lastTrial.after}마리</strong>
+                    <span>{matched ? '예측이 맞았어!' : '예측이랑 달랐네. 그림에서 뭐가 달라졌는지 봐.'}</span>
+                  </div>
+                ) : (
+                  <div className="p7-predict v4-big-buttons" role="group" aria-label="예측">
+                    {GUESSES.map((g) => <button key={g.id} type="button" className={`v4-big-button${prediction === g.id ? ' is-selected' : ''}`} aria-pressed={prediction === g.id} disabled={!active} onClick={() => { setPrediction(g.id); audioService.playSfx('tap'); }}>{g.label}</button>)}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="p7-verdict" role="group" aria-label="가장 큰 원인">
+                {ACTIONS.map((action) => {
+                  const done = tried(action.id)!;
+                  const isMain = main === action.id;
                   return (
-                    <label key={v.id} className={`p7-slider${isActive ? ' is-active' : ''}${isLocked ? ' is-locked' : ''}${react?.shake === v.id ? ' v4-shake' : ''}`}>
-                      <img src={CAUSE_IMAGE[v.id]} alt="" />
-                      <span>{v.label}</span>
-                      <input type="range" min={0} max={LEVEL_MAX} step={1} value={exp.levels[v.id]} onChange={(e) => onSlide(v.id, Number(e.target.value))} disabled={Boolean(lastTrial) || completed} aria-label={`${v.label} 조절`} />
-                      <output>{exp.levels[v.id]}</output>
-                    </label>
+                    <button key={action.id} type="button" className={`p7-action p7-action--verdict${isMain ? ' is-active' : ''}`} aria-pressed={isMain} onClick={() => { if (!completed) { setMain(action.id); audioService.playSfx('tap'); } }} aria-label={`${action.label} 새 ${done.after}마리`}>
+                      <img src={ACTION_ICON[action.id].src} onError={fallbackTo(ACTION_ICON[action.id].fallback)} alt="" />
+                      <span>{action.label}</span>
+                      <Birds count={done.after} className="p7-birds--row" />
+                      <small><b>{done.after}</b>마리</small>
+                    </button>
                   );
                 })}
               </div>
-              {lastTrial ? (
-                <div className={`p7-result${actualDirection(lastTrial.before, lastTrial.after) === lastTrial.prediction ? ' is-match' : ' is-miss'}`} role="status">
-                  <strong>{VARIABLE_LABEL[lastTrial.variable]} {lastTrial.from} → {lastTrial.to}</strong>
-                  <span>예측 {PREDICTIONS.find((p) => p.id === lastTrial.prediction)?.label} · 결과 {PREDICTIONS.find((p) => p.id === actualDirection(lastTrial.before, lastTrial.after))?.label}</span>
-                </div>
-              ) : (
-                <div className="p7-predict v4-big-buttons" role="group" aria-label="예측">
-                  {PREDICTIONS.map((p) => <button key={p.id} type="button" className={`v4-big-button${prediction === p.id ? ' is-selected' : ''}`} aria-pressed={prediction === p.id} disabled={!exp.active} onClick={() => { setPrediction(p.id); audioService.playSfx('tap'); }}>{p.label}</button>)}
-                </div>
-              )}
-            </>
-          ) : (
-            <PictureChoice
-              size="lg"
-              ariaLabel="가장 큰 원인"
-              selected={main}
-              onSelect={(id) => { if (!completed) { setMain(id); audioService.playSfx('tap'); } }}
-              options={VARIABLES.map((v) => {
-                const best = trials.filter((t) => t.variable === v.id).reduce((m, t) => Math.max(m, Math.abs(t.after - t.before)), 0);
-                return { id: v.id, image: CAUSE_IMAGE[v.id], label: v.label, caption: best ? `새 ${best}마리 움직임` : '실험 안 함' };
-              })}
-            />
-          )}
+            )}
+          </div>
         </div>
       )}
       {react && <span className="v4-react" role="status">{react.text}</span>}

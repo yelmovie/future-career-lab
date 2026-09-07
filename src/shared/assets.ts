@@ -18,11 +18,25 @@ export type V2Asset =
 export const v2Asset = (name: V2Asset) => `/assets/v2/${name}.webp`;
 
 /**
- * v3 서사(모모·루비 탈출 사건)용 신규 그림 자리. 파일은 아직 없다 — docs/ASSET_REQUEST_v3.md 프롬프트로 만들어
+ * v3 서사(지구·젤리 탈출 사건)용 신규 그림 자리. 파일은 아직 없다 — docs/ASSET_REQUEST_v3.md 프롬프트로 만들어
  * public/assets/v3/ 에 넣으면 그대로 뜨고, 없으면 <img onError> 로 v2 그림으로 되돌아간다.
  */
 export type V3Asset = 'scene-escape' | 'scene-found' | 'scene-reunion' | 'keeper-haneul';
 export const v3Asset = (name: V3Asset) => `/assets/v3/${name}.webp`;
+
+export type V5Asset =
+  | 'closeup-green-eyes' | 'closeup-green-feathers' | 'closeup-green-behavior'
+  | 'closeup-red-eyes' | 'closeup-red-water' | 'closeup-red-posture'
+  | 'treat-water' | 'treat-shelter' | 'treat-puzzle' | 'treat-feather'
+  | 'parrot-well-green' | 'parrot-well-red'
+  | 'garden-water' | 'garden-hideout' | 'garden-play-rope' | 'garden-food-tree'
+  | 'garden-zone-rest' | 'garden-zone-play' | 'garden-zone-path'
+  // P7 숲 생태 조사 v6 — 그림으로 보는 "새가 왜 줄었나" (docs/ASSET_REQUEST_v6.md). 없으면 fallbackTo 로 v2 그림.
+  | 'scene-edge-before' | 'scene-edge-trees' | 'scene-edge-quiet' | 'scene-edge-water'
+  | 'scene-stream' | 'scene-deep'
+  | 'act-plant-tree' | 'act-quiet' | 'act-fill-water' | 'bird-small'
+  | 'trace-machine-sound' | 'trace-parrot-call' | 'trace-parrot-footprint';
+export const v5Asset = (name: V5Asset, extension: 'webp' | 'png' = 'webp') => `/assets/v5/${name}.${extension}`;
 /** v3 그림이 없을 때 v2 그림으로 조용히 되돌린다 (한 번만). */
 export const fallbackTo = (src: string) => (event: { currentTarget: HTMLImageElement }) => {
   const img = event.currentTarget;

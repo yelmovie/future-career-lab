@@ -110,3 +110,15 @@ describe('page 7 ecology model', () => {
     expect(fewestTracePoint()).toBe('A');
   });
 });
+
+describe('v6 그림 실험 (applyAction)', () => {
+  it('세 행동을 각각 하나만 적용하면 나무 > 소리 > 물 순으로 새가 돌아온다', async () => {
+    const { ACTIONS, applyAction, edgeBirds } = await import('./page07EcologyModel');
+    const results = ACTIONS.map((action) => applyAction(action.id, 'up'));
+    for (const trial of results) expect(trial.before).toBe(edgeBirds());
+    const gain = (id: string) => results.find((t) => t.variable === id)!.after - edgeBirds();
+    expect(gain('logging')).toBeGreaterThan(gain('noise'));
+    expect(gain('noise')).toBeGreaterThan(gain('water'));
+    expect(gain('water')).toBeGreaterThanOrEqual(0);
+  });
+});

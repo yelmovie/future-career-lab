@@ -20,53 +20,66 @@
 .p7-stamps li.is-found { border-style: solid; border-color: var(--color-secondary); background: var(--color-secondary-soft); color: var(--ink); animation: v4-stamp .35s ease; }
 .p7-stamps img { width: 40px; height: 40px; object-fit: contain; }
 
-/* ----- 2단계: 막대 + 튀는 값 ----- */
-.p7-chart-card { display: grid; grid-template-rows: minmax(0, 1fr); padding: 14px 18px; }
-.p7-chart-card.has-pick { grid-template-rows: minmax(0, 1fr) auto; }
-.p7-chart { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; min-height: 0; }
-.p7-bar { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; justify-items: center; gap: 6px; min-height: 0; padding: 8px; border: 3px solid transparent; border-radius: 20px; background: transparent; color: var(--ink); cursor: pointer; }
-.p7-bar:not(:disabled):hover { border-color: var(--color-primary); }
-.p7-bar.is-picked { border-color: var(--color-secondary); background: var(--color-secondary-soft); }
-.p7-bar:disabled { cursor: default; }
-.p7-bar__birds { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 200px; min-height: 30px; }
-.p7-bar__birds img { width: 24px; height: 24px; object-fit: contain; }
-.p7-bar > i { position: relative; display: block; width: 90px; height: 190px; border-radius: 14px; background: var(--color-bg); }
-.p7-bar > i::before { content: ""; position: absolute; inset: auto 0 0; height: var(--h); border-radius: 14px; background: linear-gradient(180deg, var(--color-primary), var(--color-primary-deep)); }
-.p7-bar > i b { position: absolute; bottom: calc(var(--h) + 4px); color: var(--ink); font-family: var(--font-display); font-size: 28px; }
-.p7-bar.is-picked > i::before { background: linear-gradient(180deg, var(--color-secondary), var(--color-secondary-edge)); }
-.p7-bar strong { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 22px; font-weight: 400; }
-.p7-bar strong img { width: 36px; height: 36px; object-fit: contain; }
-.p7-bar__env { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 54px; }
-.p7-bar__env img { width: calc(36px * var(--s)); height: calc(36px * var(--s)); object-fit: contain; }
-.p7-chart-card.has-pick .p7-bar__env { height: 0; overflow: hidden; }
-.p7-chart-card.has-pick .p7-bar__birds { display: none; }
-.p7-chart-card.has-pick .p7-bar > i { height: 120px; }
-.p7-outliers { border-top: 3px dashed var(--color-border-soft); }
-.p7-outliers .v4-choices { height: 200px; padding: 12px 0 0; }
-/* 버튼 안 grid 에서 % 높이가 안 잡혀 그림 높이를 고정한다 */
-.p7-outliers .v4-choice__art, .p7-outliers .v4-choice__art img { height: 90px; }
-.p7-lab .v4-choice__art, .p7-lab .v4-choice__art img { height: 200px; }
+/* ----- 공통: 장면 위 작은 새 ----- */
+.p7-birds { position: absolute; inset: 0; pointer-events: none; }
+.p7-birds img { position: absolute; width: 34px; height: 34px; object-fit: contain; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 4px rgb(0 0 0 / 30%)); animation: p7-hop 1.8s ease-in-out infinite; }
+.p7-birds.is-arriving img { animation: p7-arrive .9s ease-out both, p7-hop 1.8s ease-in-out 1s infinite; }
+.p7-birds--row { position: static; display: flex; justify-content: center; gap: 2px; flex-wrap: wrap; }
+.p7-birds--row img { position: static; width: 22px; height: 22px; transform: none; animation: none; }
+@keyframes p7-hop { 0%, 100% { margin-top: 0; } 50% { margin-top: -5px; } }
+@keyframes p7-arrive { from { opacity: 0; translate: 0 -60px; } to { opacity: 1; translate: 0 0; } }
 
-/* ----- 3단계: 실험 ----- */
-.p7-lab { display: grid; grid-template-columns: 250px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 16px; padding: 14px 18px; }
-.p7-lab > .v4-choices { grid-column: 2; grid-row: 1 / span 2; padding: 0; }
-.p7-pop { grid-row: 1 / span 2; display: grid; align-content: center; justify-items: center; gap: 4px; padding: 12px; border-radius: 20px; background: var(--color-secondary-soft); color: var(--ink); font-size: 20px; font-weight: 850; }
-.p7-pop b { font-family: var(--font-display); font-size: 56px; line-height: 1; color: var(--color-secondary-edge); }
-.p7-pop__birds { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 200px; }
-.p7-pop__birds img { width: 26px; height: 26px; object-fit: contain; }
-.p7-pop em { font-style: normal; color: var(--color-text-sub); font-size: 18px; }
-.p7-sliders { grid-column: 2; display: grid; gap: 8px; align-content: start; }
-.p7-slider { display: grid; grid-template-columns: 56px 100px minmax(0, 1fr) 48px; align-items: center; gap: 12px; min-height: 64px; padding: 4px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: var(--color-surface); color: var(--ink); font-family: var(--font-display); font-size: 22px; }
-.p7-slider img { width: 50px; height: 50px; object-fit: contain; }
-.p7-slider input { width: 100%; height: 40px; accent-color: var(--color-primary); cursor: pointer; }
-.p7-slider output { text-align: right; font-size: 26px; color: var(--color-primary-deep); }
-.p7-slider.is-active { border-color: var(--color-primary); background: var(--color-primary-soft); }
-.p7-slider.is-locked { opacity: .45; }
-.p7-predict, .p7-result { grid-column: 2; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
-.p7-result { padding: 10px 16px; border-radius: 18px; background: var(--color-accent-soft); font-size: 18px; font-weight: 850; }
+/* ----- 2단계: 지점 그림 3장, 새가 제일 적은 곳 ----- */
+.p7-places { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px; }
+.p7-place { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; padding: 10px; border: 3px solid var(--color-border-soft); border-radius: 22px; background: #fff; color: var(--ink); cursor: pointer; box-shadow: 0 5px 0 var(--color-border-soft); }
+.p7-place:not(:disabled):hover { border-color: var(--color-primary); }
+.p7-place.is-picked { border-color: var(--color-secondary); background: var(--color-secondary-soft); box-shadow: 0 5px 0 var(--color-secondary-edge); }
+.p7-place.is-dim { opacity: .45; }
+.p7-place:disabled { cursor: default; }
+.p7-place__scene { position: relative; display: block; min-height: 0; height: 100%; overflow: hidden; border-radius: 16px; background: var(--color-bg); }
+.p7-place__scene > img { width: 100%; height: 100%; object-fit: cover; }
+.p7-place strong { font-family: var(--font-display); font-size: 24px; font-weight: 400; }
+.p7-place em { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 14px; border-radius: 999px; background: var(--color-bg); font-style: normal; font-size: 20px; font-weight: 900; }
+.p7-place em img { width: 26px; height: 26px; object-fit: contain; }
+
+/* ----- 3단계: 장면 + 행동 카드 ----- */
+.p7-lab { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; padding: 14px 18px; }
+.p7-edge { position: relative; min-height: 0; overflow: hidden; border-radius: 22px; background: var(--color-bg); }
+.p7-edge__scene { width: 100%; height: 100%; object-fit: cover; animation: p7-fade .6s ease both; }
+@keyframes p7-fade { from { opacity: 0; } to { opacity: 1; } }
+/* v6 그림이 없을 때 before 사진 위에 얹는 "달라진 느낌" 필터 */
+.p7-edge.has-change::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; }
+.p7-edge[data-change='logging']::after { background: rgb(80 200 90 / 55%); }
+.p7-edge[data-change='noise']::after { background: rgb(120 170 255 / 45%); }
+.p7-edge[data-change='water']::after { background: rgb(90 210 240 / 50%); }
+.p7-edge__count { position: absolute; right: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; background: rgb(255 255 255 / 92%); color: var(--ink); font-size: 22px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
+.p7-edge__count img { width: 28px; height: 28px; object-fit: contain; }
+.p7-edge__count s { color: var(--color-text-sub); text-decoration: line-through; }
+.p7-edge__count b { color: var(--color-secondary-edge); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.p7-edge__tag { position: absolute; left: 12px; top: 12px; padding: 6px 14px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 18px; font-weight: 900; box-shadow: 0 4px 10px rgb(0 0 0 / 15%); }
+.p7-side { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; }
+.p7-actions { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+.p7-action { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 6px 14px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: #fff; color: var(--ink); font-size: 22px; font-weight: 850; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--color-border-soft); }
+.p7-action img { width: 60px; height: 60px; object-fit: contain; }
+.p7-action small { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--color-secondary-soft); color: var(--ink); font-size: 18px; font-weight: 900; }
+.p7-action small img { width: 22px; height: 22px; }
+.p7-action.is-active { border-color: var(--color-primary); background: var(--color-primary-soft); box-shadow: 0 4px 0 var(--color-primary-deep); }
+.p7-action.is-done { border-style: dashed; }
+.p7-action.is-dim { opacity: .45; }
+.p7-verdict { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; overflow: hidden; }
+.p7-verdict .p7-action { min-height: 0; overflow: hidden; }
+.p7-action--verdict { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr) auto; justify-items: center; text-align: center; padding: 10px; }
+.p7-action--verdict > img { width: 72px; height: 72px; }
+.p7-action--verdict .p7-birds--row { align-content: flex-start; width: 100%; min-height: 0; overflow: hidden; }
+.p7-action--verdict .p7-birds--row img { width: 22px; height: 22px; }
+.p7-action--verdict small { gap: 2px; }
+.p7-action--verdict small b { font-family: var(--font-display); font-size: 26px; font-weight: 400; color: var(--color-secondary-edge); }
+.p7-predict, .p7-result { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.p7-predict .v4-big-button { min-width: 0; flex: 1; }
+.p7-result { flex-direction: column; gap: 4px; padding: 10px 16px; border-radius: 18px; background: var(--color-accent-soft); font-size: 18px; font-weight: 850; text-align: center; }
 .p7-result.is-match { background: var(--color-secondary-soft); }
-.p7-result strong { font-family: var(--font-display); font-size: 22px; font-weight: 400; }
+.p7-result strong { font-family: var(--font-display); font-size: 24px; font-weight: 400; }
 
-@media (prefers-reduced-motion: reduce) { .p7-stamps li.is-found { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .p7-stamps li.is-found, .p7-birds img, .p7-edge__scene { animation: none; } }
 
-.p7-chart-card ~ .v4-react, .p7-lab ~ .v4-react { top: 12px; bottom: auto; }
+.p7-places ~ .v4-react, .p7-lab ~ .v4-react { top: 12px; bottom: auto; }

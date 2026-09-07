@@ -1,4 +1,4 @@
-import { pageAsset, v2Asset } from '../shared/assets';
+import { pageAsset, v2Asset, v5Asset } from '../shared/assets';
 import type { CauseId } from '../shared/types';
 
 export type PointId = 'A' | 'B' | 'C';
@@ -41,20 +41,20 @@ export const POINTS: { id: PointId; title: string; blurb: string }[] = [
 
 export const TRACES: Trace[] = [
   { id: 'foot-boot', point: 'A', kind: 'footprint', title: '부츠 발자국', note: '사람이 자주 드나든 흔적이야.', image: v2Asset('trace-footprint-boot'), x: 30, y: 74 },
-  { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: pageAsset(3, 8), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
-  { id: 'feather-green', point: 'B', kind: 'feather', title: '초록 깃털', note: '모모가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 30, y: 66 },
+  { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: v5Asset('trace-machine-sound'), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
+  { id: 'feather-green', point: 'B', kind: 'feather', title: '초록 깃털', note: '지구가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 30, y: 66 },
   { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 숲의 새를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
-  { id: 'sound-call', point: 'B', kind: 'sound', title: '녹음된 앵무 울음', note: '지난주 녹음기에 남은 정상 울음. 모모·루비가 편안하게 머문 흔적이야.', image: pageAsset(3, 8), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
-  { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '모모·루비가 땅에 내려와 열매를 먹은 자리야.', image: pageAsset(3, 7), x: 28, y: 76 },
-  { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '루비도 깊은 숲까지 왔어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
-  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '녹음된 앵무 경계음', note: '지난주 녹음기에 남은 경계음. 모모·루비가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
+  { id: 'sound-call', point: 'B', kind: 'sound', title: '녹음된 앵무 울음', note: '지난주 녹음기에 남은 정상 울음. 지구·젤리가 편안하게 머문 흔적이야.', image: v5Asset('trace-parrot-call'), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
+  { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '지구·젤리가 땅에 내려와 열매를 먹은 자리야.', image: v5Asset('trace-parrot-footprint'), x: 28, y: 76 },
+  { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '젤리도 깊은 숲까지 왔어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
+  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '녹음된 앵무 경계음', note: '지난주 녹음기에 남은 경계음. 지구·젤리가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
 ];
 
 export const ENV_SPOTS: EnvSpot[] = [
   { id: 'stump', point: 'A', title: '그루터기', note: '막 베인 나무야. 톱밥이 아직 젖어 있어.', image: v2Asset('trace-stump'), x: 48, y: 62 },
   { id: 'meter', point: 'B', title: '환경 측정기', note: '온도 24도, 습도 88%. 땅이 축축해서 발자국이 잘 찍혀. 조용히 하면 작은 소리도 들려.', image: pageAsset(7, 7), x: 18, y: 50 },
   { id: 'puddle', point: 'B', title: '물웅덩이', note: '숲의 새들이 물을 마시러 오는 곳이야.', image: pageAsset(6, 7), x: 56, y: 70 },
-  { id: 'fruit', point: 'C', title: '열매 나무', note: '모모·루비도, 숲의 새들도 좋아하는 먹이야.', image: v2Asset('trace-fruit'), x: 46, y: 50 },
+  { id: 'fruit', point: 'C', title: '열매 나무', note: '지구·젤리도, 숲의 새들도 좋아하는 먹이야.', image: v2Asset('trace-fruit'), x: 46, y: 50 },
 ];
 
 /** 숨은 흔적을 여는 환경 핫스팟 */
@@ -191,4 +191,38 @@ export type Verdict = 'main' | 'sub' | 'none';
 /** 학생이 정한 주원인·보조원인을 그래프 카드 3장으로 */
 export function buildGraphs(main: CauseId, sub: CauseId): { variable: CauseId; verdict: Verdict }[] {
   return VARIABLES.map(({ id }) => ({ variable: id, verdict: id === main ? 'main' : id === sub ? 'sub' : 'none' }));
+}
+
+// ---------- 3단계 v6: 그림으로 하나씩 바꿔 보기 ----------
+
+/** 새가 제일 적은 지점(숲 가장자리)의 지금 상태. 실험은 항상 여기서 시작한다. */
+export const EDGE_LEVELS: Levels = { logging: POINT_STATS.A.logging, noise: POINT_STATS.A.noise, water: POINT_STATS.A.water };
+
+export interface EcoAction {
+  id: CauseId;
+  /** 카드 이름 — 아이가 하는 행동 */
+  label: string;
+  /** 예측 질문 */
+  ask: string;
+  /** 바꾼 뒤 값 */
+  level: number;
+}
+
+/** 한 번에 하나씩 해 보는 행동 세 가지. 값은 "좋은 상태"로 바뀐다. */
+export const ACTIONS: EcoAction[] = [
+  { id: 'logging', label: '나무 심기', ask: '열매 나무를 심으면 새가 돌아올까?', level: 9 },
+  { id: 'noise', label: '기계 소리 멈추기', ask: '전기톱 소리를 멈추면 새가 돌아올까?', level: 2 },
+  { id: 'water', label: '물 채우기', ask: '웅덩이에 물을 채우면 새가 돌아올까?', level: 9 },
+];
+
+export const getAction = (id: CauseId) => ACTIONS.find((action) => action.id === id)!;
+
+/** 지금 숲 가장자리의 새 수 */
+export const edgeBirds = () => population(EDGE_LEVELS);
+
+/** 행동 하나만 적용한 결과. 다른 조건은 그대로(EDGE_LEVELS). */
+export function applyAction(id: CauseId, prediction: Prediction): Trial {
+  const action = getAction(id);
+  const after = population({ ...EDGE_LEVELS, [id]: action.level });
+  return { variable: id, from: EDGE_LEVELS[id], to: action.level, prediction, before: edgeBirds(), after };
 }
