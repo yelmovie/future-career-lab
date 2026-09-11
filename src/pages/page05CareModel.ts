@@ -1,5 +1,5 @@
 import { hashString, seededShuffle } from '../shared/rng';
-import { BIRDS, getBird, getTreatment, type BirdId, type CareStatement, type CareZoneId, type SoundVerdict, type TreatmentId } from './page05Data';
+import { BIRDS, getBird, getTreatment, type BirdId, type CareStatement, type CareZoneId, type TreatmentId } from './page05Data';
 
 export const STABLE_GAUGE = 80;
 /** 개체 하나가 안정되려면 필요한 근거 기록 수 */
@@ -8,7 +8,6 @@ export const RECORDS_PER_BIRD = 3;
 export interface CareState {
   /** 개체별 구역 → 고른 진술 id */
   records: Record<BirdId, Partial<Record<CareZoneId, string>>>;
-  sound: Record<BirdId, SoundVerdict | null>;
   treatments: Record<BirdId, TreatmentId | null>;
   /** 틀린 처치 횟수 — 갱신 목표(헛 처치 0번) */
   wrongTreatments: number;
@@ -18,30 +17,26 @@ export interface CareState {
 
 export const EMPTY_CARE_STATE: CareState = {
   records: { green: {}, red: {} },
-  sound: { green: null, red: null },
   treatments: { green: null, red: null },
   wrongTreatments: 0,
   wrongRecords: 0,
 };
 
 const isTreatment = (value: unknown): value is TreatmentId => value === 'water' || value === 'shelter' || value === 'puzzle' || value === 'feather';
-const isVerdict = (value: unknown): value is SoundVerdict => value === 'normal' || value === 'abnormal';
-const readCount = (value: unknown) => (typeof value === 'number' && value >= 0 ? Math.floor(value) : 0);
+const readCount = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0);
 
 export function readCareState(value: unknown): CareState {
   if (!value || typeof value !== 'object') return EMPTY_CARE_STATE;
   const raw = value as Partial<CareState>;
-  const state: CareState = { ...EMPTY_CARE_STATE, records: { green: {}, red: {} }, sound: { green: null, red: null }, treatments: { green: null, red: null } };
+  const state: CareState = { ...EMPTY_CARE_STATE, records: { green: {}, red: {} }, treatments: { green: null, red: null } };
   for (const bird of BIRDS) {
     const records = raw.records?.[bird.id];
     if (records && typeof records === 'object') {
       for (const zone of bird.zones) {
         const statementId = (records as Record<string, unknown>)[zone.id];
-        if (zone.statements.some((statement) => statement.id === statementId)) state.records[bird.id][zone.id] = statementId as string;
+        if (zone.statements.some((statement) => statement.id === statementId && statement.grounded)) state.records[bird.id][zone.id] = statementId as string;
       }
     }
-    const verdict = raw.sound?.[bird.id];
-    if (isVerdict(verdict)) state.sound[bird.id] = verdict;
     const treatment = raw.treatments?.[bird.id];
     if (isTreatment(treatment)) state.treatments[bird.id] = treatment;
   }
@@ -102,13 +97,8 @@ export function birdStatus(state: CareState, birdId: BirdId): string {
   return '살펴보는 중';
 }
 
-export function soundCorrect(state: CareState, birdId: BirdId): boolean {
-  return state.sound[birdId] !== null && state.sound[birdId] === getBird(birdId).soundAnswer;
-}
-
 export interface CareMission {
   grounded: number;
-  soundsClassified: number;
   stableBirds: number;
   ready: boolean;
   /** 갱신 목표: 헛 처치 없이 두 마리 안정 */
@@ -117,11 +107,10 @@ export interface CareMission {
 
 export function evaluateCare(state: CareState): CareMission {
   const grounded = BIRDS.reduce((sum, bird) => sum + groundedCount(state, bird.id), 0);
-  const soundsClassified = BIRDS.filter((bird) => soundCorrect(state, bird.id)).length;
   const stableBirds = BIRDS.filter((bird) => isStable(state, bird.id)).length;
   const enoughRecords = BIRDS.every((bird) => groundedCount(state, bird.id) >= RECORDS_PER_BIRD);
-  const ready = enoughRecords && soundsClassified === BIRDS.length && stableBirds === BIRDS.length;
-  return { grounded, soundsClassified, stableBirds, ready, perfect: ready && state.wrongTreatments === 0 };
+  const ready = enoughRecords && stableBirds === BIRDS.length;
+  return { grounded, stableBirds, ready, perfect: ready && state.wrongTreatments === 0 };
 }
 
 /** 처치 카드를 개체에 놓았을 때. 틀리면 질문형 피드백을 돌려주고 게이지가 내려간다(벌칙 없음, 다시 놓을 수 있음). 보조 처치는 절반 효과. */

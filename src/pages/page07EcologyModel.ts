@@ -1,9 +1,9 @@
-import { pageAsset, v2Asset, v5Asset } from '../shared/assets';
+import { v5Asset, v8Asset } from '../shared/assets';
 import type { CauseId } from '../shared/types';
 
 export type PointId = 'A' | 'B' | 'C';
-export type SoundKind = 'parrotCall' | 'parrotAlarm' | 'chainsaw';
-export type TraceKind = 'footprint' | 'feather' | 'sound';
+export type SoundKind = 'forestBirdsong' | 'chainsaw';
+export type TraceKind = 'habitat' | 'footprint' | 'feather' | 'sound';
 
 export interface Trace {
   id: string;
@@ -13,24 +13,9 @@ export interface Trace {
   /** 발견했을 때 도감에 적히는 한 줄 */
   note: string;
   image: string;
-  tint?: 'green' | 'red';
   x: number;
   y: number;
-  /** 숨은 흔적: 환경 측정기를 눌러야 보인다 */
-  hidden?: boolean;
   sound?: SoundKind;
-  /** 소리 파일이 없어도 답할 수 있게 주는 설명 */
-  soundHint?: string;
-}
-
-export interface EnvSpot {
-  id: string;
-  point: PointId;
-  title: string;
-  note: string;
-  image: string;
-  x: number;
-  y: number;
 }
 
 export const POINTS: { id: PointId; title: string; blurb: string }[] = [
@@ -40,40 +25,30 @@ export const POINTS: { id: PointId; title: string; blurb: string }[] = [
 ];
 
 export const TRACES: Trace[] = [
-  { id: 'foot-boot', point: 'A', kind: 'footprint', title: '부츠 발자국', note: '사람이 자주 드나든 흔적이야.', image: v2Asset('trace-footprint-boot'), x: 30, y: 74 },
-  { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: v5Asset('trace-machine-sound'), x: 66, y: 46, sound: 'chainsaw', soundHint: '낮게 웅웅거리는 기계 소리가 오래 이어져.' },
-  { id: 'feather-green', point: 'B', kind: 'feather', title: '초록 깃털', note: '지구가 여기를 지나간 길이야.', image: pageAsset(9, 10), tint: 'green', x: 30, y: 66 },
-  { id: 'foot-cat', point: 'B', kind: 'footprint', title: '고양이 발자국', note: '젖은 땅에 찍힌 고양이 발자국. 숲의 새를 노릴 수 있어.', image: v2Asset('trace-footprint-cat'), x: 40, y: 78, hidden: true },
-  { id: 'sound-call', point: 'B', kind: 'sound', title: '녹음된 앵무 울음', note: '지난주 녹음기에 남은 정상 울음. 지구·젤리가 편안하게 머문 흔적이야.', image: v5Asset('trace-parrot-call'), x: 72, y: 40, sound: 'parrotCall', soundHint: '짧고 맑은 소리가 리듬 있게 반복돼.' },
-  { id: 'foot-parrot', point: 'C', kind: 'footprint', title: '앵무 발자국', note: '지구·젤리가 땅에 내려와 열매를 먹은 자리야.', image: v5Asset('trace-parrot-footprint'), x: 28, y: 76 },
-  { id: 'feather-red', point: 'C', kind: 'feather', title: '빨강 깃털', note: '젤리도 깊은 숲까지 왔어.', image: pageAsset(9, 10), tint: 'red', x: 78, y: 62 },
-  { id: 'sound-alarm', point: 'C', kind: 'sound', title: '녹음된 앵무 경계음', note: '지난주 녹음기에 남은 경계음. 지구·젤리가 위험을 느낀 흔적이야.', image: pageAsset(3, 8), x: 58, y: 34, hidden: true, sound: 'parrotAlarm', soundHint: '높고 날카로운 소리가 빠르게 이어져.' },
+  { id: 'tree-cut', point: 'A', kind: 'habitat', title: '잘린 열매나무', note: '잘린 나무 옆에 열매 달린 가지가 있어.\n새들의 먹이가 줄었을까? 다른 곳과 비교해 보자.', image: v8Asset('trace-cut-fruit-tree', 'png'), x: 30, y: 74 },
+  { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: v5Asset('trace-machine-sound'), x: 66, y: 46, sound: 'chainsaw' },
+  { id: 'feather-brown', point: 'B', kind: 'feather', title: '갈색 숲새 깃털', note: '개울가를 찾은 작은 숲새가 남긴 깃털이야.', image: v8Asset('trace-forest-feather-brown', 'png'), x: 30, y: 66 },
+  { id: 'sound-forest-birds', point: 'B', kind: 'sound', title: '숲새 합창 녹음', note: '여러 종류의 작은 새가 함께 지저귄 지난주 녹음이야.', image: v8Asset('trace-forest-birdsong', 'png'), x: 72, y: 40, sound: 'forestBirdsong' },
+  { id: 'foot-songbird', point: 'C', kind: 'footprint', title: '작은 새 발자국', note: '열매를 주워 먹은 작은 숲새들의 발자국이야.', image: v8Asset('trace-forest-footprints', 'png'), x: 28, y: 76 },
+  { id: 'feather-blue', point: 'C', kind: 'feather', title: '푸른 숲새 깃털', note: '깊은 숲을 오가는 푸른색 작은 새가 남긴 깃털이야.', image: v8Asset('trace-forest-feather-blue', 'png'), x: 78, y: 62 },
 ];
 
-export const ENV_SPOTS: EnvSpot[] = [
-  { id: 'stump', point: 'A', title: '그루터기', note: '막 베인 나무야. 톱밥이 아직 젖어 있어.', image: v2Asset('trace-stump'), x: 48, y: 62 },
-  { id: 'meter', point: 'B', title: '환경 측정기', note: '온도 24도, 습도 88%. 땅이 축축해서 발자국이 잘 찍혀. 조용히 하면 작은 소리도 들려.', image: pageAsset(7, 7), x: 18, y: 50 },
-  { id: 'puddle', point: 'B', title: '물웅덩이', note: '숲의 새들이 물을 마시러 오는 곳이야.', image: pageAsset(6, 7), x: 56, y: 70 },
-  { id: 'fruit', point: 'C', title: '열매 나무', note: '지구·젤리도, 숲의 새들도 좋아하는 먹이야.', image: v2Asset('trace-fruit'), x: 46, y: 50 },
-];
-
-/** 숨은 흔적을 여는 환경 핫스팟 */
-export const UNLOCK_SPOT = 'meter';
-
-export const SOUND_CHOICES: { id: SoundKind; label: string }[] = [
-  { id: 'parrotCall', label: '앵무 정상 울음' },
-  { id: 'parrotAlarm', label: '앵무 경계음' },
-  { id: 'chainsaw', label: '전기톱' },
-];
-
-/** v4 현장 흔적 — 숨은 흔적 없이 지점마다 2개씩 6개. */
-export const FIELD_TRACES: Trace[] = TRACES.filter((trace) => !trace.hidden);
+/** 현장 흔적은 지점마다 2개씩 총 6개다. */
+export const FIELD_TRACES: Trace[] = TRACES;
 
 export const getTrace = (id: string) => TRACES.find((trace) => trace.id === id);
 
-/** 지점에서 지금 보이는 흔적. 숨은 흔적은 측정기를 눌렀을 때만. */
-export function visibleTraces(point: PointId, meterTapped: boolean): Trace[] {
-  return TRACES.filter((trace) => trace.point === point && (!trace.hidden || meterTapped));
+/** 단서를 교체해도 이전에 발견한 기록은 유지하고, 유효한 단서만 한 번씩 복원한다. */
+export function normalizeFoundTraces(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const validIds = new Set(FIELD_TRACES.map((trace) => trace.id));
+  const found = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const id = item === 'foot-boot' ? 'tree-cut' : item;
+    if (validIds.has(id)) found.add(id);
+  }
+  return [...found];
 }
 
 export const nextPoint = (point: PointId, dir: 1 | -1): PointId => {
@@ -92,15 +67,15 @@ export const VARIABLE_LABEL: Record<CauseId, string> = { logging: '먹이나무'
 
 export type Levels = Record<CauseId, number>;
 
-/** 지점별 측정값 0~10. traces 는 새 흔적 수. */
-export const POINT_STATS: Record<PointId, Levels & { traces: number }> = {
-  A: { logging: 3, noise: 9, water: 6, traces: 1 },
-  B: { logging: 6, noise: 4, water: 9, traces: 4 },
-  C: { logging: 9, noise: 2, water: 5, traces: 8 },
+/** 지점별 환경 측정값 0~10과 관찰된 숲새 수. */
+export const POINT_STATS: Record<PointId, Levels & { birdCount: number }> = {
+  A: { logging: 3, noise: 9, water: 6, birdCount: 1 },
+  B: { logging: 6, noise: 4, water: 9, birdCount: 4 },
+  C: { logging: 9, noise: 2, water: 5, birdCount: 8 },
 };
 
 export const fewestTracePoint = (): PointId =>
-  (Object.keys(POINT_STATS) as PointId[]).reduce((best, id) => (POINT_STATS[id].traces < POINT_STATS[best].traces ? id : best), 'A');
+  (Object.keys(POINT_STATS) as PointId[]).reduce((best, id) => (POINT_STATS[id].birdCount < POINT_STATS[best].birdCount ? id : best), 'A');
 
 // ---------- 3단계 변인 실험 ----------
 
@@ -119,24 +94,13 @@ export function population(levels: Levels): number {
   return Math.round(BASE_POPULATION * food * noise * water);
 }
 
-export type Prediction = 'up' | 'down' | 'same';
-export const PREDICTIONS: { id: Prediction; label: string }[] = [
-  { id: 'up', label: '늘어난다' },
-  { id: 'down', label: '줄어든다' },
-  { id: 'same', label: '거의 같다' },
-];
-
 export interface Trial {
   variable: CauseId;
   from: number;
   to: number;
-  prediction: Prediction;
   before: number;
   after: number;
 }
-
-export const actualDirection = (before: number, after: number): Prediction =>
-  Math.abs(after - before) <= 1 ? 'same' : after > before ? 'up' : 'down';
 
 export interface ExperimentState {
   /** 고정 기준 (5·5·5). 매 실험은 항상 이 값과 비교한다 — "다른 조건은 같게" */
@@ -161,14 +125,13 @@ export function changeLevel(state: ExperimentState, variable: CauseId, value: nu
 }
 
 /** 실행: 기준(baseline)과 대조해 기록하고, 슬라이더는 기준으로 되돌린다. 기준은 바뀌지 않는다. */
-export function runTrial(state: ExperimentState, prediction: Prediction): { state: ExperimentState; trial: Trial } | null {
+export function runTrial(state: ExperimentState): { state: ExperimentState; trial: Trial } | null {
   if (!state.active) return null;
   const variable = state.active;
   const trial: Trial = {
     variable,
     from: state.baseline[variable],
     to: state.levels[variable],
-    prediction,
     before: population(state.baseline),
     after: population(state.levels),
   };
@@ -202,27 +165,34 @@ export interface EcoAction {
   id: CauseId;
   /** 카드 이름 — 아이가 하는 행동 */
   label: string;
-  /** 예측 질문 */
-  ask: string;
   /** 바꾼 뒤 값 */
   level: number;
 }
 
 /** 한 번에 하나씩 해 보는 행동 세 가지. 값은 "좋은 상태"로 바뀐다. */
 export const ACTIONS: EcoAction[] = [
-  { id: 'logging', label: '나무 심기', ask: '열매 나무를 심으면 새가 돌아올까?', level: 9 },
-  { id: 'noise', label: '기계 소리 멈추기', ask: '전기톱 소리를 멈추면 새가 돌아올까?', level: 2 },
-  { id: 'water', label: '물 채우기', ask: '웅덩이에 물을 채우면 새가 돌아올까?', level: 9 },
+  { id: 'logging', label: '나무 심기', level: 9 },
+  { id: 'noise', label: '기계 소리 멈추기', level: 2 },
+  { id: 'water', label: '물 채우기', level: 9 },
 ];
 
 export const getAction = (id: CauseId) => ACTIONS.find((action) => action.id === id)!;
 
-/** 지금 숲 가장자리의 새 수 */
-export const edgeBirds = () => population(EDGE_LEVELS);
+/** 관찰 장면과 같은 기준. 모형은 관찰값에 조건 변화의 효과만 더한다. */
+export const edgeBirds = () => POINT_STATS.A.birdCount;
 
 /** 행동 하나만 적용한 결과. 다른 조건은 그대로(EDGE_LEVELS). */
-export function applyAction(id: CauseId, prediction: Prediction): Trial {
+export function applyAction(id: CauseId): Trial {
   const action = getAction(id);
-  const after = population({ ...EDGE_LEVELS, [id]: action.level });
-  return { variable: id, from: EDGE_LEVELS[id], to: action.level, prediction, before: edgeBirds(), after };
+  const after = Math.max(0, edgeBirds() + population({ ...EDGE_LEVELS, [id]: action.level }) - population(EDGE_LEVELS));
+  return { variable: id, from: EDGE_LEVELS[id], to: action.level, before: edgeBirds(), after };
+}
+
+/** 이 장소에서 실제 비교한 증가량에 맞는 결론인가. 동률인 경우 모두 인정한다. */
+export function evaluateConclusion(main: CauseId, trials: readonly Trial[]) {
+  const complete = VARIABLES.every(({ id }) => trials.some((trial) => trial.variable === id));
+  const selected = trials.find((trial) => trial.variable === main);
+  const bestGain = Math.max(0, ...trials.map((trial) => trial.after - trial.before));
+  const selectedGain = selected ? selected.after - selected.before : 0;
+  return { supported: complete && Boolean(selected) && selectedGain === bestGain, complete, selectedGain, bestGain };
 }

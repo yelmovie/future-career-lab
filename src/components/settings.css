@@ -8,8 +8,8 @@
 /* 탭: 한 번에 한 묶음만. 닫기 버튼은 Modal 이 아래에 고정한다. */
 .settings-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .settings-tab {
-  min-height: 56px; padding: 0 8px; border: 2px solid var(--color-border-soft); border-radius: 14px;
-  background: var(--color-surface); color: var(--color-text-sub); font-family: var(--font-display); font-size: 19px; font-weight: 400;
+  min-height: 60px; padding: 0 8px; border: 2px solid var(--color-border-soft); border-radius: 14px;
+  background: rgb(255 255 255 / 92%); color: var(--color-text-sub); font-family: var(--font-display); font-size: 22px; font-weight: 400;
   cursor: pointer; box-shadow: 0 3px 0 var(--color-border-soft); white-space: nowrap;
 }
 .settings-tab:active { transform: translateY(3px); box-shadow: none; }
@@ -21,7 +21,7 @@
   border: 2px solid var(--color-border-soft);
   border-radius: 14px;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.46);
 }
 
 .settings-block > h3,
@@ -93,12 +93,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 48px;
-  min-width: 48px;
+  min-height: 60px;
+  min-width: 60px;
   padding: 0 16px;
   border-radius: 14px;
   border: 2px solid var(--color-border-soft);
-  background: var(--color-surface);
+  background: rgb(255 255 255 / 72%);
   box-shadow: 0 3px 0 var(--color-border-soft);
   font: inherit;
   font-weight: 800;
@@ -135,7 +135,7 @@
 
 .settings-slider input[type='range'] {
   flex: 1 1 200px;
-  min-height: 48px;
+  min-height: 60px;
   accent-color: #1f7a8c;
 }
 
@@ -157,25 +157,6 @@
 
 .settings-standard p {
   margin: 4px 0 0;
-}
-
-.settings-table-scroll {
-  overflow-x: auto;
-}
-
-.settings-table {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 0;
-}
-
-.settings-table th,
-.settings-table td {
-  border: 1px solid rgb(255 255 255 / 78%);
-  padding: 8px 10px;
-  text-align: left;
-  font-size: var(--fs-cap, clamp(16px, 1.2vw, 17px));
-  vertical-align: top;
 }
 
 .settings-block--legal p {
@@ -200,7 +181,7 @@
 
 .teacher-unlock input {
   min-width: 0;
-  min-height: 48px;
+  min-height: 60px;
   padding: 0 14px;
   border: 2px solid rgb(255 255 255 / 78%);
   border-radius: 12px;
@@ -260,29 +241,6 @@
 .teacher-unlocked span {
   margin-top: 2px;
   font-size: var(--fs-cap, clamp(16px, 1.2vw, 17px));
-}
-
-.teacher-answers {
-  display: grid;
-  gap: 10px;
-}
-
-.teacher-answers article {
-  padding: 12px 14px;
-  border-left: 4px solid #1f7a8c;
-  border-radius: 0 12px 12px 0;
-  background: rgba(223, 244, 241, 0.62);
-}
-
-.teacher-answers h5 {
-  font-size: var(--fs-body, clamp(16px, 1.3vw, 18px));
-}
-
-.teacher-answers ul {
-  display: grid;
-  gap: 6px;
-  margin: 8px 0 0;
-  padding-left: 1.2em;
 }
 
 @media (max-width: 620px) {

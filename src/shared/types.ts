@@ -66,8 +66,6 @@ export interface GameSave {
   rewardGranted: string[];
   audio: AudioSettings;
   artifacts: Artifacts;
-  prediction: JobId | null;
-  abilityStatements: string[];
   updatedAt: string;
 }
 

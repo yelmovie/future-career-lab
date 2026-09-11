@@ -30,7 +30,6 @@ describe('page 5 care model', () => {
       expect(slots.size).toBeGreaterThan(1);
     }
     expect(BIRDS[0]!.correctTreatment).not.toBe(BIRDS[1]!.correctTreatment);
-    expect(BIRDS[0]!.soundAnswer).not.toBe(BIRDS[1]!.soundAnswer);
   });
 
   it('shuffles statement order per seed, deterministically, keeping the same statements', () => {
@@ -95,17 +94,15 @@ describe('page 5 care model', () => {
     expect(isStable(puzzle.state, 'green')).toBe(false);
   });
 
-  it('requires 3 grounded records per bird, both sounds classified, and both birds stable', () => {
+  it('requires 3 grounded records per bird and both birds stable', () => {
     const state: CareState = {
       records: { green: groundedRecords('green', 3), red: groundedRecords('red', 3) },
-      sound: { green: 'abnormal', red: 'normal' },
       treatments: { green: 'shelter', red: 'water' },
       wrongTreatments: 0,
       wrongRecords: 0,
     };
     const result = evaluateCare(state);
-    expect(result).toMatchObject({ grounded: 6, soundsClassified: 2, stableBirds: 2, ready: true, perfect: true });
-    expect(evaluateCare({ ...state, sound: { green: 'normal', red: 'normal' } }).ready).toBe(false);
+    expect(result).toMatchObject({ grounded: 6, stableBirds: 2, ready: true, perfect: true });
     // 합계 6이어도 한 마리에 몰리면 안 됨
     expect(evaluateCare({ ...state, records: { green: groundedRecords('green', 5), red: groundedRecords('red', 2) } }).ready).toBe(false);
     expect(evaluateCare({ ...state, wrongTreatments: 2 }).perfect).toBe(false);
@@ -115,10 +112,10 @@ describe('page 5 care model', () => {
     ]);
   });
 
-  it('restores only valid saved data', () => {
-    const restored = readCareState({ records: { green: { eyes: 'eyes-0', feathers: 'bogus' } }, sound: { red: 'normal', green: 'loud' }, treatments: { red: 'water', green: 'nope' }, wrongTreatments: 2, wrongRecords: 3 });
-    expect(restored.records.green).toEqual({ eyes: 'eyes-0' });
-    expect(restored.sound).toEqual({ green: null, red: 'normal' });
+  it('restores grounded saved observations and discards guesses or unknown records', () => {
+    const restored = readCareState({ records: { green: { eyes: 'eyes-1', feathers: 'bogus', posture: 'posture-1' } }, treatments: { red: 'water', green: 'nope' }, wrongTreatments: 2, wrongRecords: 3 });
+    expect(restored.records.green).toEqual({ eyes: 'eyes-1' });
+    expect(readCareState({ records: { green: { eyes: 'eyes-0' } } }).records.green).toEqual({});
     expect(restored.treatments).toEqual({ green: null, red: 'water' });
     expect(restored.wrongTreatments).toBe(2);
     expect(restored.wrongRecords).toBe(3);

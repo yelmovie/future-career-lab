@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
 import { StepShell } from '../components/v4/StepShell';
-import { CheckIcon, SoundIcon } from '../components/Icons';
+import { Modal } from '../components/Modal';
+import { CheckIcon } from '../components/Icons';
 import { audioService } from '../services/audioService';
-import { v3Asset, v5Asset } from '../shared/assets';
+import { v3Asset, v5Asset, v8Asset } from '../shared/assets';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
-import { BIRDS, CARE_ZONES, getBird, TREATMENTS, type BirdId, type CareZoneId, type SoundVerdict, type TreatmentId } from './page05Data';
+import { BIRDS, CARE_ZONES, getBird, TREATMENTS, type BirdId, type CareZoneId, type TreatmentId } from './page05Data';
 import {
   applyTreatment,
   birdGauge,
@@ -16,7 +17,6 @@ import {
   isStable,
   readCareState,
   RECORDS_PER_BIRD,
-  soundCorrect,
   type CareState,
 } from './page05CareModel';
 import './page05.css';
@@ -39,32 +39,38 @@ const CLOSEUP_IMAGE: Record<BirdId, Partial<Record<CareZoneId, string>>> = {
   },
   red: {
     eyes: v5Asset('closeup-red-eyes'),
-    water: v5Asset('closeup-red-water'),
+    water: v8Asset('closeup-red-water'),
     posture: v5Asset('closeup-red-posture'),
   },
 };
-const DRAG_TYPE = 'text/v4-treatment';
-/**
- * 앵무 병원 놀이 — 한 마리당 3단계.
- * 1 돋보기로 살펴보고 증상 스티커 3장 모으기 → 2 건강한 소리와 비교 → 3 기록판을 보고 처치 고르기.
- */
-const INSTRUCTIONS = ['반짝이는 곳 3개를 눌러 봐', '소리를 비교해 봐', '맞는 처치를 골라 줘'];
-const BUBBLES = ['돋보기로 보면 뭐가 보여?', '건강한 소리랑 같을까, 다를까?', '기록판을 보고 골라 봐. 뭐가 필요할까?'];
-/** 소리 비교: 건강한 앵무 소리(기준)는 항상 parrotCall. 같으면 "같아요"(=normal), 다르면 "달라요"(=abnormal). */
-const VERDICT_LABEL: Record<SoundVerdict, string> = { normal: '같아요', abnormal: '달라요' };
-const WAVE_SHAPE: Record<'normal' | 'abnormal', number[]> = {
-  normal: [.3, .45, .6, .5, .35, .55, .65, .5, .4, .55, .45, .3],
-  abnormal: [.9, .2, 1, .25, .95, .2, 1, .3, .9, .25, 1, .2],
+const RECOVERY_IMAGE: Partial<Record<BirdId, string>> = {
+  green: v8Asset('recovery-green-shelter'),
+  red: v8Asset('recovery-red-water'),
 };
+const DRAG_TYPE = 'text/v4-treatment';
+const ParrotModelPreview = lazy(() => import('../components/ParrotModelPreview').catch(() => ({
+  default: ({ initialBird, stableBirds, onClose }: { initialBird: BirdId; stableBirds: BirdId[]; onClose: () => void }) => {
+    const previewBird = getBird(initialBird);
+    return <Modal title="그림으로 살펴보기" onClose={onClose} actions={<button type="button" className="button button--primary" onClick={onClose}>관찰로 돌아가기</button>}>
+      <p>입체 관찰을 열지 못했어. 그림으로 계속 살펴볼 수 있어.</p>
+      <img className="p5-model-fallback" src={stableBirds.includes(initialBird) ? previewBird.recoveredImage : previewBird.sickImage} alt={`${previewBird.name}의 모습`} />
+    </Modal>;
+  },
+})));
+/**
+ * 앵무 병원 놀이 — 한 마리당 2단계.
+ * 1 돋보기로 살펴보고 증상 스티커 3장 모으기 → 2 기록판을 보고 처치 고르기.
+ */
+const INSTRUCTIONS = ['반짝이는 곳 3개를 눌러 봐', '처치 카드를 고르고 앵무를 눌러 줘'];
+const BUBBLES = ['돋보기로 보면 뭐가 보여?', '관찰한 기록과 맞춰 봐. 아이콘을 앵무에게 끌어 놓아도 돼.'];
 
 /** 저장 상태에서 아직 안 끝난 첫 단계를 찾는다. 새로고침해도 하던 데서 이어진다. */
 function firstOpenStep(state: CareState): { bird: BirdId; step: number } {
   for (const bird of BIRDS) {
     if (groundedCount(state, bird.id) < RECORDS_PER_BIRD) return { bird: bird.id, step: 1 };
-    if (!soundCorrect(state, bird.id)) return { bird: bird.id, step: 2 };
-    if (!isStable(state, bird.id)) return { bird: bird.id, step: 3 };
+    if (!isStable(state, bird.id)) return { bird: bird.id, step: 2 };
   }
-  return { bird: 'red', step: 3 };
+  return { bird: 'red', step: 2 };
 }
 
 /** 구역 아이콘 — 기록판 스티커. 이미지 없이 SVG 로 그린다. */
@@ -79,27 +85,24 @@ function ZoneIcon({ zone }: { zone: CareZoneId }) {
   }
 }
 
-function Wave({ kind, playing }: { kind: 'normal' | 'abnormal'; playing: boolean }) {
-  return (
-    <span className={`p5-wave p5-wave--${kind}${playing ? ' is-playing' : ''}`} aria-hidden="true">
-      {WAVE_SHAPE[kind].map((height, index) => <i key={index} style={{ '--h': `${Math.round(height * 100)}%` } as CSSProperties} />)}
-    </span>
-  );
-}
-
 export default function Page05ParrotCheck({ onNavigate }: PageProps) {
-  const { save, completePage, logEvent, setPageData, setArtifacts, setAudio } = useGame();
+  const { save, completePage, logEvent, setPageData, setArtifacts } = useGame();
   const [state, setState] = useState<CareState>(() => readCareState(save.pageData.page05Care));
   const [cursor, setCursor] = useState(() => firstOpenStep(state));
   const [card, setCard] = useState<CareZoneId | null>(null);
   const [reaction, setReaction] = useState<string | null>(null);
-  const [shake, setShake] = useState<'sound' | 'bird' | 'card' | null>(null);
-  const [playing, setPlaying] = useState<'ref' | 'bird' | null>(null);
+  const [shake, setShake] = useState<'bird' | 'card' | null>(null);
   const [held, setHeld] = useState<TreatmentId | null>(null);
   const [justRecorded, setJustRecorded] = useState<CareZoneId | null>(null);
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(5));
-  const timers = useRef<number[]>([]);
-  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), []);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const shakeTimer = useRef(0);
+  const recordTimer = useRef(0);
+  const touchDrag = useRef<{ id: TreatmentId; x: number; y: number } | null>(null);
+  useEffect(() => () => {
+    window.clearTimeout(shakeTimer.current);
+    window.clearTimeout(recordTimer.current);
+  }, []);
 
   const bird = getBird(cursor.bird);
   const step = cursor.step;
@@ -108,21 +111,26 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
   const stable = isStable(state, bird.id);
   const gauge = birdGauge(state, bird.id);
   const hearts = Math.max(1, Math.min(5, Math.round(gauge / 20)));
-  const birdWave: 'normal' | 'abnormal' = bird.cue === 'parrotAlarm' ? 'abnormal' : 'normal';
 
-  const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)); };
   const commit = (recipe: (current: CareState) => CareState) => setState(recipe);
   useEffect(() => { setPageData('page05Care', state); }, [state, setPageData]);
-  const react = (text: string, target: 'sound' | 'bird' | 'card') => {
+  const clearFeedback = () => {
+    window.clearTimeout(shakeTimer.current);
+    setReaction(null);
+    setShake(null);
+  };
+  const react = (text: string, target: 'bird' | 'card') => {
+    window.clearTimeout(shakeTimer.current);
     setReaction(text);
     setShake(target);
     audioService.playSfx('warning');
-    later(() => setShake(null), 450);
-    later(() => setReaction(null), 2600);
+    shakeTimer.current = window.setTimeout(() => setShake(null), 450);
+    // 피드백은 다음 관찰·수정까지 남겨 충분히 읽게 한다. 이전 새의 타이머가 새 피드백을 지우지 않는다.
   };
 
   const tapZone = (zone: CareZoneId) => {
     audioService.playSfx('tap');
+    clearFeedback();
     setCard(zone);
   };
 
@@ -131,37 +139,20 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     const result = chooseStatement(state, bird.id, zone, statementId);
     commit(() => result.state);
     if (result.grounded) {
+      clearFeedback();
       audioService.playSfx('clue');
+      window.clearTimeout(recordTimer.current);
       setJustRecorded(zone);
-      later(() => setJustRecorded(null), 700);
+      recordTimer.current = window.setTimeout(() => setJustRecorded(null), 700);
     } else react('그게 정말 보여? 돋보기 안을 다시 봐.', 'card');
   };
 
-  const playCall = (which: 'ref' | 'bird') => {
-    // "듣기"는 사용자가 소리를 요청한 명시적인 동작이다. 저장된 음소거/0 볼륨
-    // 때문에 버튼만 움직이고 아무 소리도 안 나는 상태가 되지 않게 즉시 복구한다.
-    if (save.audio.muted || save.audio.sfxVolume === 0) {
-      const sfxVolume = save.audio.sfxVolume > 0 ? save.audio.sfxVolume : 0.7;
-      audioService.configure({ ...save.audio, muted: false, sfxVolume });
-      setAudio({ muted: false, sfxVolume });
-    }
-    audioService.unlock();
-    audioService.playCue(which === 'ref' ? 'parrotCall' : bird.cue);
-    setPlaying(which);
-    later(() => setPlaying(null), 2200);
-  };
-
-  const judgeSound = (verdict: SoundVerdict) => {
-    commit((current) => ({ ...current, sound: { ...current.sound, [bird.id]: verdict } }));
-    if (verdict === bird.soundAnswer) audioService.playSfx('success');
-    else react(bird.soundFeedback[verdict], 'sound');
-  };
-
   const giveTreatment = (treatment: TreatmentId) => {
+    if (step !== 2 || stable || !TREATMENTS.some((item) => item.id === treatment)) return;
     setHeld(null);
     const result = applyTreatment(state, bird.id, treatment);
     commit(() => result.state);
-    if (result.matched) { audioService.playSfx('success'); audioService.playCue('parrotHappy', 1400); }
+    if (result.matched) { clearFeedback(); audioService.playSfx('success'); audioService.playCue('parrotHappy', 1400); }
     else react(result.feedback, 'bird');
   };
   const onDrop = (event: DragEvent) => {
@@ -169,18 +160,32 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     const id = (event.dataTransfer.getData(DRAG_TYPE) || held) as TreatmentId | '';
     if (id) giveTreatment(id);
   };
+  const touchStart = (event: PointerEvent<HTMLDivElement>, id: TreatmentId) => {
+    if (event.pointerType === 'mouse') return;
+    touchDrag.current = { id, x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const touchEnd = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = touchDrag.current;
+    touchDrag.current = null;
+    if (!drag || Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 8) return;
+    if (document.elementFromPoint(event.clientX, event.clientY)?.closest('.p5-bird')) giveTreatment(drag.id);
+  };
 
   const finish = () => {
     const mission = evaluateCare(state);
+    if (!mission.ready) return;
     const careLog = buildCareLog(state);
     careLog.forEach((entry) => logEvent({
       page: 5, type: 'care-treatment', summary: `${getBird(entry.bird).name}: ${entry.issue} → ${entry.treatment}`,
       tags: ['동물·생명', '개체별 돌봄', entry.issue], traits: { care: 2, analysis: 1 }, contextRef: `treatment-${entry.bird}`,
     }));
     logEvent({
-      page: 5, type: mission.perfect ? 'care-perfect' : 'care-recorded',
-      summary: mission.perfect ? '헛 처치 없이 두 마리를 안정시켰어.' : `두 마리를 안정시켰어. (틀린 처치 ${state.wrongTreatments}번)`,
-      tags: ['근거 관찰', '소리 분류'], traits: { analysis: 2, care: 1 }, contextRef: 'care-log',
+      page: 5, type: 'care-recorded',
+      summary: state.wrongTreatments || state.wrongRecords
+        ? '관찰을 다시 확인하고 처치를 고쳐 두 마리를 안정시켰어.'
+        : '관찰한 근거에 맞춰 두 마리를 각각 돌봤어.',
+      tags: ['근거 관찰', '맞춤 처치'], traits: { analysis: 2, care: 1 }, contextRef: 'care-log',
     });
     setArtifacts({ careLog });
     completePage(5);
@@ -188,49 +193,64 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     audioService.playSfx('reward');
   };
 
-  const stepDone = step === 1 ? seen >= zones.length : step === 2 ? soundCorrect(state, bird.id) : stable;
+  const stepDone = step === 1 ? seen >= zones.length : stable;
+  const moveTo = (nextBird: BirdId, nextStep: number) => {
+    clearFeedback();
+    window.clearTimeout(recordTimer.current);
+    setJustRecorded(null);
+    setCard(null);
+    setHeld(null);
+    setCursor({ bird: nextBird, step: nextStep });
+  };
   const next = completed
     ? { label: '새 정원 다시 만들기', onClick: () => onNavigate(6) }
-    : step < 3
-      ? { label: '다음', disabled: !stepDone, hint: step === 1 ? `반짝이는 곳 ${zones.length - seen}개가 남았어` : '먼저 두 소리를 듣고 골라 봐', onClick: () => { setCard(null); setCursor({ bird: bird.id, step: step + 1 }); } }
+    : step < 2
+      ? { label: '다음', disabled: !stepDone, hint: `반짝이는 곳 ${zones.length - seen}개가 남았어`, onClick: () => moveTo(bird.id, 2) }
       : bird.id === 'green'
-        ? { label: '젤리 살피기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: () => setCursor({ bird: 'red', step: 1 }) }
+        ? { label: '젤리 살피기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: () => moveTo('red', 1) }
         : { label: '돌봄 끝내기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: finish };
 
   const openZone = card ? zones.find((item) => item.id === card) ?? null : null;
   const recordedStatement = openZone ? state.records[bird.id][openZone.id] : undefined;
-  const soundVerdict = state.sound[bird.id];
+  const selectedTreatment = held ? TREATMENTS.find((item) => item.id === held) ?? null : null;
 
-  /** 진료 기록판 — 1·3단계에 같은 모양으로 나온다. 관찰이 처치의 근거라는 걸 눈에 보이게. */
+  /** 진료 기록판 — 두 단계에 같은 모양으로 나온다. 관찰이 처치의 근거라는 걸 눈에 보이게. */
   const board = (
-    <ol className="p5-board" aria-label={`진료 기록판 ${seen} / ${zones.length}`}>
-      {zones.map((zone, index) => {
-        const recorded = Boolean(state.records[bird.id][zone.id]);
-        return (
-          <li key={zone.id} className={`${recorded ? 'is-on' : ''}${justRecorded === zone.id ? ' is-new' : ''}${card === zone.id ? ' is-open' : ''}`}>
-            <b>{recorded ? <ZoneIcon zone={zone.id} /> : index + 1}</b>
-            <span>{recorded ? zone.sticker : `${zone.title} 살펴보기`}</span>
-          </li>
-        );
-      })}
-      {step === 3 && soundVerdict && (
-        <li className="is-on is-sound"><b><SoundIcon /></b><span>소리 {VERDICT_LABEL[soundVerdict]}</span></li>
-      )}
-    </ol>
+    <section className="p5-board" aria-label={`진료 기록판 ${seen} / ${zones.length}`}>
+      <header className="p5-board__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="5" y="4" width="14" height="17" rx="2" />
+          <path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 14h7M8.5 18h4" />
+        </svg>
+        <span><strong>진료 기록판</strong><small>{bird.name} 관찰 기록 {seen}/{zones.length}</small></span>
+      </header>
+      <ol className="p5-board__list">
+        {zones.map((zone, index) => {
+          const recorded = Boolean(state.records[bird.id][zone.id]);
+          return (
+            <li key={zone.id} className={`${recorded ? 'is-on' : ''}${justRecorded === zone.id ? ' is-new' : ''}${card === zone.id ? ' is-open' : ''}`}>
+              <b>{recorded ? <ZoneIcon zone={zone.id} /> : index + 1}</b>
+              <span>{recorded ? zone.sticker : `${zone.title} 살펴보기`}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 
-  return (
+  return (<>
     <StepShell
       page={5}
       step={step}
-      steps={3}
+      steps={2}
       instruction={completed ? '지구와 젤리가 안정됐어' : `${bird.name}: ${INSTRUCTIONS[step - 1]!}`}
       mentor={MENTOR}
       mentorName={MENTOR_NAME}
       bubble={completed ? '두 아이가 왜 달랐는지 기억해 둬.' : reaction ?? BUBBLES[step - 1]!}
       status={<span className="p5-hearts" role="img" aria-label={`${bird.name} 기운 ${hearts} / 5`}>{Array.from({ length: 5 }, (_, index) => <i key={index} className={index < hearts ? 'is-on' : ''} />)}<b>{bird.name}</b></span>}
-      help={<ul className="p5-help"><li>반짝이는 곳을 누르면 돋보기가 열려. 돋보기에 <b>정말 보이는 것</b>을 골라 기록판에 붙여.</li><li>건강한 앵무 소리와 {bird.name} 소리를 듣고 같은지 다른지 골라.</li><li>기록판의 증상과 카드의 "언제 쓰나"를 맞춰 처치를 골라 앵무에게 줘. 틀려도 벌칙은 없어.</li></ul>}
-      done={completed ? { title: '지구와 젤리 모두 안정됐어', message: '돌봄 기록을 새 정원 다시 만들기로 보냈어.' } : undefined}
+      stageAction={<button type="button" className="p5-model-launch" onClick={() => setPreviewOpen(true)}>3D로 살펴보기</button>}
+      help={<ul className="p5-help"><li>반짝이는 곳을 누르면 돋보기가 열려. 돋보기에 <b>정말 보이는 것</b>을 골라 기록판에 붙여.</li><li>처치 카드를 고른 다음 앵무를 눌러 줘. 아이콘을 손가락이나 마우스로 끌어 놓아도 돼. 키보드는 Tab으로 앵무를 찾아 Enter를 눌러.</li><li>처음 생각이 달라도 괜찮아. 기록을 다시 보고 돌봄 방법을 고치는 것도 중요한 일이야.</li><li>여기서는 수의사와 사육사가 함께 돌보는 상황을 연습해. 실제 아픈 새를 만나면 직접 처치하지 말고 어른에게 관찰한 것을 알려 줘.</li></ul>}
+      done={completed ? { title: '지구와 젤리 모두 안정됐어' } : undefined}
       next={next}
       className="p5-page"
       onNavigate={onNavigate}
@@ -248,13 +268,13 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
           <div
             className={`p5-bird${shake === 'bird' ? ' v4-shake' : ''}${held ? ' is-target' : ''}${stable ? ' is-stable' : ''}`}
             data-bird={bird.id}
-            role={step === 3 && !stable ? 'button' : undefined}
-            tabIndex={step === 3 && !stable ? 0 : undefined}
-            aria-label={step === 3 ? `${bird.name}에게 고른 처치 주기` : bird.name}
-            onClick={() => held && giveTreatment(held)}
-            onKeyDown={(event) => { if (held && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); giveTreatment(held); } }}
-            onDragOver={(event) => { if (step === 3) event.preventDefault(); }}
+            role={step === 2 && !stable ? 'button' : undefined}
+            tabIndex={step === 2 && !stable && held ? 0 : undefined}
+            aria-label={step === 2 ? `${bird.name} 처치 아이콘 놓는 곳` : bird.name}
+            onDragOver={(event) => { if (step === 2) event.preventDefault(); }}
             onDrop={onDrop}
+            onClick={() => { if (held) giveTreatment(held); }}
+            onKeyDown={(event) => { if (held && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); giveTreatment(held); } }}
           >
             <img src={stable ? bird.recoveredImage : bird.sickImage} alt="" draggable={false} />
             {step === 1 && zones.map((zone, index) => {
@@ -272,8 +292,8 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
                 </button>
               );
             })}
-            {held && <span className="p5-drop-hint">여기 놓기</span>}
-            {stable && step === 3 && <span className="p5-recovered">회복!</span>}
+            {held && <span className="p5-drop-hint">여기를 눌러 돌봐 주기</span>}
+            {stable && step === 2 && <span className="p5-recovered">회복!</span>}
           </div>
 
           {step === 1 && (
@@ -307,68 +327,54 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
           )}
 
           {step === 2 && (
-            <div className={`p5-side p5-sound${shake === 'sound' ? ' v4-shake' : ''}`}>
-              <div className="p5-sound-pair">
-                <button type="button" className={`p5-sound-card${playing === 'ref' ? ' is-playing' : ''}`} onClick={() => playCall('ref')} aria-label="건강한 앵무 소리 듣기">
-                  <span className="p5-sound-card__who">건강한 앵무</span>
-                  <Wave kind="normal" playing={playing === 'ref'} />
-                  <span className="p5-sound-card__play"><SoundIcon />듣기</span>
-                </button>
-                <button type="button" className={`p5-sound-card is-bird${playing === 'bird' ? ' is-playing' : ''}`} onClick={() => playCall('bird')} aria-label={`${bird.name} 소리 듣기`}>
-                  <span className="p5-sound-card__who"><img src={bird.sickImage} alt="" />{bird.name}</span>
-                  <Wave kind={birdWave} playing={playing === 'bird'} />
-                  <span className="p5-sound-card__play"><SoundIcon />듣기</span>
-                </button>
-              </div>
-              <strong className="p5-sound-q">두 소리가 같아, 달라?</strong>
-              {soundVerdict && soundVerdict !== bird.soundAnswer && <p className="p5-sound-hint">{bird.soundHint}</p>}
-              <div className="v4-big-buttons" role="group" aria-label="소리 비교">
-                {(['normal', 'abnormal'] as const).map((verdict) => (
-                  <button
-                    key={verdict}
-                    type="button"
-                    className={`v4-big-button${soundVerdict === verdict ? (verdict === bird.soundAnswer ? ' is-selected' : ' is-wrong') : ''}`}
-                    onClick={() => judgeSound(verdict)}
-                    aria-pressed={soundVerdict === verdict}
-                  >
-                    {VERDICT_LABEL[verdict]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
             <div className="p5-side p5-treat">
               {board}
               {stable ? (
-                <div className="p5-obs is-done" role="status"><span className="p5-closeup" style={{ backgroundImage: `url(${bird.recoveredImage})`, backgroundPosition: '50% 30%' } as CSSProperties} aria-hidden="true"><i><CheckIcon /></i></span><div><strong>{bird.name}이(가) 차분해졌어</strong><p>{TREATMENTS.find((item) => item.id === state.treatments[bird.id])?.name}: 딱 맞는 처치였어.</p></div></div>
+                <div className="p5-obs is-done" role="status"><span className="p5-closeup" style={{ backgroundImage: `url(${RECOVERY_IMAGE[bird.id] ?? bird.recoveredImage})`, backgroundPosition: 'center', backgroundSize: 'cover' } as CSSProperties} aria-hidden="true"><i><CheckIcon /></i></span><div><strong>{bird.name}이(가) 차분해졌어</strong><p>{TREATMENTS.find((item) => item.id === state.treatments[bird.id])?.name}: 딱 맞는 처치였어.</p></div></div>
               ) : (
-                <div className="p5-treat-cards" role="group" aria-label="처치 카드">
-                  {TREATMENTS.map((treatment) => (
-                    <button
-                      key={treatment.id}
-                      type="button"
+                <div className="p5-treatment-picker">
+                  <div className="p5-treat-cards" role="group" aria-label="처치 카드">
+                    {TREATMENTS.map((treatment) => (
+                      <button
+                        key={treatment.id}
+                        type="button"
+                        className={`p5-treat-card${held === treatment.id ? ' is-selected' : ''}`}
+                        aria-pressed={held === treatment.id}
+                        aria-label={treatment.name}
+                        onClick={() => { audioService.playSfx('tap'); setHeld(held === treatment.id ? null : treatment.id); }}
+                      >
+                        <img src={TREATMENT_IMAGE[treatment.id]} alt="" draggable={false} />
+                        <strong>{treatment.name}</strong>
+                        <small>{treatment.when}</small>
+                      </button>
+                    ))}
+                  </div>
+                  {selectedTreatment && (
+                    <div
+                      className="p5-treatment-token"
+                      role="button"
+                      tabIndex={0}
                       draggable
-                      className={`p5-treat-card${held === treatment.id ? ' is-selected' : ''}`}
-                      aria-pressed={held === treatment.id}
-                      aria-label={treatment.name}
-                      onDragStart={(event) => { event.dataTransfer.setData(DRAG_TYPE, treatment.id); event.dataTransfer.effectAllowed = 'move'; setHeld(treatment.id); }}
-                      onClick={() => { audioService.playSfx('tap'); setHeld(held === treatment.id ? null : treatment.id); }}
+                      aria-label={`${selectedTreatment.name} 아이콘. ${bird.name}에게 끌어 놓기`}
+                      onDragStart={(event) => { event.dataTransfer.setData(DRAG_TYPE, selectedTreatment.id); event.dataTransfer.effectAllowed = 'move'; }}
+                      onPointerDown={(event) => touchStart(event, selectedTreatment.id)}
+                      onPointerUp={touchEnd}
+                      onPointerCancel={() => { touchDrag.current = null; }}
+                      onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); giveTreatment(selectedTreatment.id); } }}
                     >
-                      <img src={TREATMENT_IMAGE[treatment.id]} alt="" draggable={false} />
-                      <strong>{treatment.name}</strong>
-                      <small>{treatment.when}</small>
-                      {held === treatment.id && <i className="v4-choice__check" aria-hidden="true"><CheckIcon /></i>}
-                    </button>
-                  ))}
+                      <img src={TREATMENT_IMAGE[selectedTreatment.id]} alt="" draggable={false} />
+                    </div>
+                  )}
                 </div>
               )}
-              {!stable && <p className="p5-treat-hint">{held ? `${bird.name}를 눌러서 처치를 줘` : '카드를 누르고 앵무를 눌러 봐'}</p>}
+              {!stable && <p className="p5-treat-hint">{held ? `${bird.name}를 누르거나 아이콘을 끌어 줘` : '먼저 처치 카드를 눌러 봐'}</p>}
             </div>
           )}
         </div>
       </div>
     </StepShell>
-  );
+    {previewOpen && <Suspense fallback={<Modal title="입체 관찰을 준비하고 있어" onClose={() => setPreviewOpen(false)} actions={<button type="button" className="button button--primary" onClick={() => setPreviewOpen(false)}>관찰로 돌아가기</button>}><p>잠시만 기다려 줘.</p></Modal>}>
+      <ParrotModelPreview initialBird={bird.id} stableBirds={BIRDS.filter((item) => isStable(state, item.id)).map((item) => item.id)} onClose={() => setPreviewOpen(false)} />
+    </Suspense>}
+  </>);
 }

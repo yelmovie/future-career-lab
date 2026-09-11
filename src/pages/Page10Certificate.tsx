@@ -1,23 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
-import { GameShell, Panel, TaskCue } from '../components/GameShell';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { GameShell, Panel } from '../components/GameShell';
 import { CheckIcon, DownloadIcon, LockIcon, PrintIcon } from '../components/Icons';
 import { pageAsset } from '../shared/assets';
 import { STAGE_META, STAGE_PAGES } from '../shared/constants';
 import type { PageNumber, StageNumber } from '../shared/types';
 import { audioService } from '../services/audioService';
 import { useGame } from '../state/GameContext';
+import { Modal } from '../components/Modal';
+import { getLearningRecord, learningRecordText } from '../data/learningRecord';
+import './learning-record.css';
 
 const CERTIFICATE_TITLE = '미래 직업실 탐험 수료증';
+const CERTIFICATE_COPY_LINES = [
+  '위 학생은 「미래 직업실」에서',
+  '드론 현장가·동물돌봄 전문가·생태연구가·방송기술자의',
+  '일을 직접 해 보고, 네 직업의 힘을 모아',
+  '푸른솔 숲의 새들을 지켰기에 이 증서를 수여합니다.',
+] as const;
 const STAGE_LABELS: Record<StageNumber, string> = Object.fromEntries(STAGE_META.map((stage) => [stage.id, stage.label])) as Record<StageNumber, string>;
 
 interface CertificateExportData {
-  playerName: string;
-  school: string;
-  grade: string;
-  classroom: string;
-  number: string;
   date: string;
-  abilities: string[];
 }
 
 const loadCanvasImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
@@ -69,34 +72,18 @@ async function downloadCertificatePng(data: CertificateExportData, filename: str
   context.textAlign = 'center';
   context.fillStyle = '#0f7b7e';
   context.font = '800 28px Pretendard, sans-serif';
-  context.fillText('F U T U R E   C A R E E R   L A B', width / 2, 120);
+  context.fillText('F U T U R E   C A R E E R   L A B', width / 2, 150);
   context.fillStyle = '#1f3548';
   context.font = '400 66px Jua, Pretendard, sans-serif';
-  context.fillText(CERTIFICATE_TITLE, width / 2, 205);
+  context.fillText(CERTIFICATE_TITLE, width / 2, 235);
   context.fillStyle = '#b8933f';
   context.font = '700 25px Pretendard, sans-serif';
-  context.fillText('Certificate of Career Exploration', width / 2, 248);
-
-  context.fillStyle = '#1f3548';
-  context.font = '400 52px Jua, Pretendard, sans-serif';
-  context.fillText(data.playerName || '탐험가', width / 2 - 26, 330);
-  context.strokeStyle = '#b8933f';
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(width / 2 - 235, 345);
-  context.lineTo(width / 2 + 180, 345);
-  context.stroke();
-  context.textAlign = 'left';
-  context.fillStyle = '#596b79';
-  context.font = '700 26px Pretendard, sans-serif';
-  context.fillText('탐험가', width / 2 + 200, 330);
+  context.fillText('Certificate of Career Exploration', width / 2, 278);
 
   context.textAlign = 'center';
   context.fillStyle = '#35495c';
-  context.font = '500 28px Pretendard, sans-serif';
-  context.fillText('위 학생은 「미래 직업실」에서 네 가지 미래 직업의 일을 직접 해 보고,', width / 2, 410);
-  context.fillText('네 직업의 힘을 모아 지구와 젤리를 찾고 푸른솔 숲의 새들을 지켰기에', width / 2, 454);
-  context.fillText('이 증서를 수여합니다.', width / 2, 498);
+  context.font = '700 28px Pretendard, sans-serif';
+  CERTIFICATE_COPY_LINES.forEach((line, index) => context.fillText(line, width / 2, 365 + index * 44));
 
   const badgeSize = 156;
   const badgeGap = 42;
@@ -109,24 +96,14 @@ async function downloadCertificatePng(data: CertificateExportData, filename: str
     drawFittedText(context, STAGE_META[index]!.label, x + badgeSize / 2, 730, badgeSize + 24, 25, 800);
   });
 
-  data.abilities.slice(0, 2).forEach((ability, index) => {
-    context.fillStyle = '#f7f0df';
-    context.beginPath();
-    context.roundRect(230, 770 + index * 58, width - 460, 44, 22);
-    context.fill();
-    context.fillStyle = '#1f3548';
-    context.textAlign = 'center';
-    drawFittedText(context, `나는 이제 ${ability}`, width / 2, 801 + index * 58, width - 520, 26, 700);
-  });
-
-  const infoY = data.abilities.length > 1 ? 930 : 895;
+  const infoY = 895;
   context.fillStyle = '#35495c';
   context.font = '600 27px Pretendard, sans-serif';
   const infoFields = [
-    { label: '학교', value: data.school, width: 420 },
-    { label: '학년', value: data.grade, width: 200 },
-    { label: '반', value: data.classroom, width: 200 },
-    { label: '번호', value: data.number, width: 220 },
+    { label: '학교', width: 420 },
+    { label: '학년', width: 200 },
+    { label: '반', width: 200 },
+    { label: '번호', width: 220 },
   ];
   let infoX = (width - 1100) / 2;
   infoFields.forEach((field) => {
@@ -140,10 +117,6 @@ async function downloadCertificatePng(data: CertificateExportData, filename: str
     context.moveTo(lineStart, infoY + 9);
     context.lineTo(lineEnd, infoY + 9);
     context.stroke();
-    if (field.value) {
-      context.textAlign = 'center';
-      drawFittedText(context, field.value, (lineStart + lineEnd) / 2, infoY, lineEnd - lineStart - 12, 26, 700);
-    }
     infoX += field.width + 20;
   });
   context.strokeStyle = '#e6d6ac';
@@ -170,13 +143,11 @@ async function downloadCertificatePng(data: CertificateExportData, filename: str
 }
 
 export default function Page10Certificate({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, setPlayerName, grantReward, teacherMode } = useGame();
-  const [school, setSchool] = useState('');
-  const [grade, setGrade] = useState('');
-  const [classroom, setClassroom] = useState('');
-  const [number, setNumber] = useState('');
+  const { save, grantReward, teacherMode } = useGame();
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [recordOpen, setRecordOpen] = useState(false);
+  const closeRecord = useCallback(() => setRecordOpen(false), []);
   const printing = useRef(false);
   const rewarded = useRef(false);
   const date = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' }).format(new Date());
@@ -202,14 +173,24 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
     setSaving(true);
     setSaveMessage('');
     try {
-      const safeName = (save.playerName.trim() || '탐험가').replace(/[\\/:*?"<>|]/g, '-');
-      await downloadCertificatePng({ playerName: save.playerName, school, grade, classroom, number, date, abilities: save.abilityStatements }, `미래-직업실-수료증-${safeName}.png`);
+      await downloadCertificatePng({ date }, '미래-직업실-수료증.png');
       setSaveMessage('수료증 이미지를 저장했어.');
     } catch {
       setSaveMessage('이미지를 저장하지 못했어. 인쇄하기에서 PDF로 저장해 줘.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const downloadRecord = () => {
+    const url = URL.createObjectURL(new Blob(['\uFEFF', learningRecordText(save)], { type: 'text/plain;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = '미래-직업실-내-탐험-기록.txt';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   if (!save.certificateUnlocked && !teacherMode) {
@@ -229,32 +210,31 @@ export default function Page10Certificate({ onNavigate }: { onNavigate: (page: P
   return (
     <GameShell page={11} eyebrow="MISSION COMPLETE" onNavigate={onNavigate} className="certificate-page">
       <div className="certificate-layout">
-        <Panel kicker="YOUR RECORD" title="수료 정보" className="certificate-form no-print">
-          <TaskCue action="정보를 적고 저장하거나 인쇄해" done />
-          <p>입력 내용은 이 화면과 저장·인쇄에만 사용돼.</p>
-          <label>학교<input value={school} onChange={(event) => setSchool(event.target.value)} placeholder="학교 이름" /></label>
-          <div className="form-row"><label>학년<input value={grade} onChange={(event) => setGrade(event.target.value)} inputMode="numeric" /></label><label>반<input value={classroom} onChange={(event) => setClassroom(event.target.value)} inputMode="numeric" /></label><label>번호<input value={number} onChange={(event) => setNumber(event.target.value)} inputMode="numeric" /></label></div>
-          <label>이름<input value={save.playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="탐험가 이름" /></label>
-          <div className="certificate-actions"><button className="button button--primary is-next-action" aria-label="수료증 이미지로 저장하기" onClick={saveImage} disabled={saving}><DownloadIcon /> {saving ? '저장 중…' : '이미지 저장'}</button><button className="button button--ghost" aria-label="수료증 인쇄하기" onClick={print}><PrintIcon /> 인쇄하기</button><button className="button button--ghost certificate-actions__home" aria-label="메인으로 돌아가기" onClick={() => onNavigate(1)}>메인으로</button></div>
-          {saveMessage && <p className="certificate-save-status" role="status">{saveMessage}</p>}
-        </Panel>
-
         <article className="certificate-sheet" aria-label={CERTIFICATE_TITLE}>
           <div className="certificate-border">
             <header><span>FUTURE CAREER LAB</span><h2>{CERTIFICATE_TITLE}</h2><p>Certificate of Career Exploration</p></header>
-            <div className="certificate-name"><strong>{save.playerName || '　　　　　　　　　'}</strong><span>탐험가</span></div>
-            <p className="certificate-copy">위 학생은 「미래 직업실」에서 드론 현장가·동물돌봄 전문가·생태연구가·방송기술자의 일을 직접 해 보고,<br />네 직업의 힘을 모아 지구와 젤리를 찾고 푸른솔 숲의 새들을 지켰기에 이 증서를 수여합니다.</p>
+            <p className="certificate-copy">{CERTIFICATE_COPY_LINES.map((line) => <span key={line}>{line}</span>)}</p>
             <div className="certificate-badges">{STAGE_META.map((stage) => <div key={stage.id}><span><img src={stage.badge} alt="" /></span><b>{stage.label}</b></div>)}</div>
-            {save.abilityStatements.length > 0 && <ul className="certificate-abilities">{save.abilityStatements.map((statement) => <li key={statement}>나는 이제 {statement}</li>)}</ul>}
             <div className="certificate-info">
-              <span>학교 <b>{school || '　　　　　　　　　'}</b></span>
-              <span>학년 <b>{grade || '　　'}</b></span><span>반 <b>{classroom || '　　'}</b></span><span>번호 <b>{number || '　　'}</b></span>
+              <span>학교 <b aria-label="학교 기입란" /></span>
+              <span>학년 <b aria-label="학년 기입란" /></span><span>반 <b aria-label="반 기입란" /></span><span>번호 <b aria-label="번호 기입란" /></span>
             </div>
             <footer><span>{date}</span></footer>
             <img className="certificate-seal" src={pageAsset(10, 7)} alt="미래 직업실 성취 문장" />
           </div>
         </article>
+        <div className="certificate-actions has-record no-print">
+          <button className="button button--primary is-next-action" aria-label="수료증 이미지로 저장하기" onClick={saveImage} disabled={saving}><DownloadIcon /> {saving ? '저장 중…' : '이미지 저장'}</button>
+          <button className="button button--ghost" aria-label="수료증 인쇄하기" onClick={print}><PrintIcon /> 인쇄하기</button>
+          <button className="button button--ghost" onClick={() => setRecordOpen(true)}>내 탐험 기록</button>
+          <button className="button button--ghost" aria-label="메인으로 돌아가기" onClick={() => onNavigate(1)}>메인으로</button>
+          {saveMessage && <span className="sr-only" role="status">{saveMessage}</span>}
+        </div>
       </div>
+      {recordOpen && <Modal title="내 탐험 기록" className="learning-record-modal" onClose={closeRecord} actions={<><button className="button button--ghost" onClick={downloadRecord}>기록 파일 저장</button><button className="button button--primary" onClick={closeRecord}>닫기</button></>}>
+        <p className="learning-record-intro">네가 찾고, 시험하고, 고친 과정이야. 친구와 다른 선택이 있었는지 이야기해 봐.</p>
+        <div className="learning-record-list">{getLearningRecord(save).map((entry) => <article key={entry.id} className={entry.recorded ? '' : 'is-missing'}><h3>{entry.title}</h3><p>{entry.detail}</p></article>)}</div>
+      </Modal>}
     </GameShell>
   );
 }

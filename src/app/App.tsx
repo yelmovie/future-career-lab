@@ -20,7 +20,7 @@ const pages: Record<PageNumber, LazyExoticComponent<ComponentType<{ onNavigate: 
   7: lazy(() => import('../pages/Page07Ecology')),      // S3 생태 조사
   8: lazy(() => import('../pages/Page08Broadcast')),    // S4 생방송
   9: lazy(() => import('../pages/Page08Crisis')),       // S5 연합 작전
-  10: lazy(() => import('../pages/Page09DNA')),         // 돌아보기
+  10: lazy(() => import('../pages/Page09DNA')),         // 폐기된 선택 화면 → 수료증 리디렉션
   11: lazy(() => import('../pages/Page10Certificate')), // 수료증
 };
 

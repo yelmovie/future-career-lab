@@ -1,14 +1,7 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "contentVersion": "2026.09",
-  "modelSlots": [
-    {
-      "id": "model.parrotHabitat",
-      "src": "/assets/models/parrot-habitat.glb",
-      "available": false,
-      "fallback": "sample3d.slot7"
-    }
-  ],
+  "modelSlots": [],
   "assets": [
     {
       "id": "background.page1",
@@ -19,7 +12,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_32 (1).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 125066,
+      "sha256": "1b1ad1f8427079d52a27617c66fccca61ff72ec2038d879494d47c1368f055af",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:40"
+      ]
     },
     {
       "id": "background.page2",
@@ -30,7 +29,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_33 (2).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 104728,
+      "sha256": "55230e3f37f59e4fe6b987ff25b4bd70efbe3eead764c4bd32605e5a4d98c79e",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:41"
+      ]
     },
     {
       "id": "background.page3",
@@ -41,7 +46,25 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_34 (3).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 95540,
+      "sha256": "b706950edf1a9444ee433ae13e3268fbc6cc1e0a59e67ac20f2ec81161e519e5",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:43",
+        "src/shared/constants.ts:49"
+      ]
+    },
+    {
+      "id": "file.assets.backgrounds.page-04-drone-field.jpg",
+      "src": "/assets/backgrounds/page-04-drone-field.jpg",
+      "kind": "image",
+      "bytes": 343090,
+      "sha256": "02914ffcb6adfd6437f0bdc751f47b9ff09005c31f901df8e43e1bf1017e1baf",
+      "classroomReady": true,
+      "references": [
+        "src/shared/assets.ts:5"
+      ]
     },
     {
       "id": "background.page4",
@@ -52,7 +75,24 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_34 (4).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 127324,
+      "sha256": "ddd3ef8509920985b7c4e2e95cce6559eae028de98419dc6f11b0dfe02473173",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:42"
+      ]
+    },
+    {
+      "id": "file.assets.backgrounds.page-05-parrot-park.jpg",
+      "src": "/assets/backgrounds/page-05-parrot-park.jpg",
+      "kind": "image",
+      "bytes": 522164,
+      "sha256": "d8bb7a3201d18bc91e1e3854b92fafbd7881182569273714dd996b8f1b33d2a3",
+      "classroomReady": true,
+      "references": [
+        "src/shared/assets.ts:6"
+      ]
     },
     {
       "id": "background.page5",
@@ -63,7 +103,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_34 (5).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 80444,
+      "sha256": "0cfa7c74f9db88acf56930eee33c545540c450f991529f5f52ffa2444967ebdf",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:44"
+      ]
     },
     {
       "id": "background.page6",
@@ -74,7 +120,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_34 (6).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 259394,
+      "sha256": "73687ed2e25f2f150bae4c31e2b33eaf9cb2a66029bf529959ffc0e00c883903",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:46"
+      ]
     },
     {
       "id": "background.page7",
@@ -85,7 +137,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_36 (7).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 278260,
+      "sha256": "9ef4f383f727d596fbf1019946f71c71cebefb42e3ae04900ee5fc0c022c97b9",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:45"
+      ]
     },
     {
       "id": "background.page8",
@@ -96,7 +154,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_36 (8).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 84146,
+      "sha256": "c158320e2f7208a7d4e1baeb9556a5522025a85fa26fa9f115698df83711b59e",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:48"
+      ]
     },
     {
       "id": "background.page9",
@@ -107,7 +171,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_38 (9).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 95562,
+      "sha256": "84cb7f7ce3103bfb410fd6e41febd373e4396f8effdd0f1b0f6d2b22ac95dd4a",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:47"
+      ]
     },
     {
       "id": "background.page10",
@@ -118,62 +188,211 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_38 (10).png",
       "width": 1280,
       "height": 720,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 104236,
+      "sha256": "5f719fbc223ddc2475b88300a4256f801c536d85ff88a0b396c26ee300e0978a",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:50"
+      ]
     },
     {
-      "id": "page1.student",
-      "page": 1,
-      "src": "/assets/page-01/student.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_45 (1).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
+      "id": "file.assets.fonts.Jua-Regular.woff2",
+      "src": "/assets/fonts/Jua-Regular.woff2",
+      "kind": "font",
+      "bytes": 193948,
+      "sha256": "a46e44231c412ebc5a6c2338d0363c8240ad31a2d438a791fbc6073fe5e246b4",
+      "classroomReady": true,
+      "references": [
+        "index.html:11",
+        "src/styles/index.css:3"
+      ]
     },
     {
-      "id": "page1.mentor",
-      "page": 1,
-      "src": "/assets/page-01/mentor.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_47 (3).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
+      "id": "file.assets.fonts.Pretendard-Bold.sub.woff2",
+      "src": "/assets/fonts/Pretendard-Bold.sub.woff2",
+      "kind": "font",
+      "bytes": 791156,
+      "sha256": "4609c3356e536fafe38f4add0daeceb3d8595d3057bce13c428c33ddbd43d362",
+      "classroomReady": true,
+      "references": [
+        "src/styles/index.css:2"
+      ]
     },
     {
-      "id": "page1.keyart",
-      "page": 1,
-      "src": "/assets/page-01/keyart.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_11 (1).png",
-      "width": 1280,
-      "height": 853,
-      "hasAlpha": true
+      "id": "file.assets.fonts.Pretendard-Regular.sub.woff2",
+      "src": "/assets/fonts/Pretendard-Regular.sub.woff2",
+      "kind": "font",
+      "bytes": 765892,
+      "sha256": "fad853f7f47c6c8b103171e7193fa095708cdcd70850a71d93aa5379e8a61d63",
+      "classroomReady": true,
+      "references": [
+        "index.html:10",
+        "src/styles/index.css:1"
+      ]
     },
     {
-      "id": "page1.logo",
-      "page": 1,
-      "src": "/assets/page-01/logo.webp",
+      "id": "file.assets.meshy.healthy-pair.png",
+      "src": "/assets/meshy/healthy-pair.png",
       "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_11 (2).png",
-      "width": 1280,
-      "height": 853,
-      "hasAlpha": true
+      "bytes": 964910,
+      "sha256": "74aa255d0bb45e3d450a9a3321d60c4747882628f54c544461dfc13c2b4163d5",
+      "classroomReady": true,
+      "references": [
+        "src/components/ParrotModelPreview.tsx:15",
+        "src/pages/Page08Broadcast.tsx:68"
+      ]
     },
     {
-      "id": "page1.tagline",
-      "page": 1,
-      "src": "/assets/page-01/tagline.webp",
+      "id": "file.assets.meshy.jelly-healthy.glb",
+      "src": "/assets/meshy/jelly-healthy.glb",
+      "kind": "model",
+      "bytes": 4226136,
+      "sha256": "637179613413061bfb06781797fea357f3c068d511d93fb939883a3e153610ca",
+      "classroomReady": true,
+      "references": [
+        "src/components/parrotPreviewModel.ts:7"
+      ],
+      "modelStats": {
+        "bytes": 4226136,
+        "sha256": "637179613413061bfb06781797fea357f3c068d511d93fb939883a3e153610ca",
+        "errors": [],
+        "warnings": [],
+        "meshTriangles": 16315,
+        "sceneTriangles": 16315,
+        "meshes": 1,
+        "nodes": 1,
+        "materials": 1,
+        "animations": 0,
+        "images": [
+          {
+            "index": 0,
+            "bytes": 3313260,
+            "mimeType": "image/jpeg",
+            "format": "jpeg",
+            "width": 2048,
+            "height": 2048
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      }
+    },
+    {
+      "id": "file.assets.meshy.jelly-sick.glb",
+      "src": "/assets/meshy/jelly-sick.glb",
+      "kind": "model",
+      "bytes": 4111004,
+      "sha256": "9221522ad412c4972f067d2074cb242151060b07ddb31f2674697b7576ef1098",
+      "classroomReady": true,
+      "references": [
+        "src/components/parrotPreviewModel.ts:7"
+      ],
+      "modelStats": {
+        "bytes": 4111004,
+        "sha256": "9221522ad412c4972f067d2074cb242151060b07ddb31f2674697b7576ef1098",
+        "errors": [],
+        "warnings": [],
+        "meshTriangles": 16245,
+        "sceneTriangles": 16245,
+        "meshes": 1,
+        "nodes": 1,
+        "materials": 1,
+        "animations": 0,
+        "images": [
+          {
+            "index": 0,
+            "bytes": 3204714,
+            "mimeType": "image/jpeg",
+            "format": "jpeg",
+            "width": 2048,
+            "height": 2048
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      }
+    },
+    {
+      "id": "file.assets.meshy.jigu-healthy.glb",
+      "src": "/assets/meshy/jigu-healthy.glb",
+      "kind": "model",
+      "bytes": 4352284,
+      "sha256": "e3f6d25e645dea657bbd3076866b7606b3108d19048f783e9fea394dacb8418f",
+      "classroomReady": true,
+      "references": [
+        "src/components/parrotPreviewModel.ts:6"
+      ],
+      "modelStats": {
+        "bytes": 4352284,
+        "sha256": "e3f6d25e645dea657bbd3076866b7606b3108d19048f783e9fea394dacb8418f",
+        "errors": [],
+        "warnings": [],
+        "meshTriangles": 16248,
+        "sceneTriangles": 16248,
+        "meshes": 1,
+        "nodes": 1,
+        "materials": 1,
+        "animations": 0,
+        "images": [
+          {
+            "index": 0,
+            "bytes": 3566891,
+            "mimeType": "image/jpeg",
+            "format": "jpeg",
+            "width": 2048,
+            "height": 2048
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      }
+    },
+    {
+      "id": "file.assets.meshy.jigu-sick.glb",
+      "src": "/assets/meshy/jigu-sick.glb",
+      "kind": "model",
+      "bytes": 3999500,
+      "sha256": "f6582a48285564791698cf7244bfd5609c445fa214c0db4ebaf1c0ea12776729",
+      "classroomReady": true,
+      "references": [
+        "src/components/parrotPreviewModel.ts:6"
+      ],
+      "modelStats": {
+        "bytes": 3999500,
+        "sha256": "f6582a48285564791698cf7244bfd5609c445fa214c0db4ebaf1c0ea12776729",
+        "errors": [],
+        "warnings": [],
+        "meshTriangles": 16143,
+        "sceneTriangles": 16143,
+        "meshes": 1,
+        "nodes": 1,
+        "materials": 1,
+        "animations": 0,
+        "images": [
+          {
+            "index": 0,
+            "bytes": 3091086,
+            "mimeType": "image/jpeg",
+            "format": "jpeg",
+            "width": 2048,
+            "height": 2048
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      }
+    },
+    {
+      "id": "file.assets.meshy.sick-pair.png",
+      "src": "/assets/meshy/sick-pair.png",
       "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_11 (3).png",
-      "width": 1280,
-      "height": 853,
-      "hasAlpha": true
+      "bytes": 1178623,
+      "sha256": "0bd9cc24a55c032c929eafaf5ea9c72fc273699a8986f5a58eb5bdaa50b9e324",
+      "classroomReady": true,
+      "references": [
+        "src/components/ParrotModelPreview.tsx:15"
+      ]
     },
     {
       "id": "page1.badge",
@@ -184,7 +403,66 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_12 (4).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 311150,
+      "sha256": "b6fffde339fa7fd83f7224821a57ba583bcd9966faf0d11739a04290c5e52937",
+      "classroomReady": true,
+      "references": [
+        "index.html:8",
+        "index.html:9"
+      ]
+    },
+    {
+      "id": "page1.keyart",
+      "page": 1,
+      "src": "/assets/page-01/keyart.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_11 (1).png",
+      "width": 1280,
+      "height": 853,
+      "hasAlpha": true,
+      "bytes": 332202,
+      "sha256": "795f43ea92996ac0ad9ab0bbea0fcb363557fd6c0df731c3f77f2022999d6b8d",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page01Home.tsx:56"
+      ]
+    },
+    {
+      "id": "page1.logo",
+      "page": 1,
+      "src": "/assets/page-01/logo.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_11 (2).png",
+      "width": 1280,
+      "height": 853,
+      "hasAlpha": true,
+      "bytes": 130202,
+      "sha256": "5e14edf0917f337cd93a535216abc08b193548d2323a9f416971fcbf4a237cac",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page01Home.tsx:83"
+      ]
+    },
+    {
+      "id": "page1.mentor",
+      "page": 1,
+      "src": "/assets/page-01/mentor.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_47 (3).png",
+      "width": 853,
+      "height": 1280,
+      "hasAlpha": true,
+      "bytes": 108034,
+      "sha256": "61494b3225294d289296e9b4d308553d472e93384652f9eb3f9e4920a5655e13",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:11",
+        "src/pages/Stage05Cooperation.tsx:120"
+      ]
     },
     {
       "id": "page1.parrot-pair",
@@ -195,150 +473,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_12 (5).png",
       "width": 1280,
       "height": 853,
-      "hasAlpha": true
-    },
-    {
-      "id": "page1.drone",
-      "page": 1,
-      "src": "/assets/page-01/drone.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_33_12 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot1",
-      "page": 2,
-      "src": "/assets/page-02/slot-01.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_58 (1).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot2",
-      "page": 2,
-      "src": "/assets/page-02/slot-02.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_58 (2).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot3",
-      "page": 2,
-      "src": "/assets/page-02/slot-03.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_59 (3).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot4",
-      "page": 2,
-      "src": "/assets/page-02/slot-04.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_59 (4).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot5",
-      "page": 2,
-      "src": "/assets/page-02/slot-05.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_30_59 (5).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot6",
-      "page": 2,
-      "src": "/assets/page-02/slot-06.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_00 (6).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot7",
-      "page": 2,
-      "src": "/assets/page-02/slot-07.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_00 (7).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot8",
-      "page": 2,
-      "src": "/assets/page-02/slot-08.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_00 (8).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot9",
-      "page": 2,
-      "src": "/assets/page-02/slot-09.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_00 (9).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page2.slot10",
-      "page": 2,
-      "src": "/assets/page-02/slot-10.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_01 (10).png",
-      "width": 1024,
-      "height": 1024,
-      "hasAlpha": true
-    },
-    {
-      "id": "page3.slot1",
-      "page": 3,
-      "src": "/assets/page-03/slot-01.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_11 (1).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
-    },
-    {
-      "id": "page3.slot2",
-      "page": 3,
-      "src": "/assets/page-03/slot-02.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_11 (2).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 253188,
+      "sha256": "da3fcb12a4f5492c15d8f8d86eeaa7c754c6e22f430fe2a82c28a3f8be8c5b41",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:106"
+      ]
     },
     {
       "id": "page3.slot3",
@@ -349,7 +490,15 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_13 (3).png",
       "width": 853,
       "height": 1280,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 124214,
+      "sha256": "8ebb6c842d7426cbbec7da730d2e33b9b750af49611d13dd1c91d4483404b993",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:24",
+        "src/pages/Page08Broadcast.tsx:41",
+        "src/pages/Stage05Cooperation.tsx:21"
+      ]
     },
     {
       "id": "page3.slot4",
@@ -360,18 +509,14 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_14 (4).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page3.slot5",
-      "page": 3,
-      "src": "/assets/page-03/slot-05.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_15 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 174090,
+      "sha256": "980d7157c1045d5c584cdf7a91cb09d89023e0f05219b7e94d9f23a4355400ac",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:24",
+        "src/pages/stage1-2-content.ts:137"
+      ]
     },
     {
       "id": "page3.slot6",
@@ -382,7 +527,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_15 (6).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 253040,
+      "sha256": "9a58ade32fc8e3f5224f226379eed988098883265f85246c057a7fc02b415f3d",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:23"
+      ]
     },
     {
       "id": "page3.slot7",
@@ -393,7 +544,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_17 (7).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 244258,
+      "sha256": "a293645f08c0e0a1bd6c935b3bbb913701ac8e25f41f31619dc90982a3ead4d4",
+      "classroomReady": true,
+      "references": [
+        "src/pages/stage1-2-content.ts:138"
+      ]
     },
     {
       "id": "page3.slot8",
@@ -404,7 +561,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_17 (8).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 330150,
+      "sha256": "7667078d68c276c82e1f28f9f1c28d1cb3ef4268dbff969cbfd6645829b4e232",
+      "classroomReady": true,
+      "references": [
+        "src/pages/stage1-2-content.ts:139"
+      ]
     },
     {
       "id": "page3.slot9",
@@ -415,18 +578,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_18 (9).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page3.slot10",
-      "page": 3,
-      "src": "/assets/page-03/slot-10.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_19 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 196160,
+      "sha256": "5c2d48d1ea2edb2238f3312b598c2513e010a31242a32d28cbe75341f0954c6c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:23"
+      ]
     },
     {
       "id": "page4.slot1",
@@ -437,7 +595,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (1).png",
       "width": 853,
       "height": 1280,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 130452,
+      "sha256": "e12d89aaca57fe4da408ea365270bc80d65f26eb514b1e056594193d29486018",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:21"
+      ]
     },
     {
       "id": "page4.slot2",
@@ -448,7 +612,15 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (2).png",
       "width": 853,
       "height": 1280,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 151168,
+      "sha256": "f51825ea16e51d66ed4cb46bd6d863ae0b00cac23ac67bfd19603346736733c5",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page03Mystery.tsx:108",
+        "src/pages/Page04Drone.tsx:520",
+        "src/pages/Stage05Cooperation.tsx:18"
+      ]
     },
     {
       "id": "page4.slot3",
@@ -459,7 +631,14 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (3).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 234670,
+      "sha256": "30eaa32138d2f80807c6897cb49269e69c8be9f6f1d1e015abe58f930fc5048f",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:21",
+        "src/pages/Page04Drone.tsx:103"
+      ]
     },
     {
       "id": "page4.slot4",
@@ -470,7 +649,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (4).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 271024,
+      "sha256": "52f47366a93bf4fa385458263dc1cc14ee83561cdc130b5912eb9b3852f9042c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:21"
+      ]
     },
     {
       "id": "page4.slot5",
@@ -481,18 +666,14 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (5).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page4.slot6",
-      "page": 4,
-      "src": "/assets/page-04/slot-06.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 202426,
+      "sha256": "b592e07ee489bf2a06d11fb3a4ed5f5493014d21f3f51c4597112b2993b3c57c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:24",
+        "src/pages/Page08Broadcast.tsx:378"
+      ]
     },
     {
       "id": "page4.slot7",
@@ -503,18 +684,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (7).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page4.slot8",
-      "page": 4,
-      "src": "/assets/page-04/slot-08.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 235600,
+      "sha256": "4c9211a7fe3ccc323a853d86a8e196034fab9e2fe7f349f5a3888cfe97a37a16",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:24"
+      ]
     },
     {
       "id": "page4.slot9",
@@ -525,62 +701,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (9).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page4.slot10",
-      "page": 4,
-      "src": "/assets/page-04/slot-10.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_28 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "page5.slot1",
-      "page": 5,
-      "src": "/assets/page-05/slot-01.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (1).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot2",
-      "page": 5,
-      "src": "/assets/page-05/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (2).png",
-      "width": 853,
-      "height": 1280,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot3",
-      "page": 5,
-      "src": "/assets/page-05/slot-03.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot4",
-      "page": 5,
-      "src": "/assets/page-05/slot-04.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (4).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": true,
+      "bytes": 238592,
+      "sha256": "4a3ce48f755289f2301fcc650a410ce40b6b3793baa077aed72bfbaf2ab71115",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:21"
+      ]
     },
     {
       "id": "page5.slot5",
@@ -591,7 +718,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (5).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 121396,
+      "sha256": "4fbf3ab8cadd73283ec90137e46f47b884374ff8088aa9b5ee2573d8c5e26a06",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:22"
+      ]
     },
     {
       "id": "page5.slot6",
@@ -602,29 +735,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (6).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot7",
-      "page": 5,
-      "src": "/assets/page-05/slot-07.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (7).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot8",
-      "page": 5,
-      "src": "/assets/page-05/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 179432,
+      "sha256": "ae2634e610aa93348da7808d651a9d7da24023f8f2395de66901d38eb57fd08e",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:22"
+      ]
     },
     {
       "id": "page5.slot9",
@@ -635,84 +752,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (9).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page5.slot10",
-      "page": 5,
-      "src": "/assets/page-05/slot-10.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_39 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot1",
-      "page": 6,
-      "src": "/assets/page-06/slot-01.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (1).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot2",
-      "page": 6,
-      "src": "/assets/page-06/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot3",
-      "page": 6,
-      "src": "/assets/page-06/slot-03.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot4",
-      "page": 6,
-      "src": "/assets/page-06/slot-04.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (4).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot5",
-      "page": 6,
-      "src": "/assets/page-06/slot-05.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot6",
-      "page": 6,
-      "src": "/assets/page-06/slot-06.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 145034,
+      "sha256": "8dd7750ed50d8631f140fc3e4b4116e6e22498558e7f8e8ca0f9fff023ec4c20",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:22"
+      ]
     },
     {
       "id": "page6.slot7",
@@ -723,40 +769,14 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (7).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot8",
-      "page": 6,
-      "src": "/assets/page-06/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot9",
-      "page": 6,
-      "src": "/assets/page-06/slot-09.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page6.slot10",
-      "page": 6,
-      "src": "/assets/page-06/slot-10.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_49 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 225982,
+      "sha256": "08e0bc70dbe832a1b48d528d247194c5d03543c9501e28fba4478a9f6a7330d1",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:31",
+        "src/pages/Page07Ecology.tsx:53"
+      ]
     },
     {
       "id": "page7.slot1",
@@ -767,18 +787,15 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (1).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot2",
-      "page": 7,
-      "src": "/assets/page-07/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 79806,
+      "sha256": "ef4732c64322f4cab84a773b58d81fd05bd3b95a70086a44dff760577e4c69e0",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:23",
+        "src/pages/Page07Ecology.tsx:30",
+        "src/pages/Stage05Cooperation.tsx:19"
+      ]
     },
     {
       "id": "page7.slot3",
@@ -789,7 +806,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (3).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 129160,
+      "sha256": "8320c00b1ca189c82c36b0febf3acc240f59b3aefa457aea2a254aff460f99aa",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:52"
+      ]
     },
     {
       "id": "page7.slot4",
@@ -800,29 +823,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (4).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot5",
-      "page": 7,
-      "src": "/assets/page-07/slot-05.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot6",
-      "page": 7,
-      "src": "/assets/page-07/slot-06.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 84404,
+      "sha256": "173479d74ed723fd18f367a00492a4268bfc3c2325401d904682b3fe443f622f",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:59"
+      ]
     },
     {
       "id": "page7.slot7",
@@ -833,73 +840,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (7).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot8",
-      "page": 7,
-      "src": "/assets/page-07/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_57 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot9",
-      "page": 7,
-      "src": "/assets/page-07/slot-09.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_58 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page7.slot10",
-      "page": 7,
-      "src": "/assets/page-07/slot-10.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_31_58 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot1",
-      "page": 8,
-      "src": "/assets/page-08/slot-01.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_06 (1).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot2",
-      "page": 8,
-      "src": "/assets/page-08/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_07 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot3",
-      "page": 8,
-      "src": "/assets/page-08/slot-03.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_07 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 96106,
+      "sha256": "bdaa30504987007a361573b24c2189385fe2b10027d3ecf8f3a5544b62bc5ccb",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:23"
+      ]
     },
     {
       "id": "page8.slot4",
@@ -910,7 +857,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_08 (4).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 118906,
+      "sha256": "eb409bbac0a44b989bb4cc453eac3e77801771770f5f09ec71549df76ecb4439",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:78"
+      ]
     },
     {
       "id": "page8.slot5",
@@ -921,51 +874,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_08 (5).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot6",
-      "page": 8,
-      "src": "/assets/page-08/slot-06.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_08 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot7",
-      "page": 8,
-      "src": "/assets/page-08/slot-07.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_09 (7).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot8",
-      "page": 8,
-      "src": "/assets/page-08/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_10 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page8.slot9",
-      "page": 8,
-      "src": "/assets/page-08/slot-09.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_12 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 169498,
+      "sha256": "80d30f7db596bff4b515296755628bf37f543e3dbd249d7954b5e42ea7f958ca",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:77"
+      ]
     },
     {
       "id": "page8.slot10",
@@ -976,183 +891,13 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_14 (10).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot1",
-      "page": 9,
-      "src": "/assets/page-09/slot-01.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_19 (1).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot2",
-      "page": 9,
-      "src": "/assets/page-09/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_20 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot3",
-      "page": 9,
-      "src": "/assets/page-09/slot-03.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_21 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot4",
-      "page": 9,
-      "src": "/assets/page-09/slot-04.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_21 (4).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot5",
-      "page": 9,
-      "src": "/assets/page-09/slot-05.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_22 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot6",
-      "page": 9,
-      "src": "/assets/page-09/slot-06.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_22 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot7",
-      "page": 9,
-      "src": "/assets/page-09/slot-07.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_23 (7).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot8",
-      "page": 9,
-      "src": "/assets/page-09/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_25 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot9",
-      "page": 9,
-      "src": "/assets/page-09/slot-09.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_26 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page9.slot10",
-      "page": 9,
-      "src": "/assets/page-09/slot-10.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_27 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot1",
-      "page": 10,
-      "src": "/assets/page-10/slot-01.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_32 (1).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot2",
-      "page": 10,
-      "src": "/assets/page-10/slot-02.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_33 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot3",
-      "page": 10,
-      "src": "/assets/page-10/slot-03.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_33 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot4",
-      "page": 10,
-      "src": "/assets/page-10/slot-04.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_35 (4).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot5",
-      "page": 10,
-      "src": "/assets/page-10/slot-05.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_36 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot6",
-      "page": 10,
-      "src": "/assets/page-10/slot-06.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_37 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
+      "hasAlpha": false,
+      "bytes": 206186,
+      "sha256": "c9fb3edbf0230caad1afc4201911f26e37e57e72e1b19f22b5c7b4e9477f945f",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:81"
+      ]
     },
     {
       "id": "page10.slot7",
@@ -1163,194 +908,14 @@
       "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_38 (7).png",
       "width": 1254,
       "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot8",
-      "page": 10,
-      "src": "/assets/page-10/slot-08.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_38 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot9",
-      "page": 10,
-      "src": "/assets/page-10/slot-09.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_40 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "page10.slot10",
-      "page": 10,
-      "src": "/assets/page-10/slot-10.webp",
-      "kind": "image",
-      "display": "tile",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오전 03_32_40 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": false
-    },
-    {
-      "id": "sample3d.slot1",
-      "page": null,
-      "src": "/assets/3d-samples/sample-01.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_40 (1).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot2",
-      "page": null,
-      "src": "/assets/3d-samples/sample-02.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_40 (2).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot3",
-      "page": null,
-      "src": "/assets/3d-samples/sample-03.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_40 (3).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot4",
-      "page": null,
-      "src": "/assets/3d-samples/sample-04.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_40 (4).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot5",
-      "page": null,
-      "src": "/assets/3d-samples/sample-05.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_42 (5).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot6",
-      "page": null,
-      "src": "/assets/3d-samples/sample-06.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_42 (6).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot7",
-      "page": null,
-      "src": "/assets/3d-samples/sample-07.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_44 (7).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot8",
-      "page": null,
-      "src": "/assets/3d-samples/sample-08.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_44 (8).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot9",
-      "page": null,
-      "src": "/assets/3d-samples/sample-09.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_44 (9).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "sample3d.slot10",
-      "page": null,
-      "src": "/assets/3d-samples/sample-10.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "ChatGPT Image 2026년 8월 14일 오후 07_23_45 (10).png",
-      "width": 1254,
-      "height": 1254,
-      "hasAlpha": true
-    },
-    {
-      "id": "v2.photo.logging",
-      "page": 0,
-      "src": "/assets/v2/photo-logging.webp",
-      "kind": "image",
-      "display": "hero",
-      "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 1279,
-      "height": 720,
-      "hasAlpha": false
-    },
-    {
-      "id": "v2.photo.stream",
-      "page": 0,
-      "src": "/assets/v2/photo-stream.webp",
-      "kind": "image",
-      "display": "hero",
-      "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 1279,
-      "height": 720,
-      "hasAlpha": false
-    },
-    {
-      "id": "v2.photo.construction",
-      "page": 0,
-      "src": "/assets/v2/photo-construction.webp",
-      "kind": "image",
-      "display": "hero",
-      "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 1279,
-      "height": 720,
-      "hasAlpha": false
-    },
-    {
-      "id": "v2.badge.ecology",
-      "page": 0,
-      "src": "/assets/v2/badge-ecology.webp",
-      "kind": "image",
-      "display": "cutout",
-      "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 460,
-      "height": 474,
-      "hasAlpha": true
+      "hasAlpha": false,
+      "bytes": 214318,
+      "sha256": "5fe98286d7a014cdd013e8c158d2635a04e0e7bbed5c4e6307fc919aa92493ad",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page10Certificate.tsx:223",
+        "src/pages/Page10Certificate.tsx:62"
+      ]
     },
     {
       "id": "v2.badge.broadcast",
@@ -1361,29 +926,30 @@
       "sourceFile": "v2 Imagen (2026-09-04)",
       "width": 493,
       "height": 498,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 57958,
+      "sha256": "32de4cf909b691530e90e0a58a80bf21f49fd8a0dd33359d27a75995f8003838",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:80"
+      ]
     },
     {
-      "id": "v2.scene.incident",
+      "id": "v2.badge.ecology",
       "page": 0,
-      "src": "/assets/v2/scene-incident.webp",
+      "src": "/assets/v2/badge-ecology.webp",
       "kind": "image",
-      "display": "hero",
+      "display": "cutout",
       "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 1279,
-      "height": 720,
-      "hasAlpha": false
-    },
-    {
-      "id": "v2.scene.restored",
-      "page": 0,
-      "src": "/assets/v2/scene-restored.webp",
-      "kind": "image",
-      "display": "hero",
-      "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 1279,
-      "height": 720,
-      "hasAlpha": false
+      "width": 460,
+      "height": 474,
+      "hasAlpha": true,
+      "bytes": 56536,
+      "sha256": "cce1903b4d7be680efc5853088dd46a4864e8914f39e103a8f287a0153d86026",
+      "classroomReady": true,
+      "references": [
+        "src/shared/constants.ts:79"
+      ]
     },
     {
       "id": "v2.parrot.sick.green",
@@ -1394,7 +960,13 @@
       "sourceFile": "v2 Imagen (2026-09-04)",
       "width": 468,
       "height": 793,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 68572,
+      "sha256": "f0b57a511fbe1097ffbc52d16276d0f41c5394f255cead95671fa9df272618ac",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page05Data.ts:107"
+      ]
     },
     {
       "id": "v2.parrot.sick.red",
@@ -1405,40 +977,66 @@
       "sourceFile": "v2 Imagen (2026-09-04)",
       "width": 507,
       "height": 778,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 66358,
+      "sha256": "f744b3a08f30e407f0ba5ac76d912519f2571788ed60e5eb6d7f1561acc9a07e",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page05Data.ts:151"
+      ]
     },
     {
-      "id": "v2.trace.footprint.cat",
+      "id": "v2.photo.construction",
       "page": 0,
-      "src": "/assets/v2/trace-footprint-cat.webp",
+      "src": "/assets/v2/photo-construction.webp",
       "kind": "image",
-      "display": "cutout",
+      "display": "hero",
       "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 461,
-      "height": 472,
-      "hasAlpha": true
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 256686,
+      "sha256": "2572474e3e07d40221c78fc8d118db974cae4522fe5bd53e0dc2f69a8a1ba983",
+      "classroomReady": true,
+      "references": [
+        "src/pages/stage1-2-content.ts:102"
+      ]
     },
     {
-      "id": "v2.trace.footprint.boot",
+      "id": "v2.photo.logging",
       "page": 0,
-      "src": "/assets/v2/trace-footprint-boot.webp",
+      "src": "/assets/v2/photo-logging.webp",
       "kind": "image",
-      "display": "cutout",
+      "display": "hero",
       "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 463,
-      "height": 472,
-      "hasAlpha": true
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 261528,
+      "sha256": "4eca3e6796b0dbe586f66dc12b57840c7cc2eaa6ceb1b797096944ade97a12d1",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:34",
+        "src/pages/stage1-2-content.ts:102"
+      ]
     },
     {
-      "id": "v2.trace.stump",
+      "id": "v2.photo.stream",
       "page": 0,
-      "src": "/assets/v2/trace-stump.webp",
+      "src": "/assets/v2/photo-stream.webp",
       "kind": "image",
-      "display": "cutout",
+      "display": "hero",
       "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 481,
-      "height": 391,
-      "hasAlpha": true
+      "width": 1279,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 226798,
+      "sha256": "6c5d9db94f73875a91f190b574d6d04200685defc289c529a22723df45375e32",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:35",
+        "src/pages/stage1-2-content.ts:102"
+      ]
     },
     {
       "id": "v2.trace.fruit",
@@ -1449,21 +1047,1224 @@
       "sourceFile": "v2 Imagen (2026-09-04)",
       "width": 482,
       "height": 404,
-      "hasAlpha": true
+      "hasAlpha": true,
+      "bytes": 61196,
+      "sha256": "b0648f715b17bde48ea8ec1c892ba7eb09bac1c2e2b24fe3efb1cbe6dab3de8f",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:31",
+        "src/pages/Page07Ecology.tsx:51"
+      ]
     },
     {
-      "id": "v2.reporter",
+      "id": "v2.trace.stump",
       "page": 0,
-      "src": "/assets/v2/reporter.webp",
+      "src": "/assets/v2/trace-stump.webp",
       "kind": "image",
       "display": "cutout",
       "sourceFile": "v2 Imagen (2026-09-04)",
-      "width": 318,
-      "height": 861,
-      "hasAlpha": true
+      "width": 481,
+      "height": 391,
+      "hasAlpha": true,
+      "bytes": 69522,
+      "sha256": "c7e8b38fe1e8f7271a25ae37d9c0ab86324ef3b24be6ff68ac66da8d4f757450",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:31"
+      ]
+    },
+    {
+      "id": "file.assets.v3.keeper-haneul.webp",
+      "src": "/assets/v3/keeper-haneul.webp",
+      "kind": "image",
+      "bytes": 46444,
+      "sha256": "fe66a2fe76239db6e8b16a9a6952d5817579226c756dbece4c6ceeaf2719f00a",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page02Briefing.tsx:22",
+        "src/pages/Page05ParrotCheck.tsx:26",
+        "src/pages/Page06Habitat.tsx:15",
+        "src/pages/Stage05Cooperation.tsx:20"
+      ]
+    },
+    {
+      "id": "file.assets.v5.closeup-green-behavior.webp",
+      "src": "/assets/v5/closeup-green-behavior.webp",
+      "kind": "image",
+      "bytes": 41798,
+      "sha256": "2609816423533c7dd74d3d6f29f62640f70942a87ac182330e08852393580a39",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:38"
+      ]
+    },
+    {
+      "id": "file.assets.v5.closeup-green-eyes.webp",
+      "src": "/assets/v5/closeup-green-eyes.webp",
+      "kind": "image",
+      "bytes": 62212,
+      "sha256": "4df3d330ffa238fc54da982d336bd76f0d43e04dba2213b98e2b03003906289c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:36"
+      ]
+    },
+    {
+      "id": "file.assets.v5.closeup-green-feathers.webp",
+      "src": "/assets/v5/closeup-green-feathers.webp",
+      "kind": "image",
+      "bytes": 63616,
+      "sha256": "2188d45b2565c2093c41406281b985a454d4523c1edad33beaac112a1696d6bb",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:37"
+      ]
+    },
+    {
+      "id": "file.assets.v5.closeup-red-eyes.webp",
+      "src": "/assets/v5/closeup-red-eyes.webp",
+      "kind": "image",
+      "bytes": 44158,
+      "sha256": "40b678b33972ade34d7c35032fbf0c68966e2302bf79091a0663714ce2b45719",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:41"
+      ]
+    },
+    {
+      "id": "file.assets.v5.closeup-red-posture.webp",
+      "src": "/assets/v5/closeup-red-posture.webp",
+      "kind": "image",
+      "bytes": 37226,
+      "sha256": "4a136f218df488cb03927caa04f6a8dd416bc78e034c651a9e64840cdd456893",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:43"
+      ]
+    },
+    {
+      "id": "v5.drone-map-wide",
+      "page": 3,
+      "src": "/assets/v5/drone-map-wide.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen (2026-09-07)",
+      "width": 1536,
+      "height": 570,
+      "hasAlpha": true,
+      "bytes": 279288,
+      "sha256": "29ccfd8892303ad925033772ff34385f967283c50516beefdf4f8d67728d4fed",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page04Drone.tsx:102",
+        "src/pages/Stage05Cooperation.tsx:14"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-food-tree.png",
+      "src": "/assets/v5/garden-food-tree.png",
+      "kind": "image",
+      "bytes": 279001,
+      "sha256": "190659b5435f1892496f5580af547d485514cad3cb1db920df40e8f23a79242c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:21"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-hideout.png",
+      "src": "/assets/v5/garden-hideout.png",
+      "kind": "image",
+      "bytes": 488515,
+      "sha256": "9dc211ef5cef109ad5130ea8e4e22003a7079dd44c13e93562c701a2f8d36eee",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:19"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-play-rope.png",
+      "src": "/assets/v5/garden-play-rope.png",
+      "kind": "image",
+      "bytes": 247300,
+      "sha256": "92645b034d60fe3387a8a56f391d0041ccfcc69d30ce1cb64414de0c2b63ab24",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:20"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-water.png",
+      "src": "/assets/v5/garden-water.png",
+      "kind": "image",
+      "bytes": 258726,
+      "sha256": "edffba1a1440c6c907f984a83ab916b85f1191557b4d0ba89e27b68a68af145a",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:18"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-zone-play-v2.jpg",
+      "src": "/assets/v5/garden-zone-play-v2.jpg",
+      "kind": "image",
+      "bytes": 524312,
+      "sha256": "a6d933a097b390bd8e6d16d9c73f3834829470e4c4555abc13f071a6fda1b7c4",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:25"
+      ]
+    },
+    {
+      "id": "file.assets.v5.garden-zone-rest-v2.jpg",
+      "src": "/assets/v5/garden-zone-rest-v2.jpg",
+      "kind": "image",
+      "bytes": 451647,
+      "sha256": "b3c3069e677a5b61c9cfcbe514d6e447c813a7453325d03643c21daf95ad4267",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:24"
+      ]
+    },
+    {
+      "id": "file.assets.v5.parrot-well-green.webp",
+      "src": "/assets/v5/parrot-well-green.webp",
+      "kind": "image",
+      "bytes": 59856,
+      "sha256": "38e11d181f949cef5c355b9f7f408067f5d5090ff65db2b406056898a7e5d41a",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:141",
+        "src/pages/page05Data.ts:108"
+      ]
+    },
+    {
+      "id": "file.assets.v5.parrot-well-red.webp",
+      "src": "/assets/v5/parrot-well-red.webp",
+      "kind": "image",
+      "bytes": 57560,
+      "sha256": "ee369841143a5f95d6962893a5a2332fec9c8cbbdef6bb532521d8a861c2b824",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page06Habitat.tsx:142",
+        "src/pages/page05Data.ts:152"
+      ]
+    },
+    {
+      "id": "v5.trace.machine-sound",
+      "page": 7,
+      "src": "/assets/v5/trace-machine-sound.webp",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen (2026-09-07)",
+      "width": 512,
+      "height": 512,
+      "hasAlpha": true,
+      "bytes": 77358,
+      "sha256": "5e23348098e23b407fa0b4f2795278562aa10a257b5d403329a424f4b3cd5d36",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:29"
+      ]
+    },
+    {
+      "id": "file.assets.v5.treat-feather.png",
+      "src": "/assets/v5/treat-feather.png",
+      "kind": "image",
+      "bytes": 273508,
+      "sha256": "e4772f127d903a247e2fe543a82d7156ac2579eb263be355d9c5afde313e4ff7",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:32"
+      ]
+    },
+    {
+      "id": "file.assets.v5.treat-puzzle.png",
+      "src": "/assets/v5/treat-puzzle.png",
+      "kind": "image",
+      "bytes": 405150,
+      "sha256": "7ee13b11de4f261c0b3e07244b5a94ca39ce3f3b5a25a5105ac8e540d8651756",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:31"
+      ]
+    },
+    {
+      "id": "file.assets.v5.treat-shelter.png",
+      "src": "/assets/v5/treat-shelter.png",
+      "kind": "image",
+      "bytes": 317419,
+      "sha256": "ec86a16d421c3d86d0a5ad2c721dca6fef59697cf6596bfcf448b46454a24dd8",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:30"
+      ]
+    },
+    {
+      "id": "file.assets.v5.treat-water.png",
+      "src": "/assets/v5/treat-water.png",
+      "kind": "image",
+      "bytes": 222963,
+      "sha256": "140eac93a8fd8d32b1c732a9a3dd5918c004cb45953adb143526227a671232e6",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:29"
+      ]
+    },
+    {
+      "id": "v6.broadcast.field-poster",
+      "page": 8,
+      "src": "/assets/v6/broadcast-field-poster.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 433532,
+      "sha256": "d976d591dcb05e5bed01d31cc228dc63dbd730eb34e783f6c09e0b17ecaaf8c3",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:44",
+        "src/pages/Page08Broadcast.tsx:52",
+        "src/pages/Page08Broadcast.tsx:57"
+      ]
+    },
+    {
+      "id": "v6.ecology.compare-before",
+      "page": 7,
+      "src": "/assets/v6/ecology-compare-before.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 357756,
+      "sha256": "fc6b4b1179b102b0ec99ce768199049aae7be2cfd00f59455102b1852ab6e7e2",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:38"
+      ]
+    },
+    {
+      "id": "v6.ecology.compare-quiet",
+      "page": 7,
+      "src": "/assets/v6/ecology-compare-quiet.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 396250,
+      "sha256": "90e6379fdd6bce8ed41842699e68790107d92750f183f75e35b7233210c32683",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:42"
+      ]
+    },
+    {
+      "id": "v6.ecology.compare-trees",
+      "page": 7,
+      "src": "/assets/v6/ecology-compare-trees.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 364564,
+      "sha256": "7f168c245d7a51b0bb19bbd641f4528bf308f02fd443ad588412307c21f5abaf",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:41"
+      ]
+    },
+    {
+      "id": "v6.ecology.compare-water",
+      "page": 7,
+      "src": "/assets/v6/ecology-compare-water.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 333848,
+      "sha256": "d975d8810a4eada1bf5be06b6194e96c80e3940462fbe98f3b791026e29599fc",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:43"
+      ]
+    },
+    {
+      "id": "v7.broadcast.action-poster",
+      "page": 8,
+      "src": "/assets/v7/broadcast-action-poster.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen, project-style references (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 294306,
+      "sha256": "4d98098d9300e45df4e7fbc61c9edb532529f16c641850d0c8aaa1f33da65e69",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:53"
+      ]
+    },
+    {
+      "id": "v7.broadcast.control-room",
+      "page": 8,
+      "src": "/assets/v7/broadcast-control-room.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen, project-style references (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 217492,
+      "sha256": "eb0b9956bd6418386b8930e0358afa72bd25954e14a2fcba6d835a91a35e2fb9",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page08-broadcast.css:3"
+      ]
+    },
+    {
+      "id": "v7.broadcast.evidence-graph",
+      "page": 8,
+      "src": "/assets/v7/broadcast-evidence-graph.webp",
+      "kind": "image",
+      "display": "card",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 720,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 63832,
+      "sha256": "6a18766efdac814e20831b54ab39f5aa16f819ab451ae88dba402e83ef39bf7b",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:51"
+      ]
+    },
+    {
+      "id": "v7.broadcast.mic-failure-poster",
+      "page": 8,
+      "src": "/assets/v7/broadcast-mic-failure-poster.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit, project-style references (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 305938,
+      "sha256": "96c13c18b928df07c5925af3e136aea1e36216596d811b37f98621c151ab6467",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:193"
+      ]
+    },
+    {
+      "id": "v7.broadcast.mic-ignore",
+      "page": 8,
+      "src": "/assets/v7/broadcast-mic-ignore.webp",
+      "kind": "image",
+      "display": "card",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 720,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 52884,
+      "sha256": "5e53fbfc456582abf58c328d9e70b358a5b3f9013a850b7fe2a1f2a36156674d",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:82"
+      ]
+    },
+    {
+      "id": "v7.broadcast.mic-swap",
+      "page": 8,
+      "src": "/assets/v7/broadcast-mic-swap.webp",
+      "kind": "image",
+      "display": "card",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 720,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 82248,
+      "sha256": "438de10b4cb81668f8b36ad47e55432c0fd432952244ba41e77525602aaa7ba3",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:81"
+      ]
+    },
+    {
+      "id": "v7.broadcast.rumor-social",
+      "page": 8,
+      "src": "/assets/v7/broadcast-rumor-social.webp",
+      "kind": "image",
+      "display": "card",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 720,
+      "height": 720,
+      "hasAlpha": false,
+      "bytes": 46044,
+      "sha256": "fb781947c0cbd05f373aa6002b624f725055959353f7a7012e133dd4dda11095",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:54"
+      ]
+    },
+    {
+      "id": "v7.broadcast.standby-poster",
+      "page": 8,
+      "src": "/assets/v7/broadcast-standby-poster.webp",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen, project-style references (2026-09-07)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 213330,
+      "sha256": "362679d6e427f62f07295ffab70107ae5b5fa54e2ba05f94360e1c57af2e9334",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:196"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-1",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-1.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 185821,
+      "sha256": "e7f759f2d5c7d7aa4ce6244c3b24d3218df30de634174aae98b9288f2b6c8b7b",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:56"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-2",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-2.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 188219,
+      "sha256": "e7e92fefe2c73ba7a8b8af4224d5eff334ed864523506ae47fe32eaa501643a1",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:56"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-3",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-3.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 188543,
+      "sha256": "47f709b966fd4deea03619cba4f498b551703011a45656895d3aae25434b7cf2",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:56"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-4",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-4.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 184114,
+      "sha256": "00e6cc08efb51cf95e64fd1a58cf9e1f32785552a0d692cd940c24233be84ac9",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:57"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-5",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-5.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 182399,
+      "sha256": "3f08f02cd7b47ecf291e710787bb8d3604da11e29919126dcc252136602fb216",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:57"
+      ]
+    },
+    {
+      "id": "v7.ecology.forest-bird-6",
+      "page": 7,
+      "src": "/assets/v7/forest-bird-6.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen crop, project-style references (2026-09-07)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 192214,
+      "sha256": "ab0d1027cca4bc64a1a728d212bf07a6c0bdcd0fdb8bcf6ce3796805161c76f9",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:57"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-action-report.png",
+      "src": "/assets/v8/broadcast-action-report.png",
+      "kind": "image",
+      "bytes": 2296481,
+      "sha256": "c8e0db08e2f8400cf27236fe49736144f234bfb500a6fd6daebf7c958c36582b",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:73"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-anchor-neutral.png",
+      "src": "/assets/v8/broadcast-anchor-neutral.png",
+      "kind": "image",
+      "bytes": 1745835,
+      "sha256": "752ae978393a216e5915103afda62dcdf9f282907f06b005b7047a21165bdeca",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:45",
+        "src/pages/Page08Broadcast.tsx:50",
+        "src/pages/Page08Broadcast.tsx:69"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-graph-quiet.png",
+      "src": "/assets/v8/broadcast-graph-quiet.png",
+      "kind": "image",
+      "bytes": 2779162,
+      "sha256": "f2592e5d922d619017a9b389e42dedcc5816600d912a6933e677fbe49f13b5a5",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:62",
+        "src/pages/Page08Broadcast.tsx:72"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-graph-trees-grown.png",
+      "src": "/assets/v8/broadcast-graph-trees-grown.png",
+      "kind": "image",
+      "bytes": 2893989,
+      "sha256": "3d14e5c09668a45e7a57c295fe6849d375cdfb3671763c29172ac957af25182a",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:63",
+        "src/pages/Page08Broadcast.tsx:70",
+        "src/pages/Page08Broadcast.tsx:71"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-graph-water.png",
+      "src": "/assets/v8/broadcast-graph-water.png",
+      "kind": "image",
+      "bytes": 2680932,
+      "sha256": "8fd919744e3f55641698876366ba3587db98fdd7c2175771b81c6dc30f434a41",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:64"
+      ]
+    },
+    {
+      "id": "file.assets.v8.broadcast-mic-recovered.png",
+      "src": "/assets/v8/broadcast-mic-recovered.png",
+      "kind": "image",
+      "bytes": 2267901,
+      "sha256": "1954edb4a8811a2b62e45f4c5ffea31a00ff718166c59f7fff719dbe32e02e48",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:191",
+        "src/pages/Page08Broadcast.tsx:46"
+      ]
+    },
+    {
+      "id": "v8.broadcast.photo-construction-v2",
+      "page": 8,
+      "src": "/assets/v8/broadcast-photo-construction-v2.jpg",
+      "kind": "image",
+      "display": "choice-card",
+      "sourceFile": "OpenAI imagegen with broadcast field reference (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 304979,
+      "sha256": "cacf4472bc1689bd30afdc3d03866821bd9e1bba9d45773797f2e923177f8094",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:59",
+        "src/pages/Stage05Cooperation.tsx:55"
+      ]
+    },
+    {
+      "id": "v8.broadcast.photo-stream-blocked-v2",
+      "page": 8,
+      "src": "/assets/v8/broadcast-photo-stream-blocked-v2.jpg",
+      "kind": "image",
+      "display": "choice-card",
+      "sourceFile": "OpenAI imagegen with ecology scene reference (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 253725,
+      "sha256": "71d434702e5f4cad4ba994ec5fbe9ada98b96002279224ab95a069283a844d5c",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:58",
+        "src/pages/Stage05Cooperation.tsx:44"
+      ]
+    },
+    {
+      "id": "v8.broadcast.rumor-cat-v2",
+      "page": 8,
+      "src": "/assets/v8/broadcast-rumor-cat-v2.jpg",
+      "kind": "image",
+      "display": "choice-card",
+      "sourceFile": "OpenAI imagegen with broadcast social reference (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 117902,
+      "sha256": "e58d775399dcc37d2d16283faf3c10e2b6fde361468b401eb3fee95334cd853d",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:67"
+      ]
+    },
+    {
+      "id": "v8.parrot-check.closeup-red-water",
+      "page": 5,
+      "src": "/assets/v8/closeup-red-water.jpg",
+      "kind": "image",
+      "display": "closeup",
+      "sourceFile": "OpenAI imagegen edit (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 114513,
+      "sha256": "39657dabaa1aab2c41da53bf1fa97264fc96906d9f633a233d1267c586a23aab",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:42"
+      ]
+    },
+    {
+      "id": "v8.ecology.compare-before",
+      "page": 7,
+      "src": "/assets/v8/ecology-compare-before.jpg",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen (2026-09-08)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 500092,
+      "sha256": "85047fe4b4cdb85325b03b2563dd2e9adc1291d2f4d95b145b4162e689e98647",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:38",
+        "src/pages/Stage05Cooperation.tsx:33"
+      ]
+    },
+    {
+      "id": "v8.ecology.compare-quiet",
+      "page": 7,
+      "src": "/assets/v8/ecology-compare-quiet.jpg",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-08)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 461072,
+      "sha256": "494342d8cdc185c2782b8a0a781e6de206cc65734ea41e5dcce61af61ae00d81",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:42"
+      ]
+    },
+    {
+      "id": "v8.ecology.compare-trees",
+      "page": 7,
+      "src": "/assets/v8/ecology-compare-trees.jpg",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-08)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 499730,
+      "sha256": "958d10f5cd803b58f2307465711f3694ac387764f36c20ba4d0eb38021ec10e3",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:41",
+        "src/pages/Stage05Cooperation.tsx:33"
+      ]
+    },
+    {
+      "id": "v8.ecology.compare-water",
+      "page": 7,
+      "src": "/assets/v8/ecology-compare-water.jpg",
+      "kind": "image",
+      "display": "scene",
+      "sourceFile": "OpenAI imagegen edit (2026-09-08)",
+      "width": 1600,
+      "height": 900,
+      "hasAlpha": false,
+      "bytes": 507994,
+      "sha256": "82f084f6794f37e02436295471964f29cc855ef9ce5355c10f1c47276bd77fca",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page07Ecology.tsx:43"
+      ]
+    },
+    {
+      "id": "v8.parrot-check.recovery-green-shelter",
+      "page": 5,
+      "src": "/assets/v8/recovery-green-shelter.jpg",
+      "kind": "image",
+      "display": "closeup",
+      "sourceFile": "OpenAI imagegen composite (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 127903,
+      "sha256": "4a25dace081b0c781d268819925e368fd7eeb46391e3a41856565b9d0eb635a0",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:47"
+      ]
+    },
+    {
+      "id": "v8.parrot-check.recovery-red-water",
+      "page": 5,
+      "src": "/assets/v8/recovery-red-water.jpg",
+      "kind": "image",
+      "display": "closeup",
+      "sourceFile": "OpenAI imagegen composite (2026-09-08)",
+      "width": 768,
+      "height": 768,
+      "hasAlpha": false,
+      "bytes": 110092,
+      "sha256": "05eb2fa3ba8242a6923f5c322fb8af4133284b03708f3b5d792c5ee3075ffee6",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page05ParrotCheck.tsx:48"
+      ]
+    },
+    {
+      "id": "file.assets.v8.trace-cut-fruit-tree.png",
+      "src": "/assets/v8/trace-cut-fruit-tree.png",
+      "kind": "image",
+      "bytes": 1765320,
+      "sha256": "707f8b3bca232ffbd7a9bc5bfdc4805362784fbe5d2de7e77438c6862904599d",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:28"
+      ]
+    },
+    {
+      "id": "v8.ecology.trace-forest-birdsong",
+      "page": 7,
+      "src": "/assets/v8/trace-forest-birdsong.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen with forest-bird style reference (2026-09-08)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 280013,
+      "sha256": "9aa3a474278a2dbf11e5eaa1c5d64f58cc17f49c088277aafea1d0c8b4d55fa1",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:31"
+      ]
+    },
+    {
+      "id": "v8.ecology.trace-forest-feather-blue",
+      "page": 7,
+      "src": "/assets/v8/trace-forest-feather-blue.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen with forest-bird style reference (2026-09-08)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 118073,
+      "sha256": "c0e527fa85d9ae6602d05d29c98c292bd33fe0d22ed7e8a33706323fc7075810",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:33"
+      ]
+    },
+    {
+      "id": "v8.ecology.trace-forest-feather-brown",
+      "page": 7,
+      "src": "/assets/v8/trace-forest-feather-brown.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen with forest-bird style reference (2026-09-08)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 130053,
+      "sha256": "621392aa6d0bd16ee0efcf7e2c5a339d8ec87feb449e41d0606c38ee42ec2477",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:30"
+      ]
+    },
+    {
+      "id": "v8.ecology.trace-forest-footprints",
+      "page": 7,
+      "src": "/assets/v8/trace-forest-footprints.png",
+      "kind": "image",
+      "display": "cutout",
+      "sourceFile": "OpenAI imagegen with forest-bird style reference (2026-09-08)",
+      "width": 384,
+      "height": 384,
+      "hasAlpha": true,
+      "bytes": 289503,
+      "sha256": "076104c4965574c292dc699d8f99d8b57be1795c629806a28772d73ae75ad57f",
+      "classroomReady": true,
+      "references": [
+        "src/pages/page07EcologyModel.ts:32"
+      ]
+    },
+    {
+      "id": "file.assets.v9.cooperation-map-restored.png",
+      "src": "/assets/v9/cooperation-map-restored.png",
+      "kind": "image",
+      "bytes": 2294729,
+      "sha256": "d359d42e27ce549bbb5f97f1496d3fbab88c99097de0d7263f84bf5fc42ed03a",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Stage05Cooperation.tsx:15"
+      ]
+    },
+    {
+      "id": "file.assets.v9.cooperation-quiet-site.png",
+      "src": "/assets/v9/cooperation-quiet-site.png",
+      "kind": "image",
+      "bytes": 3129637,
+      "sha256": "15906d951aa1b40f85f562c969c97a77d11cfb654b17ae8d0298b1a600d83680",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Stage05Cooperation.tsx:55"
+      ]
+    },
+    {
+      "id": "file.assets.v9.cooperation-sapling.png",
+      "src": "/assets/v9/cooperation-sapling.png",
+      "kind": "image",
+      "bytes": 1334504,
+      "sha256": "92d6d0ff6616a34c7c906232ffa24c8bd10f121b222ede41480adbc1c44077af",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Stage05Cooperation.tsx:16"
+      ]
+    },
+    {
+      "id": "file.assets.v9.cooperation-water-cleared.png",
+      "src": "/assets/v9/cooperation-water-cleared.png",
+      "kind": "image",
+      "bytes": 3149021,
+      "sha256": "b958c8d2ac0a99041a0023896e6671071515820408c297316600e2c34f635c37",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Stage05Cooperation.tsx:44"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.main.mp3",
+      "src": "/audio/bgm/main.mp3",
+      "kind": "audio",
+      "bytes": 3281425,
+      "sha256": "1a140d3eed2bc826b21744dad77f420cee2745e0b1fad25da81e4eac2f4baf39",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.stage1.mp3",
+      "src": "/audio/bgm/stage1.mp3",
+      "kind": "audio",
+      "bytes": 1353532,
+      "sha256": "5cb5a4b052d8a8ddb88586c6144268a8d08fe9753837a2475c9349114c1dce21",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.stage2.mp3",
+      "src": "/audio/bgm/stage2.mp3",
+      "kind": "audio",
+      "bytes": 2095639,
+      "sha256": "6aec6c6d5757982c1da8f759044bb73103dd5201bdc074b633fc5b407991b045",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.stage3.mp3",
+      "src": "/audio/bgm/stage3.mp3",
+      "kind": "audio",
+      "bytes": 2523822,
+      "sha256": "89bc228a981c0052aaf19c3eec6043de652e9fc4e1294e020abdd33eab989cb1",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.stage4.mp3",
+      "src": "/audio/bgm/stage4.mp3",
+      "kind": "audio",
+      "bytes": 4284172,
+      "sha256": "3ae9badd7e2b44dfb714e25c29d9e993cf67542e4c249097011b033e8d405372",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.bgm.stage5.mp3",
+      "src": "/audio/bgm/stage5.mp3",
+      "kind": "audio",
+      "bytes": 3125328,
+      "sha256": "5375660ed02e38205be5da4578d3940b881e365f69eb2b3f408f4d58da7c12bf",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:102"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.clue-found-glass-ping.mp3",
+      "src": "/audio/sfx/clue-found-glass-ping.mp3",
+      "kind": "audio",
+      "bytes": 49319,
+      "sha256": "4863d325b435675298ae0c4aa6e84d6537c836aab8af6ee5ded6d6d4b569dc0c",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:6"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.drag-drop.mp3",
+      "src": "/audio/sfx/drag-drop.mp3",
+      "kind": "audio",
+      "bytes": 39288,
+      "sha256": "347c9fee5d23e90bcdf2519477f872ab73295523504da64ad78e3e3086099bfc",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:6"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.final-reward.mp3",
+      "src": "/audio/sfx/final-reward.mp3",
+      "kind": "audio",
+      "bytes": 96966,
+      "sha256": "c8d16b12c673f984918a19a0667b6fb5357d1652f61a45b58ad414977a85c4d0",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:8"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.record-start-beep.mp3",
+      "src": "/audio/sfx/record-start-beep.mp3",
+      "kind": "audio",
+      "bytes": 63529,
+      "sha256": "67b389631dfead123587b7d02d0bc2eac510584ade04602de5565714c6529473",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:7"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.stage-success-chime.mp3",
+      "src": "/audio/sfx/stage-success-chime.mp3",
+      "kind": "audio",
+      "bytes": 44303,
+      "sha256": "f8065731be76b83a80e930a6820ad5acd1c667cd0f95f21a4c293c92584a41a2",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:8"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.ui-click-soft.mp3",
+      "src": "/audio/sfx/ui-click-soft.mp3",
+      "kind": "audio",
+      "bytes": 49319,
+      "sha256": "e8a2cca879208f6e40f29780d62b699c1b9b7e651df52969b50334d5ae6b9120",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:5"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.ui-swipe-soft.mp3",
+      "src": "/audio/sfx/ui-swipe-soft.mp3",
+      "kind": "audio",
+      "bytes": 44303,
+      "sha256": "ef9386a71a7d467ecc7e0056e424f50f8c6684d81ed764b4efc83dfbdfc79d2e",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:5"
+      ]
+    },
+    {
+      "id": "file.audio.sfx.warning-soft.mp3",
+      "src": "/audio/sfx/warning-soft.mp3",
+      "kind": "audio",
+      "bytes": 39288,
+      "sha256": "13ff4075990c53d17f1859ee4171edcd1d4f8c9e6a8a35150d9930297a9f7906",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:7"
+      ]
+    },
+    {
+      "id": "file.audio.v2.chainsaw-far.mp3",
+      "src": "/audio/v2/chainsaw-far.mp3",
+      "kind": "audio",
+      "bytes": 32190,
+      "sha256": "c0089f336351b220b60e04f8afd93b8decd9ad3dbbece92c4f6a17083a6bcbbe",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:11"
+      ]
+    },
+    {
+      "id": "file.audio.v2.drone-loop.mp3",
+      "src": "/audio/v2/drone-loop.mp3",
+      "kind": "audio",
+      "bytes": 36621,
+      "sha256": "f1da866a09039c809c19a73c338b8f874864564c61f005a5924a0e9d2836428a",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:11"
+      ]
+    },
+    {
+      "id": "file.audio.v2.forest-birdsong.mp3",
+      "src": "/audio/v2/forest-birdsong.mp3",
+      "kind": "audio",
+      "bytes": 162671,
+      "sha256": "fee46e353df75b8dd3b5e6446bc1522cd8716ec9cd33a706f18c10bae1964faa",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:10"
+      ]
+    },
+    {
+      "id": "file.audio.v2.parrot-alarm-audible.mp3",
+      "src": "/audio/v2/parrot-alarm-audible.mp3",
+      "kind": "audio",
+      "bytes": 43773,
+      "sha256": "8badac1b07f202ab3c4236b3a28d82f0e22a5bd3d88d4dce05fcac5555334346",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:9"
+      ]
+    },
+    {
+      "id": "file.audio.v2.parrot-call-audible.mp3",
+      "src": "/audio/v2/parrot-call-audible.mp3",
+      "kind": "audio",
+      "bytes": 10629,
+      "sha256": "611426a7ccc3aa23991a8356c4f34c6a32acbc9ca6b31ff41a30bb226b8fcb57",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:9"
+      ]
+    },
+    {
+      "id": "file.audio.v2.parrot-happy.mp3",
+      "src": "/audio/v2/parrot-happy.mp3",
+      "kind": "audio",
+      "bytes": 35491,
+      "sha256": "57436b1a5d4fb2a5dd36f979ef197e16ba6eb7f8a481ccb983d358c825bbc93c",
+      "classroomReady": true,
+      "references": [
+        "src/services/audioService.ts:10"
+      ]
+    },
+    {
+      "id": "file.audio.v5.broadcast-mic-test.wav",
+      "src": "/audio/v5/broadcast-mic-test.wav",
+      "kind": "audio",
+      "bytes": 467244,
+      "sha256": "a138b836ee32a620f6f282b20409631aa0dcea8ad3add692c177b30d1e6c61eb",
+      "classroomReady": true,
+      "references": [
+        "src/pages/Page08Broadcast.tsx:121"
+      ]
+    },
+    {
+      "id": "file.audio.v9.construction-site-loop.wav",
+      "src": "/audio/v9/construction-site-loop.wav",
+      "kind": "audio",
+      "bytes": 529244,
+      "sha256": "209a17934c54ec60a40e7dcd3a34d538c6d9bf0cbfc3e731ad20b1938240ced5",
+      "classroomReady": true,
+      "references": [
+        "src/pages/CooperationActivities.tsx:122"
+      ]
+    },
+    {
+      "id": "file.og-career-team.jpg",
+      "src": "/og-career-team.jpg",
+      "kind": "image",
+      "bytes": 561120,
+      "sha256": "92f83062a893f7fbdce8fd95460b988d5b131f05b815381d360104087aa597e7",
+      "classroomReady": false,
+      "references": []
     }
   ],
   "pending": [
+    {
+      "id": "v8.sfx.forest-birdsong",
+      "src": "/audio/v2/forest-birdsong.mp3",
+      "kind": "audio",
+      "available": true,
+      "fallback": "sfx.clue"
+    },
     {
       "id": "v2.sfx.parrot-call",
       "src": "/audio/v2/parrot-call.mp3",
@@ -1492,5 +2293,7 @@
       "available": true,
       "fallback": null
     }
-  ]
+  ],
+  "description": "Actual media inventory. classroomReady resources are reachable from the application import graph. Source storyboards stay outside the deployable bundle.",
+  "unusedCandidates": []
 }

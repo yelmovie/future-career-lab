@@ -1,0 +1,46 @@
+.transfer-board { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 24px; padding: 22px 26px; width: 100%; min-height: 0; background: #fffdf4f5; }
+.transfer-context { min-width: 0; min-height: 0; border-right: 2px solid #dbe8e0; padding-right: 24px; }
+.record-eyebrow { color: #286558; font-size: 20px; font-weight: 800; }
+.transfer-context h2 { font-size: 32px; margin: 10px 0; color: #1b443a; }
+.transfer-context p { font-size: 22px; line-height: 1.5; margin: 12px 0; }
+.transfer-context .transfer-rule { color: #415d50; font-size: 20px; }
+.transfer-decision { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.transfer-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1; min-height: 0; }
+.transfer-option { background: #fffef8; border: 2px solid #d4e0d7; border-radius: 18px; padding: 12px; color: #214637; cursor: pointer; display: grid; gap: 8px; text-align: center; }
+.transfer-option { min-height: 0; grid-template-rows: minmax(40px, 1fr) auto auto 10px; }
+.transfer-option img { width: 100%; height: 100%; min-height: 0; max-height: 100px; object-fit: contain; }
+.transfer-option strong { font-size: 22px; }
+.transfer-option > span { font-size: 22px; }
+.transfer-option.is-selected, .transfer-reasons .is-selected { border-color: #13765f; background: #e5f4e8; box-shadow: 0 0 0 2px #13765f; }
+.transfer-option:disabled, .transfer-reasons button:disabled { opacity: 1; cursor: default; }
+.transfer-bar { height: 10px; background: #dce6dc; border-radius: 8px; overflow: hidden; }
+.transfer-bar i { display: block; height: 100%; border-radius: inherit; background: #329170; }
+.transfer-reasons { margin: 10px 0 0; padding: 0; border: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.transfer-reasons legend { font-size: 23px; font-weight: 800; margin-bottom: 8px; }
+.transfer-reasons button { min-height: 84px; border: 2px solid #d4e0d7; background: #fffef8; border-radius: 12px; text-align: left; padding: 10px 14px; font-size: 22px; line-height: 1.4; color: #214637; cursor: pointer; }
+.transfer-feedback { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; background: #fff2d0; color: #724b06; font-size: 20px; line-height: 1.4; }
+.transfer-feedback.is-success { background: #e5f4e8; color: #19583b; }
+.learning-record-modal { max-width: 920px; }
+.learning-record-intro { font-size: 22px; line-height: 1.5; margin-top: 0; color: #415b50; }
+.learning-record-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.learning-record-list article { padding: 20px; background: #f3f7ef; border: 1px solid #d4e0cc; border-radius: 16px; }
+.learning-record-list article.is-missing { background: #f7f5f0; border-color: #dedbd3; }
+.learning-record-list h3 { margin: 0 0 10px; font-size: 24px; color: #264d3c; }
+.learning-record-list p { margin: 0; font-size: 21px; line-height: 1.55; white-space: pre-line; }
+.certificate-info b { display: inline-block; width: 48px; }
+.certificate-copy > span { display: block; word-break: keep-all; }
+.certificate-info > span:first-child b { width: 180px; }
+.certificate-actions.has-record { gap: 12px; width: min(860px, 100%); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.certificate-actions.has-record .button { font-size: 21px; padding-inline: 20px; }
+@media screen {
+  .certificate-border header span, .certificate-border header p { font-size: 20px; letter-spacing: .08em; }
+  .certificate-copy { font-size: 20px; line-height: 1.6; }
+  .certificate-badges b, .certificate-info, .certificate-border footer { font-size: 20px; }
+  .certificate-border { padding: 18px 24px 16px; }
+  .certificate-border header { margin-top: 12px; }
+}
+.p9-restoration { position: absolute; width: 17%; height: 40%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 8px 5px #254c3333); }
+.p9-restoration--trees { left: 23%; top: 18%; }
+.p9-restoration--water { left: 48%; top: 48%; }
+.p9-restoration--quiet { left: 68%; top: 22%; }
+@media print { .learning-record-modal, .modal-backdrop { display: none !important; } }

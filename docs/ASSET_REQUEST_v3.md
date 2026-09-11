@@ -1,11 +1,11 @@
-# 에셋 요청 v3 — 「사라진 모모와 루비」 · 밝고 아기자기한 톤
+# 에셋 요청 v3 — 「사라진 지구와 젤리」 · 밝고 아기자기한 톤
 
 작성일: 2026-09-05 · 상태: **생성 대기** (코드 자리는 만들어 둠, 파일이 없어도 v2 그림으로 되돌아감)
 
 ## 규칙
 
 - 한 프롬프트 = 한 장. 콜라주 금지. 글자·로고·워터마크 금지.
-- 캐릭터 스타일은 **홈 키아트(`public/assets/page-01/keyart.webp`)와 같은 캐릭터**로 맞춘다: 카키 탐험 모자를 쓴 남학생(하늘색·흰색 후드), 갈색 포니테일 여성 멘토(카키 조끼·초록 목걸이), 초록 이클렉투스 **모모**, 빨강 이클렉투스 **루비**, 파란 링을 단 흰색 드론 로봇.
+- 캐릭터 스타일은 **홈 키아트(`public/assets/page-01/keyart.webp`)와 같은 캐릭터**로 맞춘다: 카키 탐험 모자를 쓴 남학생(하늘색·흰색 후드), 갈색 포니테일 여성 멘토(카키 조끼·초록 목걸이), 초록 이클렉투스 **지구**, 빨강 이클렉투스 **젤리**, 파란 링을 단 흰색 드론 로봇.
 - 결과 PNG/JPG 는 그대로 줘도 된다. WebP 변환·리사이즈·배경 제거는 `asset-intake` 에서 한다.
 - 파일명을 아래 표대로 하면 코드가 자동으로 집어 쓴다.
 
@@ -16,21 +16,21 @@
 
 ## A. 먼저 만들 것 — 서사가 바뀌어 기존 그림과 어긋나는 장면
 
-### 1. `scene-escape.webp` — 브리핑 키아트: 찢어진 새 정원에서 날아가는 모모·루비
+### 1. `scene-escape.webp` — 브리핑 키아트: 찢어진 새 정원에서 날아가는 지구·젤리
 자리: `public/assets/v3/scene-escape.webp` (없으면 v2 `scene-incident` 사용 — v2 그림은 앵무 "무리"가 나와 새 서사와 맞지 않음)
 비율 **16:9**
 ```
 Wide scene at a small city zoo bird garden after a typhoon: a large aviary with a torn net panel flapping in the wind, a few branches on the ground. Exactly two eclectus parrots — one bright green male and one red-and-violet female — fly out through the tear toward a forest on the hill beyond the zoo fence. A worried young zookeeper in a khaki uniform and cap stands below, one hand raised. Clearing sky after rain, soft morning light, hopeful mood, not scary. Bright, cheerful, cute educational game illustration, soft 3D-render look like a modern animated film for kids, pastel sky-blue / cream / warm yellow / parrot green / coral palette, clean outlines, gentle lighting, no text, no letters, no watermark.
 ```
 
-### 2. `scene-reunion.webp` — 엔딩: 새 정원으로 돌아온 모모·루비와 살아난 숲
+### 2. `scene-reunion.webp` — 엔딩: 새 정원으로 돌아온 지구·젤리와 살아난 숲
 자리: `public/assets/v3/scene-reunion.webp` (없으면 v2 `scene-restored` 사용 — v2 는 앵무 무리 귀환 장면)
 비율 **16:9**
 ```
 Wide celebratory scene: a rebuilt zoo bird garden with a fresh new net, wooden perches, a rope bridge and a small water bowl; one green eclectus parrot and one red eclectus parrot perched happily side by side. Behind the garden, a green forest edge on the hill with many small wild birds (sparrows, tits, a woodpecker) flying and singing, a clear stream, and a group of citizens with binoculars and a "forest keeper" armband (no text) planting a young tree. A small white drone hovers high above. Sunny morning, bright and joyful. Bright, cheerful, cute educational game illustration, soft 3D-render look like a modern animated film for kids, pastel sky-blue / cream / warm yellow / parrot green / coral palette, clean outlines, gentle lighting, no text, no letters, no watermark.
 ```
 
-### 3. `scene-found.webp` — 깊은 숲 열매 나무 아래에서 발견된 모모·루비 (S1 → S2 연결)
+### 3. `scene-found.webp` — 깊은 숲 열매 나무 아래에서 발견된 지구·젤리 (S1 → S2 연결)
 자리: `public/assets/v3/scene-found.webp` — **아직 화면에 안 붙어 있음.** 붙일 곳: 증거판(P4) 완료 띠 옆 작은 썸네일 또는 P5 미션 안내 그림. `Page03Mystery.tsx` 완료 부분에 `<img src={v3Asset('scene-found')} />` 를 넣으면 된다.
 비율 **4:3**
 ```

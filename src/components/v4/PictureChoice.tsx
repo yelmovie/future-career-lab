@@ -5,6 +5,8 @@ export interface PictureOption<T extends string> {
   id: T;
   image: string;
   label: string;
+  /** 개별 이미지 표시 방식. 지정하지 않으면 PictureChoice의 fit을 따른다. */
+  fit?: 'contain' | 'cover';
   /** 한 줄 보조 (18px). 없으면 생략 */
   caption?: string;
   disabled?: boolean;
@@ -37,7 +39,7 @@ export function PictureChoice<T extends string>({ options, selected, onSelect, s
           disabled={option.disabled}
           onClick={() => { audioService.playSfx('tap'); onSelect(option.id); }}
         >
-          <span className={`v4-choice__art v4-choice__art--${fit}`}><img src={option.image} alt="" /></span>
+          <span className={`v4-choice__art v4-choice__art--${option.fit ?? fit}`}><img src={option.image} alt="" /></span>
           <strong>{option.label}</strong>
           {option.caption && <small>{option.caption}</small>}
           {(isSelected(option.id) || option.done) && <i className="v4-choice__check" aria-hidden="true"><CheckIcon /></i>}

@@ -3,16 +3,20 @@ import {
   BASE_LEVELS,
   FIELD_TRACES,
   TRACES,
-  actualDirection,
   buildGraphs,
   changeLevel,
   createExperiment,
   fewestTracePoint,
   nextPoint,
+  normalizeFoundTraces,
   population,
   runTrial,
   subCause,
-  visibleTraces,
+  ACTIONS,
+  applyAction,
+  edgeBirds,
+  evaluateConclusion,
+  POINT_STATS,
 } from './page07EcologyModel';
 
 describe('page 7 ecology model', () => {
@@ -41,12 +45,13 @@ describe('page 7 ecology model', () => {
   });
 
   it('runs a trial against the fixed baseline and snaps sliders back', () => {
-    expect(runTrial(createExperiment(), 'up')).toBeNull();
+    expect(runTrial(createExperiment())).toBeNull();
     const { state } = changeLevel(createExperiment(), 'noise', 9);
-    const result = runTrial(state, 'up');
+    const result = runTrial(state);
     expect(result).not.toBeNull();
-    expect(result!.trial).toMatchObject({ variable: 'noise', from: 5, to: 9, prediction: 'up' });
-    expect(actualDirection(result!.trial.before, result!.trial.after)).toBe('down');
+    expect(result!.trial).toMatchObject({ variable: 'noise', from: 5, to: 9 });
+    expect(result!.trial).not.toHaveProperty('prediction');
+    expect(result!.trial.after).toBeLessThan(result!.trial.before);
     expect(result!.state.active).toBeNull();
     expect(result!.state.baseline).toEqual(BASE_LEVELS);
     expect(result!.state.levels).toEqual(BASE_LEVELS);
@@ -56,7 +61,7 @@ describe('page 7 ecology model', () => {
     const base = population(BASE_LEVELS);
     let state = createExperiment();
     const run = (variable: 'logging' | 'noise' | 'water', to: number) => {
-      const result = runTrial(changeLevel(state, variable, to).state, 'same')!;
+      const result = runTrial(changeLevel(state, variable, to).state)!;
       state = result.state;
       return result.trial;
     };
@@ -65,9 +70,9 @@ describe('page 7 ecology model', () => {
     const water = run('water', 10);
     // 매 실험이 기준 5·5·5 에서 출발한다
     expect([food.before, noise.before, water.before]).toEqual([base, base, base]);
-    expect(actualDirection(food.before, food.after)).toBe('down');
-    expect(actualDirection(noise.before, noise.after)).toBe('down');
-    expect(actualDirection(water.before, water.after)).toBe('up');
+    expect(food.after).toBeLessThan(food.before);
+    expect(noise.after).toBeLessThan(noise.before);
+    expect(water.after).toBeGreaterThan(water.before);
     // 영향 크기 순서도 그대로 드러난다
     expect(Math.abs(food.after - base)).toBeGreaterThan(Math.abs(noise.after - base));
     expect(Math.abs(noise.after - base)).toBeGreaterThan(Math.abs(water.after - base));
@@ -81,29 +86,46 @@ describe('page 7 ecology model', () => {
     ]);
   });
 
-  it('hides two traces until the meter is tapped', () => {
-    const hidden = TRACES.filter((trace) => trace.hidden);
-    expect(hidden).toHaveLength(2);
-    expect(TRACES).toHaveLength(8);
-    expect(visibleTraces('B', false).some((t) => t.hidden)).toBe(false);
-    expect(visibleTraces('B', true).some((t) => t.id === 'foot-cat')).toBe(true);
-    expect(visibleTraces('C', true).some((t) => t.id === 'sound-alarm')).toBe(true);
-    // v4 현장 흔적은 지점마다 2개
+  it('uses six visible traces with two at each forest point', () => {
+    expect(TRACES).toHaveLength(6);
     expect(FIELD_TRACES).toHaveLength(6);
     for (const point of ['A', 'B', 'C'] as const) expect(FIELD_TRACES.filter((t) => t.point === point)).toHaveLength(2);
   });
 
-  it('uses dedicated art for machine sound, parrot call, and parrot footprints', () => {
+  it('preserves all collected traces from a save made before the habitat clue replaced the boot print', () => {
+    const previousSave = ['foot-boot', 'sound-chainsaw', 'feather-brown', 'sound-forest-birds', 'foot-songbird', 'feather-blue'];
+    const restored = normalizeFoundTraces(previousSave);
+    expect(restored).toEqual(FIELD_TRACES.map((trace) => trace.id));
+    expect(restored).toHaveLength(6);
+    expect(previousSave[0]).toBe('foot-boot');
+    expect(normalizeFoundTraces(restored)).toEqual(restored);
+  });
+
+  it('keeps partial discovery progress without counting legacy aliases, duplicates, or invalid entries twice', () => {
+    expect(normalizeFoundTraces([
+      'feather-brown', 'foot-boot', 'tree-cut', 'foot-boot', 'feather-brown',
+      'retired-trace', '', 4, null, { id: 'sound-chainsaw' }, ['foot-songbird'],
+    ])).toEqual(['feather-brown', 'tree-cut']);
+  });
+
+  it.each([undefined, null, 'foot-boot', 6, { found: ['foot-boot'] }])('ignores malformed discovery collections: %j', (value) => {
+    expect(normalizeFoundTraces(value)).toEqual([]);
+  });
+
+  it('uses dedicated forest-bird evidence without parrot-specific clues', () => {
     expect(FIELD_TRACES.find((trace) => trace.id === 'sound-chainsaw')?.image).toBe('/assets/v5/trace-machine-sound.webp');
-    expect(FIELD_TRACES.find((trace) => trace.id === 'sound-call')?.image).toBe('/assets/v5/trace-parrot-call.webp');
-    expect(FIELD_TRACES.find((trace) => trace.id === 'foot-parrot')?.image).toBe('/assets/v5/trace-parrot-footprint.webp');
+    expect(FIELD_TRACES.find((trace) => trace.id === 'feather-brown')?.image).toBe('/assets/v8/trace-forest-feather-brown.png');
+    expect(FIELD_TRACES.find((trace) => trace.id === 'sound-forest-birds')).toMatchObject({ image: '/assets/v8/trace-forest-birdsong.png', sound: 'forestBirdsong' });
+    expect(FIELD_TRACES.find((trace) => trace.id === 'foot-songbird')?.image).toBe('/assets/v8/trace-forest-footprints.png');
+    expect(FIELD_TRACES.find((trace) => trace.id === 'feather-blue')?.image).toBe('/assets/v8/trace-forest-feather-blue.png');
+    expect(FIELD_TRACES.map((trace) => `${trace.title} ${trace.note}`).join(' ')).not.toMatch(/앵무|지구|젤리/);
   });
 
   it('picks the sub cause from trial effect size', () => {
     const trials = [
-      { variable: 'logging' as const, from: 5, to: 0, prediction: 'down' as const, before: 40, after: 10 },
-      { variable: 'noise' as const, from: 5, to: 10, prediction: 'down' as const, before: 40, after: 28 },
-      { variable: 'water' as const, from: 5, to: 10, prediction: 'up' as const, before: 40, after: 44 },
+      { variable: 'logging' as const, from: 5, to: 0, before: 40, after: 10 },
+      { variable: 'noise' as const, from: 5, to: 10, before: 40, after: 28 },
+      { variable: 'water' as const, from: 5, to: 10, before: 40, after: 44 },
     ];
     expect(subCause('logging', trials)).toBe('noise');
     expect(subCause('noise', trials)).toBe('logging');
@@ -117,10 +139,28 @@ describe('page 7 ecology model', () => {
   });
 });
 
-describe('v6 그림 실험 (applyAction)', () => {
+describe('v6 전후 그림 비교 (applyAction)', () => {
+  it('continues from the observed bird count and preserves the measured intervention gains', () => {
+    expect(edgeBirds()).toBe(POINT_STATS.A.birdCount);
+    expect(ACTIONS.map((action) => applyAction(action.id).after)).toEqual([10, 7, 2]);
+  });
+
+  it('requires all comparisons and blocks an unsupported conclusion while permitting a supported revision', () => {
+    const trials = ACTIONS.map((action) => applyAction(action.id));
+    expect(evaluateConclusion('logging', trials.slice(0, 2)).supported).toBe(false);
+    expect(evaluateConclusion('water', trials)).toMatchObject({ supported: false, selectedGain: 1, bestGain: 9 });
+    expect(evaluateConclusion('logging', trials).supported).toBe(true);
+  });
+
+  it('evaluates the recorded evidence, rather than hard-coding trees as the answer', () => {
+    const trials = ACTIONS.map((action) => ({ ...applyAction(action.id), after: action.id === 'water' ? 20 : 3 }));
+    expect(evaluateConclusion('water', trials).supported).toBe(true);
+    expect(evaluateConclusion('logging', trials).supported).toBe(false);
+  });
   it('세 행동을 각각 하나만 적용하면 나무 > 소리 > 물 순으로 새가 돌아온다', async () => {
     const { ACTIONS, applyAction, edgeBirds } = await import('./page07EcologyModel');
-    const results = ACTIONS.map((action) => applyAction(action.id, 'up'));
+    const results = ACTIONS.map((action) => applyAction(action.id));
+    for (const trial of results) expect(trial).not.toHaveProperty('prediction');
     for (const trial of results) expect(trial.before).toBe(edgeBirds());
     const gain = (id: string) => results.find((t) => t.variable === id)!.after - edgeBirds();
     expect(gain('logging')).toBeGreaterThan(gain('noise'));

@@ -17,7 +17,7 @@ const baseSave = {
   logs: [], pageData: {}, dailyMissionId: 'daily-1', certificateUnlocked: false, rewardGranted: [],
   audio: { bgmVolume: 0, sfxVolume: 0, muted: true },
   artifacts: { photos: [{ id: 'logging', quality: 'center' }, { id: 'stream', quality: 'center' }, { id: 'construction', quality: 'edge' }], hypothesis: 'logging', careLog: [{ bird: 'green', issue: 'stress', treatment: 'hideout' }, { bird: 'red', issue: 'dehydration', treatment: 'water' }], habitatStars: 2, traces: [], graphs: [{ variable: 'logging', verdict: 'main' }, { variable: 'noise', verdict: 'sub' }, { variable: 'water', verdict: 'none' }], clip: { trust: 90, corrections: 0 }, allianceTurns: null },
-  prediction: 'drone', abilityStatements: [], updatedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 const fullSave = { ...baseSave, stageProgress: { completed: { 1: true, 2: true, 3: true, 4: true, 5: true }, completedPages: [3, 4, 5, 6, 7, 8, 9] }, certificateUnlocked: true };
 
@@ -32,14 +32,11 @@ const SHOTS = [
   { name: 'p05-fresh', page: 5, save: baseSave },
   { name: 'p05-treatment-picked', page: 5, save: baseSave, act: async (p) => { await p.locator('.p5-treatment').first().click(); } },
   { name: 'p06-fresh', page: 6, save: baseSave },
-  { name: 'p07-tablet', page: 7, save: { ...baseSave, pageData: { page07Ecology: { step: 'tablet', point: 'A', found: [], envSeen: [], chartPick: null, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 5, noise: 5, water: 5 }, active: null }, trials: [], prediction: null, lastTrial: null, main: null, sub: null } } } },
-  { name: 'p07-lab', page: 7, save: { ...baseSave, pageData: { page07Ecology: { step: 'experiment', point: 'A', found: [], envSeen: [], chartPick: { point: 'A', variable: 'logging' }, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 8, noise: 5, water: 5 }, active: 'logging' }, trials: [], prediction: null, lastTrial: null, main: null, sub: null } } } },
+  { name: 'p07-tablet', page: 7, save: { ...baseSave, pageData: { page07Ecology: { step: 'tablet', point: 'A', found: [], envSeen: [], chartPick: null, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 5, noise: 5, water: 5 }, active: null }, trials: [], lastTrial: null, main: null, sub: null } } } },
+  { name: 'p07-lab', page: 7, save: { ...baseSave, pageData: { page07Ecology: { step: 'experiment', point: 'A', found: [], envSeen: [], chartPick: { point: 'A', variable: 'logging' }, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 8, noise: 5, water: 5 }, active: 'logging' }, trials: [], lastTrial: null, main: null, sub: null } } } },
   { name: 'p08-fresh', page: 8, save: baseSave },
   { name: 'p09-after-brief', page: 9, save: baseSave, act: async (p) => { await p.getByRole('button', { name: '작전 시작' }).click(); await p.waitForTimeout(800); } },
   { name: 'p09-completed', page: 9, save: fullSave },
-  { name: 'p10-tab1', page: 10, save: fullSave },
-  { name: 'p10-tab2', page: 10, save: fullSave, act: async (p) => { await p.getByRole('tab', { name: /예측과 우리 동네/ }).click(); } },
-  { name: 'p10-tab3', page: 10, save: fullSave, act: async (p) => { await p.getByRole('tab', { name: /나는 이제/ }).click(); } },
   { name: 'p11-after', page: 11, save: fullSave, act: async (p) => { await p.waitForTimeout(3200); } },
   { name: 'p11-locked', page: 11, save: baseSave },
   { name: 'p01-settings-modal', page: 1, save: fullSave, act: async (p) => { await p.getByRole('button', { name: '설정 열기' }).click(); } },

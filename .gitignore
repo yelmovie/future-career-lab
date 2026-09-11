@@ -20,3 +20,23 @@ Thumbs.db
 /.vercel/
 docs/reviews/screens-v3/
 docs/reviews/screens-v4/
+
+_shots/
+
+# Local Meshy setup helpers and expiring task responses; never ship credentials.
+/tmp/
+
+# Local archives, generated candidates and verification output are not releases.
+/_unused/
+/_shots/
+/output/
+/artifacts/
+/.tmp-*/
+/.npm-cache/
+/.claude/
+/CONTINUE.md
+/%SystemDrive%/
+.env
+.env.*
+!.env.example
+*.local

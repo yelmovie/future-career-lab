@@ -39,8 +39,6 @@ function makeSave(completed = false) {
       clip: { trust: 90, corrections: 0 },
       allianceTurns: 6,
     },
-    prediction: 'drone',
-    abilityStatements: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -90,13 +88,13 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
   await auditVisible('p3-flight');
 
   const tabletSave = makeSave();
-  tabletSave.pageData = { page07Ecology: { step: 'tablet', point: 'A', found: [], envSeen: [], chartPick: null, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 5, noise: 5, water: 5 }, active: null }, trials: [], prediction: null, lastTrial: null, main: null, sub: null } };
+  tabletSave.pageData = { page07Ecology: { step: 'tablet', point: 'A', found: [], envSeen: [], chartPick: null, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 5, noise: 5, water: 5 }, active: null }, trials: [], lastTrial: null, main: null, sub: null } };
   await seedSave(page, tabletSave);
   await page.goto('/#/page/7');
   await auditVisible('p7-tablet');
 
   const labSave = makeSave();
-  labSave.pageData = { page07Ecology: { step: 'experiment', point: 'A', found: [], envSeen: [], chartPick: { point: 'A', variable: 'logging' }, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 8, noise: 5, water: 5 }, active: 'logging' }, trials: [], prediction: null, lastTrial: null, main: null, sub: null } };
+  labSave.pageData = { page07Ecology: { step: 'experiment', point: 'A', found: [], envSeen: [], chartPick: { point: 'A', variable: 'logging' }, exp: { baseline: { logging: 5, noise: 5, water: 5 }, levels: { logging: 8, noise: 5, water: 5 }, active: 'logging' }, trials: [], lastTrial: null, main: null, sub: null } };
   await seedSave(page, labSave);
   await page.goto('/#/page/7');
   await auditVisible('p7-lab');
@@ -104,10 +102,6 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
   await seed(page);
   await page.goto('/#/page/9');
   await auditVisible('p9-active');
-
-  await seed(page, true);
-  await page.goto('/#/page/10');
-  await auditVisible('p10-compare');
 
   expect(violations, violations.join('\n')).toEqual([]);
 });

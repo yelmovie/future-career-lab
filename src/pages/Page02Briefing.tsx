@@ -17,13 +17,11 @@ const BRIEF_LINES = [
   '하늘에서 보고, 살피고, 조사하고, 알리는 넷이 필요해. 네가 차례로 맡아 줘.',
 ];
 
-/** 직업 아이콘은 스테이지 배지와 같은 그림 — 브리핑·돌아보기·수료증에서 한 직업은 한 그림. */
-const badgeOf = (id: JobId) => STAGE_META.find((stage) => stage.job === id)!.badge;
-const JOBS: { id: JobId; character: string; icon: string; says: string; tools: { image: string; label: string }[] }[] = [
-  { id: 'drone', character: pageAsset(4, 1), icon: badgeOf('drone'), says: '나는 하늘에서 숲을 찍어.', tools: [{ image: pageAsset(4, 3), label: '드론' }, { image: pageAsset(4, 4), label: '조종기' }, { image: pageAsset(4, 9), label: '바람 센서' }] },
-  { id: 'care', character: v3Asset('keeper-haneul'), icon: badgeOf('care'), says: '나는 아픈 동물을 살펴.', tools: [{ image: pageAsset(5, 5), label: '돌봄 기록판' }, { image: pageAsset(5, 6), label: '먹이 세트' }, { image: pageAsset(5, 9), label: '건강 태블릿' }] },
-  { id: 'ecology', character: pageAsset(7, 1), icon: badgeOf('ecology'), says: '나는 흔적으로 원인을 찾아.', tools: [{ image: pageAsset(3, 9), label: '녹음기' }, { image: pageAsset(7, 7), label: '환경 측정기' }, { image: pageAsset(3, 6), label: '돋보기' }] },
-  { id: 'broadcast', character: pageAsset(3, 3), icon: badgeOf('broadcast'), says: '나는 정확한 소식을 알려.', tools: [{ image: pageAsset(4, 5), label: '방송 카메라' }, { image: pageAsset(4, 7), label: '송출 모니터' }, { image: pageAsset(3, 4), label: '현장 카메라' }] },
+const JOBS: { id: JobId; character: string; says: string; tools: { image: string; label: string }[] }[] = [
+  { id: 'drone', character: pageAsset(4, 1), says: '나는 하늘에서 숲을 찍어.', tools: [{ image: pageAsset(4, 3), label: '드론' }, { image: pageAsset(4, 4), label: '조종기' }, { image: pageAsset(4, 9), label: '바람 센서' }] },
+  { id: 'care', character: v3Asset('keeper-haneul'), says: '나는 아픈 동물을 살펴.', tools: [{ image: pageAsset(5, 5), label: '돌봄 기록판' }, { image: pageAsset(5, 6), label: '먹이 세트' }, { image: pageAsset(5, 9), label: '건강 태블릿' }] },
+  { id: 'ecology', character: pageAsset(7, 1), says: '나는 흔적으로 원인을 찾아.', tools: [{ image: pageAsset(3, 9), label: '녹음기' }, { image: pageAsset(7, 7), label: '환경 측정기' }, { image: pageAsset(3, 6), label: '돋보기' }] },
+  { id: 'broadcast', character: pageAsset(3, 3), says: '나는 정확한 소식을 알려.', tools: [{ image: pageAsset(4, 5), label: '방송 카메라' }, { image: pageAsset(4, 7), label: '송출 모니터' }, { image: pageAsset(3, 4), label: '현장 카메라' }] },
 ];
 const JOB_IDS = new Set<string>(JOBS.map((job) => job.id));
 
@@ -38,25 +36,22 @@ function readProgress(value: unknown): { line: number; met: JobId[] } {
 const STEP_TEXT = [
   { instruction: '말풍선을 눌러 이야기를 들어', bubble: '지구와 젤리에게 무슨 일이 생겼을까?' },
   { instruction: '직업 캐릭터를 하나씩 눌러 봐', bubble: '누가 어떤 일을 할 수 있을까?' },
-  { instruction: '제일 잘 맞을 것 같은 직업을 골라', bubble: '어떤 직업이 너한테 제일 잘 맞을 것 같아?' },
 ] as const;
 
 export default function Page02Briefing({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
-  const { save, setPrediction, setPageData, logEvent } = useGame();
+  const { save, setPageData } = useGame();
   const [progress] = useState(() => readProgress(save.pageData.p2Progress));
-  const [step, setStep] = useState(() => (progress.met.length === JOBS.length ? 3 : progress.line >= BRIEF_LINES.length - 1 ? 2 : 1));
+  const [step, setStep] = useState(() => (progress.line >= BRIEF_LINES.length - 1 ? 2 : 1));
   const [line, setLine] = useState(progress.line);
   const [met, setMet] = useState<JobId[]>(progress.met);
   const [talking, setTalking] = useState<JobId | null>(null);
 
   const briefed = line >= BRIEF_LINES.length - 1;
   const allMet = met.length === JOBS.length;
-  const ready = Boolean(save.prediction);
-  const stepDone = [briefed, allMet, ready][step - 1]!;
+  const stepDone = [briefed, allMet][step - 1]!;
   const hint = [
     '이야기 3줄을 다 들으면 켜져요',
     `캐릭터 ${JOBS.length - met.length}명을 더 눌러 보면 켜져요`,
-    '직업 하나를 고르면 켜져요',
   ][step - 1]!;
 
   const nextLine = () => {
@@ -76,18 +71,12 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
   };
 
   const join = () => {
-    if (!save.prediction) return;
     audioService.playSfx('success');
-    logEvent({
-      page: 2, type: 'prediction', contextRef: 'p2-prediction',
-      summary: `탐험을 시작하기 전에 “${JOB_LABELS[save.prediction]}”가 제일 잘 맞을 것 같다고 예측했어.`,
-      tags: ['예측', '자기이해'],
-    });
     onNavigate(3);
   };
 
   const advance = () => {
-    if (step < 3) { audioService.playSfx('swipe'); setStep(step + 1); return; }
+    if (step < 2) { audioService.playSfx('swipe'); setStep(2); return; }
     join();
   };
 
@@ -97,13 +86,13 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
     <StepShell
       page={2}
       step={step}
-      steps={3}
+      steps={2}
       instruction={STEP_TEXT[step - 1]!.instruction}
       mentor={MENTOR}
       mentorName={MENTOR_NAME}
       bubble={STEP_TEXT[step - 1]!.bubble}
       onNavigate={onNavigate}
-      next={{ label: step < 3 ? '다음' : '출발!', disabled: !stepDone, hint, onClick: advance }}
+      next={{ label: step < 2 ? '다음' : '출발!', disabled: !stepDone, hint, onClick: advance }}
       help={
         <div className="brief-reward">
           <p>끝내면 얻는 것</p>
@@ -145,17 +134,6 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
         </div>
       )}
 
-      {step === 3 && (
-        <div className="brief-badge">
-          <PictureChoice
-            size="md"
-            ariaLabel="제일 잘 맞을 것 같은 직업"
-            options={JOBS.map((job) => ({ id: job.id, image: job.icon, label: JOB_LABELS[job.id] }))}
-            selected={save.prediction}
-            onSelect={(id) => setPrediction(id)}
-          />
-        </div>
-      )}
     </StepShell>
   );
 }

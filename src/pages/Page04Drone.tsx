@@ -8,13 +8,13 @@ import { pageAsset, v5Asset } from '../shared/assets';
 import { CANVAS_FONT } from '../shared/constants';
 import type { PageNumber, PhotoId } from '../shared/types';
 import { useGame } from '../state/GameContext';
+import { droneReplayPosition, droneRoute } from './page04DroneRoute';
 import {
   DRAIN_MULTIPLIER,
   DRONE_SPEED,
   DRONE_START,
   DRONE_TARGETS,
   MAX_WAYPOINTS,
-  NUDGE_DRAIN,
   PRECISION_BATTERY,
   REC_DWELL_MS,
   REC_RADIUS,
@@ -42,9 +42,10 @@ interface DroneTelemetry {
   photos: DronePhoto[];
   returning: boolean;
   replayRemaining: number | null;
+  destination: string;
 }
 
-const initialTelemetry: DroneTelemetry = { battery: 100, wind: 'calm', recTarget: null, recCenter: false, photos: [], returning: false, replayRemaining: null };
+const initialTelemetry: DroneTelemetry = { battery: 100, wind: 'calm', recTarget: null, recCenter: false, photos: [], returning: false, replayRemaining: null, destination: '' };
 const FONT = 'Pretendard, sans-serif';
 const STILL: DronePoint = { x: 0, y: 0 };
 
@@ -81,6 +82,8 @@ class DroneFlightScene extends Phaser.Scene {
   private telemetryDelay = 0;
   private replayElapsed = 0;
   private highlightZone: string | null = null;
+  private flownStops: DronePoint[] = [];
+  private returningFrom: DronePoint | null = null;
   private ready = false;
 
   constructor(
@@ -124,7 +127,7 @@ class DroneFlightScene extends Phaser.Scene {
       const { zone } = windRelation(this.position, this.heading, this.zones);
       if (zone) this.drainByZone[zone.id] = (this.drainByZone[zone.id] ?? 0) + drain;
       this.battery = Math.max(0, this.battery - drain);
-      if (this.battery <= 0 && this.mode === 'flight') this.mode = 'return';
+      if (this.battery <= 0 && this.mode === 'flight') this.beginReturn();
     }
 
     const goal = this.mode === 'return' ? DRONE_START : this.waypoints[this.segmentIndex];
@@ -138,13 +141,14 @@ class DroneFlightScene extends Phaser.Scene {
       if (remaining <= step) {
         this.position = { ...goal };
         if (this.mode === 'return') { this.finishFlight(); return; }
+        this.flownStops.push({ ...goal });
         this.dwellRemaining = this.segmentIndex >= this.waypoints.length - 1 ? LAST_DWELL_MS : REC_DWELL_MS;
       } else {
         this.position = { x: this.position.x + this.heading.x * step, y: this.position.y + this.heading.y * step };
       }
     } else {
       // 마지막 점까지 갔으면 끝. 놓친 목표는 다시 계획해서 날아야 한다(두 번째 바퀴 없음).
-      this.mode = 'return';
+      this.beginReturn();
     }
 
     this.updateRecWindow();
@@ -171,6 +175,8 @@ class DroneFlightScene extends Phaser.Scene {
     this.drainByZone = {};
     this.recTarget = null;
     this.highlightZone = null;
+    this.flownStops = [];
+    this.returningFrom = null;
     this.drawMap();
     this.emitTelemetry();
   }
@@ -188,18 +194,12 @@ class DroneFlightScene extends Phaser.Scene {
     return photo;
   }
 
-  nudge(dx: number, dy: number) {
-    if (this.mode !== 'flight') return;
-    this.position = { x: Phaser.Math.Clamp(this.position.x + dx, .025, .975), y: Phaser.Math.Clamp(this.position.y + dy, .04, .96) };
-    this.battery = Math.max(0, this.battery - NUDGE_DRAIN);
-    this.positionDrone();
-  }
-
   resetFlight() {
     this.mode = 'plan';
     this.position = { ...DRONE_START };
     this.heading = STILL;
     this.highlightZone = null;
+    this.returningFrom = null;
     this.drawMap();
   }
 
@@ -215,6 +215,22 @@ class DroneFlightScene extends Phaser.Scene {
     this.replayElapsed = 0;
     this.position = { ...DRONE_START };
     this.drawMap();
+  }
+
+  private beginReturn() {
+    this.mode = 'return';
+    this.returningFrom = { ...this.position };
+    // 배터리 부족으로 돌아갈 때도 마지막으로 실제 비행한 지점부터 복귀선을 그린다.
+    const last = this.flownStops.at(-1) ?? DRONE_START;
+    if (distance(last, this.position) > 1e-6) this.flownStops.push({ ...this.position });
+    this.dwellRemaining = 0;
+    this.recTarget = null;
+    this.drawMap();
+    this.emitTelemetry();
+  }
+
+  private route() {
+    return droneRoute(this.returningFrom ? this.flownStops : this.waypoints);
   }
 
   private updateRecWindow() {
@@ -233,12 +249,27 @@ class DroneFlightScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * 논리 좌표(0~1)는 캔버스가 아니라 지도 그림(contain) 사각형 기준이다.
+   * 캔버스 비율이 모드마다 달라도 목표 원·바람 구간이 그림 속 벌목지·물길·공사장 위에 그대로 붙는다.
+   */
+  private mapRect() {
+    const width = Math.max(320, this.scale.width);
+    const height = Math.max(300, this.scale.height);
+    const source = this.textures.get('drone-map').getSourceImage() as { width: number; height: number };
+    const scale = Math.min(width / source.width, height / source.height);
+    const w = source.width * scale; const h = source.height * scale;
+    return { left: (width - w) / 2, top: (height - h) / 2, w, h };
+  }
+  private toPx(point: DronePoint) { const m = this.mapRect(); return { x: m.left + point.x * m.w, y: m.top + point.y * m.h }; }
+  private toFrac(x: number, y: number): DronePoint {
+    const m = this.mapRect();
+    return { x: Phaser.Math.Clamp((x - m.left) / m.w, .04, .96), y: Phaser.Math.Clamp((y - m.top) / m.h, .06, .94) };
+  }
+
   private handleMapPointer(pointer: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) {
     if (this.mode !== 'plan' || over.length > 0) return;
-    this.callbacks.addWaypoint({
-      x: Phaser.Math.Clamp(pointer.x / Math.max(1, this.scale.width), .04, .96),
-      y: Phaser.Math.Clamp(pointer.y / Math.max(1, this.scale.height), .06, .94),
-    });
+    this.callbacks.addWaypoint(this.toFrac(pointer.x, pointer.y));
   }
 
   private drawArrow(g: Phaser.GameObjects.Graphics, x: number, y: number, { x: dx, y: dy }: DronePoint, size: number) {
@@ -254,34 +285,24 @@ class DroneFlightScene extends Phaser.Scene {
     const width = Math.max(320, this.scale.width);
     const height = Math.max(300, this.scale.height);
     const map = this.add.image(width / 2, height / 2, 'drone-map').setAlpha(.96);
-    const mapScale = Math.min(width / map.width, height / map.height);
-    map.setScale(mapScale);
+    const m = this.mapRect();
+    map.setDisplaySize(m.w, m.h);
     this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, .10);
+    const px = (point: DronePoint) => this.toPx(point);
 
-    // 팔레트: 바람 = 하늘색(문맥, 얇게) / 목표 = 금색 → 찍으면 초록, 놓치면 산호 / 경로·점 = 파랑. 글자는 흰 알약 위 잉크색.
-    const PAL = { sky: 0x3d8bff, skyLine: 0xffffff, gold: 0xffc53d, goldDeep: 0xf2a51d, green: 0x35c48a, greenDeep: 0x219968, coral: 0xff6f61, coralDeep: 0xd94f43, ink: '#25384f', route: 0x3d8bff };
-
-    this.zones.forEach((zone) => {
-      const hot = this.highlightZone === zone.id;
-      const color = hot ? PAL.coral : PAL.sky;
-      this.add.rectangle((zone.x + zone.width / 2) * width, (zone.y + zone.height / 2) * height, zone.width * width, zone.height * height, color, hot ? .22 : .07)
-        .setStrokeStyle(hot ? 4 : 2, hot ? PAL.coral : PAL.skyLine, hot ? 1 : .7).setDepth(1);
-      const g = this.add.graphics().setDepth(2);
-      g.lineStyle(hot ? 4 : 3, hot ? PAL.coralDeep : 0xffffff, hot ? 1 : .85).fillStyle(hot ? PAL.coralDeep : 0xffffff, hot ? 1 : .85);
-      const cols = 3; const rows = 3;
-      for (let c = 0; c < cols; c += 1) for (let r = 0; r < rows; r += 1) {
-        this.drawArrow(g, (zone.x + zone.width * (c + .5) / cols) * width, (zone.y + zone.height * (r + .5) / rows) * height, zone.wind, hot ? 15 : 11);
-      }
-      if (hot) this.add.text((zone.x + .01) * width, (zone.y + .01) * height, '여기서 배터리가 많이 닳았어', {
-        fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: '#fff', backgroundColor: '#d94f43ee', padding: { x: 8, y: 4 },
-      }).setDepth(3);
-    });
+    // 지도에는 실제 비행 방향만 표시한다. 풍향은 위쪽 안내 줄에서 촬영점 번호와 함께 읽는다.
+    const PAL = { gold: 0xffc53d, green: 0x35c48a, coral: 0xff6f61, ink: '#25384f', route: 0x2166d1, home: 0x087b78 };
+    const hotZone = this.zones.find((zone) => zone.id === this.highlightZone);
+    if (hotZone) {
+      const center = px({ x: hotZone.x + hotZone.width / 2, y: hotZone.y + hotZone.height / 2 });
+      this.add.ellipse(center.x, center.y, hotZone.width * m.w, hotZone.height * m.h, PAL.coral, .2).setStrokeStyle(3, PAL.coral, .9).setDepth(1);
+    }
 
     DRONE_TARGETS.forEach((target, index) => {
       const done = this.photos.has(target.id);
       const missed = !done && this.mode === 'review';
-      const radius = REC_RADIUS * Math.min(width, height);
-      const cx = target.x * width; const cy = target.y * height;
+      const radius = REC_RADIUS * m.h;
+      const { x: cx, y: cy } = px(target);
       const fill = done ? PAL.green : missed ? PAL.coral : PAL.gold;
       const ring = this.add.circle(cx, cy, radius, fill, done ? .34 : missed ? .26 : .16).setStrokeStyle(3, 0xffffff, .95).setDepth(5);
       this.rings.set(target.id, ring);
@@ -298,46 +319,69 @@ class DroneFlightScene extends Phaser.Scene {
       }).setOrigin(.5, 0).setDepth(9);
     });
 
-    this.add.circle(DRONE_START.x * width, DRONE_START.y * height, 22, 0xffffff, .55).setStrokeStyle(3, PAL.route, .95).setDepth(4);
-    this.add.text(DRONE_START.x * width, DRONE_START.y * height + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: PAL.ink, backgroundColor: '#ffffffee', padding: { x: 8, y: 4 } }).setOrigin(.5, 0).setDepth(4);
+    const start = px(DRONE_START);
+    this.add.circle(start.x, start.y, 22, 0xffffff, .55).setStrokeStyle(3, PAL.route, .95).setDepth(4);
+    this.add.text(start.x, start.y + 26, '이륙장', { fontFamily: FONT, fontSize: CANVAS_FONT.cap, fontStyle: 'bold', color: PAL.ink, backgroundColor: '#ffffffee', padding: { x: 8, y: 4 } }).setOrigin(.5, 0).setDepth(4);
 
     if (this.waypoints.length > 0) {
-      const line = this.add.graphics().setDepth(7);
-      const trace = (g: Phaser.GameObjects.Graphics) => {
-        g.beginPath().moveTo(DRONE_START.x * width, DRONE_START.y * height);
-        this.waypoints.forEach((point) => g.lineTo(point.x * width, point.y * height));
-        g.strokePath();
-      };
-      line.lineStyle(8, 0xffffff, .9); trace(line);
-      line.lineStyle(4, PAL.route, .95); trace(line);
-      this.waypoints.forEach((point, index) => {
+      const route = this.route();
+      // 복귀선을 먼저 그려 촬영 경로와 겹치는 곳에서도 실선·점선이 구별된다.
+      [...route].sort((a, b) => Number(b.returning) - Number(a.returning)).forEach((leg) => {
+        const from = px(leg.from); const to = px(leg.to);
+        const length = Math.hypot(to.x - from.x, to.y - from.y);
+        const direction = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+        const color = leg.returning ? PAL.home : PAL.route;
+        const line = this.add.graphics().setDepth(6);
+        const trace = (stroke: number, tint: number) => {
+          line.lineStyle(stroke, tint, .96);
+          if (!leg.returning) { line.lineBetween(from.x, from.y, to.x, to.y); return; }
+          for (let offset = 0; offset < length; offset += 22) {
+            const end = Math.min(offset + 13, length);
+            line.lineBetween(from.x + direction.x * offset, from.y + direction.y * offset, from.x + direction.x * end, from.y + direction.y * end);
+          }
+        };
+        trace(9, 0xffffff); trace(4, color);
+        if (length > 48) {
+          const ratio = leg.returning ? .35 : .5;
+          const x = from.x + (to.x - from.x) * ratio; const y = from.y + (to.y - from.y) * ratio;
+          const arrow = this.add.graphics().setDepth(7);
+          arrow.lineStyle(8, 0xffffff, 1).fillStyle(0xffffff, 1);
+          this.drawArrow(arrow, x, y, direction, 14);
+          arrow.lineStyle(4, color, 1).fillStyle(color, 1);
+          this.drawArrow(arrow, x, y, direction, 10);
+        }
+      });
+      (this.returningFrom ? this.flownStops : this.waypoints).forEach((point, index) => {
         // 점 마커: 숫자 없이 흰 원 + 파란 테. 번호는 목표 원 위 배지 하나로만 읽는다.
-        const dot = this.add.circle(point.x * width, point.y * height, 18, 0xffffff, 1).setStrokeStyle(5, PAL.route, 1).setDepth(8);
+        const dp = px(point);
+        const dot = this.add.circle(dp.x, dp.y, 18, 0xffffff, 1).setStrokeStyle(5, PAL.route, 1).setDepth(8);
         if (this.mode === 'plan') {
-          dot.setInteractive({ useHandCursor: true, draggable: true });
+          dot.setInteractive({ useHandCursor: true, draggable: true, hitArea: new Phaser.Geom.Circle(18, 18, 26), hitAreaCallback: Phaser.Geom.Circle.Contains });
           dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG, (_p: Phaser.Input.Pointer, dragX: number, dragY: number) => { dot.setPosition(dragX, dragY); });
-          dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG_END, () => this.callbacks.moveWaypoint(index, {
-            x: Phaser.Math.Clamp(dot.x / width, .04, .96), y: Phaser.Math.Clamp(dot.y / height, .06, .94),
-          }));
+          dot.on(Phaser.Input.Events.GAMEOBJECT_DRAG_END, () => this.callbacks.moveWaypoint(index, this.toFrac(dot.x, dot.y)));
         }
       });
     }
 
-    const caption = this.mode === 'plan' ? '지도를 눌러 점 추가 · 점을 끌어 옮기기' : this.mode === 'replay' ? '4초 다시 보기' : this.mode === 'return' ? '이륙장으로 돌아가는 중' : '비행 중 · 점 순서대로 한 번만 지나가';
+    const caption = this.mode === 'plan' ? '이륙장 → 1 → 2 → 3 → 이륙장 복귀' : this.mode === 'replay' ? '촬영부터 복귀까지 · 4초 다시 보기' : this.mode === 'return' ? '청록 점선을 따라 이륙장으로 복귀' : this.mode === 'review' ? '이륙장 복귀 완료' : '파란 실선을 따라 촬영점으로 이동';
     this.add.text(18, 18, caption, { fontFamily: FONT, fontSize: CANVAS_FONT.label, fontStyle: 'bold', color: '#25384f', backgroundColor: '#ffffffee', padding: { x: 10, y: 6 } }).setOrigin(0, 0).setDepth(10);
     this.droneImage = this.add.image(0, 0, 'drone-craft').setDisplaySize(78, 78).setDepth(12);
     this.positionDrone();
   }
 
   private positionDrone() {
-    this.droneImage?.setPosition(this.position.x * this.scale.width, this.position.y * this.scale.height);
+    const q = this.toPx(this.position);
+    this.droneImage?.setPosition(q.x, q.y);
   }
 
   private emitTelemetry(replayRemaining: number | null = null) {
+    const destination = this.mode === 'flight' ? this.waypoints[this.segmentIndex] : null;
+    const target = destination ? DRONE_TARGETS.find((item) => distance(item, destination) <= REC_RADIUS) : null;
     this.callbacks.telemetry({
       battery: Math.round(this.battery), wind: windRelation(this.position, this.heading, this.zones).relation, recTarget: this.recTarget,
       recCenter: recQuality(this.recDistance) === 'center', photos: [...this.photos].map(([id, quality]) => ({ id, quality })),
       returning: this.mode === 'return', replayRemaining,
+      destination: this.mode === 'return' ? '이륙장으로 복귀 중' : destination ? `${target ? `${DRONE_TARGETS.indexOf(target) + 1} ${target.name}` : `경로점 ${this.segmentIndex + 1}`}으로 이동 중` : '',
     });
   }
 
@@ -355,18 +399,10 @@ class DroneFlightScene extends Phaser.Scene {
 
   private updateReplay(delta: number) {
     this.replayElapsed += delta;
-    const path = [DRONE_START, ...this.waypoints];
-    const distances = path.slice(1).map((point, index) => distance(path[index]!, point));
-    const total = distances.reduce((sum, value) => sum + value, 0) || 1;
-    let cursor = Phaser.Math.Clamp(this.replayElapsed / 4000, 0, 1) * total;
-    let segment = 0;
-    while (segment < distances.length - 1 && cursor > distances[segment]!) { cursor -= distances[segment]!; segment += 1; }
-    const from = path[segment]!; const to = path[segment + 1] ?? from;
-    const ratio = Phaser.Math.Clamp(cursor / (distances[segment] || 1), 0, 1);
-    this.position = { x: Phaser.Math.Linear(from.x, to.x, ratio), y: Phaser.Math.Linear(from.y, to.y, ratio) };
+    this.position = droneReplayPosition(this.route(), this.replayElapsed / 4000);
     this.positionDrone();
     this.emitTelemetry(Math.max(0, 4 - this.replayElapsed / 1000));
-    if (this.replayElapsed >= 4000) { this.mode = 'review'; this.emitTelemetry(0); }
+    if (this.replayElapsed >= 4000) { this.mode = 'review'; this.drawMap(); this.emitTelemetry(0); }
   }
 }
 
@@ -379,7 +415,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const [telemetry, setTelemetry] = useState<DroneTelemetry>(initialTelemetry);
   const [result, setResult] = useState<DroneResult | null>(() => savedResult(save.pageData.p3Result));
   const [precisionStamp, setPrecisionStamp] = useState(save.pageData.p3Precision === true);
-  const [bubble, setBubble] = useState('지도 위 원 1, 2, 3을 차례로 눌러 점을 놓아. 화살표를 거슬러 가면 배터리가 빨리 닳아!');
+  const [bubble, setBubble] = useState('원 1, 2, 3을 차례로 눌러 점을 놓아. 파란 선을 따라 날고, 마지막에는 청록 점선을 따라 이륙장으로 돌아와.');
   const callbacks = useRef<{
     addWaypoint: (point: DronePoint) => void;
     moveWaypoint: (index: number, point: DronePoint) => void;
@@ -398,7 +434,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
     if (phase !== 'plan') return;
     if (full) { setBubble(`점은 ${MAX_WAYPOINTS}개까지야. 점을 끌어서 옮기거나, 위쪽 '점 하나 지우기'를 눌러.`); audioService.playSfx('warning'); return; }
     savePlan([...waypoints, point]);
-    setBubble(waypoints.length + 1 >= 3 ? '세 원 다 놓았어! 오른쪽 아래 노란 출발! 버튼을 눌러.' : waypoints.length + 1 === 2 ? '좋아, 하나 더! 세 번째 원도 눌러 점을 놓아.' : '점 하나 놓았어. 다음 원도 눌러 봐.');
+    setBubble(waypoints.length + 1 >= 3 ? '세 촬영점이 파란 선으로 이어졌는지 확인해. 다 됐으면 오른쪽 아래 출발! 버튼을 눌러.' : waypoints.length + 1 === 2 ? '좋아, 하나 더! 세 번째 원도 눌러 점을 놓아.' : '점 하나 놓았어. 다음 원도 눌러 봐.');
     audioService.playSfx('drop');
   };
   callbacks.current.moveWaypoint = (index, point) => {
@@ -460,7 +496,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
   const retry = () => {
     setPhase('plan');
     setTelemetry(initialTelemetry);
-    setBubble('점을 끌어서 화살표 방향으로 돌게 옮기고, 다 되면 출발!을 눌러.');
+    setBubble('점을 끌어 경로를 바꿀 수 있어. 위쪽 바람 안내를 보고 경로를 정한 뒤 출발!을 눌러.');
     scene.resetFlight();
   };
 
@@ -492,15 +528,30 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
         <div className="drone-help">
           <p className="flow-goal"><strong>목표</strong> 벌목지·막힌 물길·공사장 세 원을 한 바퀴에 지나가며 REC 로 찍어.</p>
           <div className="drone-map-key" aria-label="바람 안내">
-            <span className="is-danger">화살표 거슬러 = 맞바람 · 배터리 {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">화살표 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">화살표 따라 = 뒷바람 · 덜 닳음</span>
+            <span className="is-danger">바람을 거슬러 = 맞바람 · 배터리 {DRAIN_MULTIPLIER.head}배</span><span className="is-wind">바람을 가로질러 = 옆바람 · 조금 더</span><span className="is-tail">바람을 따라 = 뒷바람 · 덜 닳음</span>
           </div>
+          <p className="flow-goal">지도 위 화살표는 드론의 이동 방향이야. 파란 실선은 촬영 경로, 청록 점선은 이륙장으로 돌아오는 길이야. 바람은 지도 위쪽 안내에서 촬영점 번호별로 확인해.</p>
           <p className="flow-goal"><strong>도장</strong> 배터리 {PRECISION_BATTERY}% 이상 남기고 3컷 모두 정중앙이면 정밀 비행 도장.</p>
         </div>
       }
     >
       <div className={`drone-v4 is-${phase}`}>
         <div className="v4-card drone-v4__map">
-          <PhaserStage scene={scene} ariaLabel="푸른솔 숲 위 비행 지도. 바람 구간 3곳과 촬영 목표 3곳이 있고, 점을 놓아 경로를 만든다." />
+          <div className="drone-v4__map-key">
+            <div className="drone-v4__route-key" aria-label="비행 경로 안내">
+              <span><i aria-hidden="true" />이동</span>
+              <span className="is-return"><i aria-hidden="true" />자동 복귀</span>
+            </div>
+            <div className="drone-v4__wind-key" aria-label="촬영점별 바람 방향">
+              <strong>바람</strong>
+              {zones.map((zone, index) => {
+                const arrow = zone.wind.x < 0 ? '←' : zone.wind.y < 0 ? '↑' : '↓';
+                const direction = zone.wind.x < 0 ? '왼쪽' : zone.wind.y < 0 ? '위쪽' : '아래쪽';
+                return <span key={zone.id} aria-label={`${index + 1} ${DRONE_TARGETS[index]!.name} 바람 ${direction}`}><b>{index + 1}</b><span aria-hidden="true">{arrow}</span></span>;
+              })}
+            </div>
+          </div>
+          <PhaserStage scene={scene} ariaLabel="푸른솔 숲 위 비행 지도. 이륙장에서 1 벌목지, 2 막힌 물길, 3 공사장 순으로 점을 놓아 경로를 만든다. 파란 실선은 이동, 청록 점선은 이륙장 복귀 방향이다." />
           {telemetry.replayRemaining !== null && telemetry.replayRemaining > 0 && <div className="replay-badge" role="status">다시 보기 · {telemetry.replayRemaining.toFixed(1)}초</div>}
           {phase === 'plan' && waypoints.length > 0 && (
             <div className="drone-v4__tools">
@@ -509,13 +560,8 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
             </div>
           )}
           {phase === 'flight' && (
-            <>
-              <div className="direction-pad drone-v4__pad" aria-label="드론 미세 조종">
-                <button type="button" aria-label="드론을 위로 조금 이동" onClick={() => scene.nudge(0, -.035)}><span aria-hidden="true">↑</span><strong>위</strong></button>
-                <button type="button" aria-label="드론을 왼쪽으로 조금 이동" onClick={() => scene.nudge(-.035, 0)}><span aria-hidden="true">←</span><strong>왼쪽</strong></button>
-                <button type="button" aria-label="드론을 아래로 조금 이동" onClick={() => scene.nudge(0, .035)}><span aria-hidden="true">↓</span><strong>아래</strong></button>
-                <button type="button" aria-label="드론을 오른쪽으로 조금 이동" onClick={() => scene.nudge(.035, 0)}><span aria-hidden="true">→</span><strong>오른쪽</strong></button>
-              </div>
+            <div className="drone-v4__flight-controls" aria-label="드론 비행 조작">
+              <p className="drone-v4__flight-status" role="status">{telemetry.destination}</p>
               {telemetry.recTarget && !telemetry.returning && (
                 <span className="drone-v4__tap" aria-hidden="true">
                   <span className="drone-v4__tap-pill">{telemetry.recCenter ? '한가운데! 지금 눌러' : '원 안이야, REC 눌러'}</span>
@@ -525,7 +571,7 @@ export default function Page04Drone({ onNavigate }: { onNavigate: (page: PageNum
               <button className={`record-button drone-v4__rec${telemetry.recTarget ? ' is-window is-next-action' : ''}${telemetry.recCenter ? ' is-center' : ''}`} onClick={tapRec} disabled={telemetry.returning}>
                 <span />{telemetry.recTarget ? `REC · ${targetName(telemetry.recTarget)}` : 'REC'}
               </button>
-            </>
+            </div>
           )}
         </div>
         {phase === 'review' && result && (

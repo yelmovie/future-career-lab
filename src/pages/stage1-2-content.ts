@@ -11,9 +11,10 @@ export const DRONE_START: DronePoint = { x: .08, y: .5 };
 export const MAX_WAYPOINTS = 4;
 /** 촬영 목표 3곳. 원 안에 들어오면 REC 창이 열린다. */
 export const DRONE_TARGETS: readonly { id: PhotoId; name: string; x: number; y: number }[] = [
-  { id: 'logging', name: '벌목지', x: .3, y: .28 },
-  { id: 'stream', name: '막힌 물길', x: .6, y: .72 },
-  { id: 'construction', name: '공사장', x: .82, y: .3 },
+  // 좌표는 지도 그림(v5 drone-map-wide) 기준 비율 — 벌목지·통나무 막힌 개울·공사장 그림 위. P9 지도 핀과 같은 자리.
+  { id: 'logging', name: '벌목지', x: .36, y: .40 },
+  { id: 'stream', name: '막힌 물길', x: .61, y: .66 },
+  { id: 'construction', name: '공사장', x: .80, y: .38 },
 ];
 export const REC_RADIUS = .12;
 export const REC_CENTER_RATIO = .45;
@@ -37,8 +38,8 @@ export const WIND_LABEL: Record<WindRelation, string> = { head: '맞바람', sid
 /** 맞바람은 2.4배, 뒷바람은 오히려 덜 든다. 균형은 simulateFlight 테스트가 지킨다. */
 export const DRAIN_MULTIPLIER: Record<WindRelation, number> = { head: 2.4, side: 1.3, tail: .6, calm: 1 };
 /** 균형: 원 1·2·3 직행은 3번에 ≥29% 로 도착해 사진은 다 찍지만 잔량 9~26% 라 정밀 도장(≥30%)은 못 받고, 바람을 읽은 경로만 ≥48% 로 도장을 받는다. */
-export const BASE_DRAIN_PER_SECOND = 3.2;
-export const NUDGE_DRAIN = .3;
+/** 목표 좌표가 그림 위 실제 자리(더 가까움)로 옮겨져 3.2 → 3.8. 1-2-3 직진은 10~28% 남고, 바람 읽은 경로는 40% 이상. */
+export const BASE_DRAIN_PER_SECOND = 3.8;
 export const DRONE_SPEED = .17;
 export const REC_DWELL_MS = 900;
 
@@ -174,7 +175,7 @@ export function sureBlocker(cardId: string, found: readonly DetailId[], links: r
 }
 
 export const HYPOTHESES: readonly { id: CauseId; label: string; note: string }[] = [
-  { id: 'logging', label: '벌목 때문', note: '열매 나무가 잘려 먹이가 없어 더 깊은 숲으로 갔을 거야.' },
-  { id: 'noise', label: '소음 때문', note: '공사 소리에 놀라 조용한 곳으로 갔을 거야.' },
-  { id: 'water', label: '물 때문', note: '물길이 막혀 물 있는 곳을 찾아갔을 거야.' },
+  { id: 'logging', label: '벌목 때문', note: '잘린 나무를 보고 그렇게 생각했구나. 새들이 먹이를 찾아 떠났을 수도 있겠네.' },
+  { id: 'noise', label: '소음 때문', note: '공사 소리에 놀랐을 거라고 생각했구나. 조용한 곳을 찾아 떠났을 수도 있겠네.' },
+  { id: 'water', label: '물 때문', note: '막힌 물길을 보고 그렇게 생각했구나. 새들이 물을 찾아 떠났을 수도 있겠네.' },
 ];

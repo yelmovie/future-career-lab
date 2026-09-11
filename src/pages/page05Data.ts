@@ -3,7 +3,6 @@ import { v2Asset, v5Asset } from '../shared/assets';
 export type BirdId = 'green' | 'red';
 export type CareZoneId = 'eyes' | 'feathers' | 'posture' | 'water' | 'behavior';
 export type TreatmentId = 'water' | 'shelter' | 'puzzle' | 'feather';
-export type SoundVerdict = 'normal' | 'abnormal';
 
 export interface CareStatement {
   id: string;
@@ -33,11 +32,6 @@ export interface Bird {
   issueLabel: string;
   sickImage: string;
   recoveredImage: string;
-  cue: 'parrotCall' | 'parrotAlarm';
-  /** 소리 파일이 없어도 답할 수 있게 하는 글 설명 */
-  soundHint: string;
-  soundAnswer: SoundVerdict;
-  soundFeedback: Record<SoundVerdict, string>;
   correctTreatment: TreatmentId;
   /** 보조 처치: 틀리진 않지만 먼저 할 일이 있어 효과가 절반 */
   assistTreatment?: TreatmentId;
@@ -112,13 +106,6 @@ export const BIRDS: Bird[] = [
     issueLabel: '스트레스로 보여',
     sickImage: v2Asset('parrot-sick-green'),
     recoveredImage: v5Asset('parrot-well-green'),
-    cue: 'parrotAlarm',
-    soundHint: '짧고 날카로운 소리를 쉬지 않고 반복해. 파형이 뾰족하고 촘촘해.',
-    soundAnswer: 'abnormal',
-    soundFeedback: {
-      abnormal: '맞아. 날카롭게 반복하는 울음은 불안하다는 신호야.',
-      normal: '파형을 다시 봐. 뾰족한 소리가 쉬지 않고 이어지는데, 평소 울음일까?',
-    },
     correctTreatment: 'shelter',
     assistTreatment: 'puzzle',
     assistFeedback: '좋은 생각이야. 그런데 먼저 조용히 숨을 곳이 필요해. 퍼즐은 그 다음이야.',
@@ -163,13 +150,6 @@ export const BIRDS: Bird[] = [
     issueLabel: '탈수로 보여',
     sickImage: v2Asset('parrot-sick-red'),
     recoveredImage: v5Asset('parrot-well-red'),
-    cue: 'parrotCall',
-    soundHint: '낮고 부드러운 소리를 가끔 한 번씩 내. 파형이 둥글고 드문드문해.',
-    soundAnswer: 'normal',
-    soundFeedback: {
-      normal: '맞아. 소리는 평소랑 같아. 이 아이 문제는 소리가 아니라 다른 데 있어.',
-      abnormal: '파형을 다시 봐. 둥글고 느린 소리는 건강한 앵무 울음이야. 아픈 데가 꼭 소리로 나타날까?',
-    },
     correctTreatment: 'water',
     wrongTreatmentFeedback: {
       shelter: '은신처에 들어갔는데 그대로 축 늘어져 있어. 몸에 부족한 게 뭘까?',

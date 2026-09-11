@@ -18,7 +18,7 @@ const fullSave = {
   logs: [], pageData: {}, dailyMissionId: 'daily-1', certificateUnlocked: true, rewardGranted: [],
   audio: { bgmVolume: 0, sfxVolume: 0, muted: true },
   artifacts: { photos: [{ id: 'logging', quality: 'center' }, { id: 'stream', quality: 'center' }, { id: 'construction', quality: 'edge' }], hypothesis: 'logging', careLog: [{ bird: 'green', issue: 'stress', treatment: 'hideout' }, { bird: 'red', issue: 'dehydration', treatment: 'water' }], habitatStars: 2, traces: [], graphs: [{ variable: 'logging', verdict: 'main' }, { variable: 'noise', verdict: 'sub' }, { variable: 'water', verdict: 'none' }], clip: { trust: 90, corrections: 0 }, allianceTurns: null },
-  prediction: 'drone', abilityStatements: [], updatedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 const server = await createServer({ root: process.cwd(), server: { host: '127.0.0.1', port: 4176, strictPort: true }, logLevel: 'error' });

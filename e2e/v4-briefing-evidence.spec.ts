@@ -12,7 +12,7 @@ const baseSave = {
     photos: [{ id: 'logging', quality: 'center' }, { id: 'stream', quality: 'center' }, { id: 'construction', quality: 'center' }],
     hypothesis: null, careLog: [], habitatStars: 0, traces: [], graphs: [], clip: null, allianceTurns: null,
   },
-  prediction: null, abilityStatements: [], updatedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 /** 페이지를 먼저 연 뒤 저장값을 심고 새로고침한다. 순서를 바꾸면 실행 중인 앱이 기본 저장값으로 덮어쓴다. */
@@ -24,7 +24,7 @@ async function seed(page: Page, pageNumber: number, save: object) {
 
 test.use({ viewport: { width: 1280, height: 720 } });
 
-test('briefing: three steps, then the drone page', async ({ page }) => {
+test('briefing: two steps, then the drone page', async ({ page }) => {
   await seed(page, 2, baseSave);
   const next = page.locator('.v4-next');
 
@@ -51,11 +51,8 @@ test('briefing: three steps, then the drone page', async ({ page }) => {
   const progress = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}').pageData.p2Progress, SAVE_KEY);
   expect(progress).toEqual({ line: 2, met: ['drone', 'care', 'ecology', 'broadcast'] });
   await page.reload();
-  await expect(page.getByRole('heading', { name: '제일 잘 맞을 것 같은 직업을 골라' })).toBeVisible();
-
-  // 3 명찰: 이름 + 직업 아이콘
-  await expect(page.getByRole('heading', { name: '제일 잘 맞을 것 같은 직업을 골라' })).toBeVisible();
-  await page.getByRole('group', { name: '제일 잘 맞을 것 같은 직업' }).getByRole('button').first().click();
+  await expect(page.getByRole('heading', { name: '직업 캐릭터를 하나씩 눌러 봐' })).toBeVisible();
+  await expect(page.getByText('제일 잘 맞을 것 같은 직업을 골라')).toHaveCount(0);
   await expect(next).toHaveText(/출발/);
   await next.click();
   await expect(page.getByRole('heading', { level: 1, name: '드론 정찰 비행' })).toBeVisible();
@@ -103,8 +100,17 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   await expect(page.getByRole('heading', { name: '지구와 젤리 주변, 새가 왜 줄었을까?' })).toBeVisible();
   await expect(page.locator('.p4-found li')).toHaveText(['톱 자국 그루터기', '물길 막은 자재', '소음 작업 표지']);
   await page.getByRole('group', { name: '가설 고르기' }).getByRole('button', { name: /소음 때문/ }).click();
+  // 카드를 골라도 바로 끝나지 않는다 — 해설 화면을 읽고 배지를 받는다
+  await expect(page.locator('.v4-done')).toHaveCount(0);
+  await expect(page.locator('.v4-bubble')).toContainText('공사 소리에 놀랐을 거라고 생각했구나.');
+  await next.click();
+  await expect(page.getByRole('heading', { name: '흔적을 모아 이유를 짐작했어' })).toBeVisible();
+  await expect(page.locator('.p4-explain__answer strong')).toHaveText('소음 때문');
+  await expect(next).toHaveText(/배지 받기/);
+  await next.click();
   await expect(page.locator('.v4-done')).toContainText('드론 현장가 배지 획득!');
-  await expect(page.locator('.v4-done')).toContainText('조용한 깊은 숲에서 지구와 젤리를 찾았대!');
+  await expect(page.locator('.v4-done')).toContainText('현장 사진을 단서로');
+  await expect(page.locator('.v4-done')).toContainText('새가 떠난 이유는 생태 실험에서 확인');
   await expect(next).toHaveText(/지구와 젤리 살피러/);
 
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);

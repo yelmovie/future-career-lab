@@ -1,27 +1,119 @@
-/* 게임 페이지 9 · 푸른솔 숲 살리기 작전 (v4) — 작전 카드 1장 + 배지 슬롯 2개 → 전·후 결과 */
-.p9-stage { position: relative; display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; padding: 14px; }
-.p9-mission { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; padding: 12px 14px; border: 3px solid var(--color-accent); border-radius: 22px; background: var(--glass-2); backdrop-filter: var(--glass-blur); text-align: center; }
-.p9-mission.is-ok { border-color: var(--color-secondary); background: var(--color-secondary-soft); animation: p9-pop .5s ease; }
-.p9-mission h3 { margin: 0; color: var(--color-text-main); font-family: var(--font-display); font-size: 26px; font-weight: 400; line-height: 1.2; }
-.p9-problem { margin: 0; color: var(--color-text-main); font-size: 17px; font-weight: 700; line-height: 1.4; }
-.p9-scene { position: relative; min-height: 0; overflow: hidden; border-radius: 16px; background: var(--color-bg); }
-.p9-scene img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.p9-scene > span { position: absolute; left: 10px; top: 10px; padding: 4px 12px; border-radius: 999px; background: rgb(255 255 255 / 92%); color: var(--ink); font-size: 17px; font-weight: 900; }
-.p9-scene--after > span { background: var(--color-secondary); color: #fff; }
-/* v6 그림이 없을 때 "달라진 느낌" 색 — P7 실험 화면과 같은 규칙 */
-.p9-scene--after::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; }
-.p9-scene--after[data-after='trees']::after { background: rgb(80 200 90 / 55%); }
-.p9-scene--after[data-after='water']::after { background: rgb(90 210 240 / 50%); }
-.p9-scene--after[data-after='quiet']::after { background: rgb(120 170 255 / 45%); }
-.p9-hints { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.p9-hints li { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 6px 12px; border: 2px solid var(--color-accent-soft); border-radius: 14px; background: var(--color-accent-soft); color: #5a3d00; font-size: 17px; font-weight: 850; line-height: 1.3; word-break: keep-all; }
-.p9-hints li::before { content: ''; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--color-accent-deep); }
-.p9-stage .v4-slotboard { padding: 0; }
-.p9-stage .v4-slot { min-height: 150px; }
-.p9-stage .v4-chip { min-height: 68px; font-size: 18px; }
-.p9-stage .v4-chip img { width: 56px; height: 56px; }
-@keyframes p9-pop { 30% { transform: scale(1.04); } }
+/* 게임 페이지 9 · 푸른솔 숲 살리기 릴레이 (v5) — 지도 위 위험 지점 3곳을 네 직업이 차례로 고친다 */
 
+/* 지도 + 핀 — 무대가 1280×720 고정이라 지도는 px 로 잡아 핀 % 좌표가 항상 맞게 한다 */
+.p9-map { position: relative; flex: none; border-radius: 18px; filter: drop-shadow(0 12px 16px rgb(30 60 90 / 22%)); }
+.p9-map--side { width: 720px; height: 267px; }
+.p9-map--main { width: 930px; max-width: 100%; height: 100%; max-height: 345px; }
+.p9-map__img { display: block; width: 100%; height: 100%; object-fit: fill; border-radius: 18px; }
+.p9-pin { position: absolute; z-index: 2; width: 0; height: 0; }
+.p9-pin__hit { position: absolute; left: 0; top: 0; display: grid; grid-template-rows: auto auto; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; transform: translate(-50%, -50%); cursor: default; }
+button.p9-pin__hit { cursor: pointer; }
+.p9-pin__mark { display: grid; place-items: center; width: 60px; height: 60px; border: 4px solid #fff; border-radius: 50%; background: var(--color-coral); color: #fff; font-size: 26px; font-weight: 900; box-shadow: 0 0 0 0 rgb(255 111 97 / 60%); animation: p9-ping 1.6s ease-out infinite; }
+.p9-pin__mark svg { width: 34px; height: 34px; stroke: currentColor; stroke-width: 3.5; fill: none; }
+.p9-pin__name { padding: 3px 12px; border-radius: 999px; background: rgb(255 255 255 / 92%); color: var(--ink); font-size: 20px; font-weight: 900; white-space: nowrap; box-shadow: 0 2px 6px rgb(30 60 90 / 20%); }
+.p9-pin--current .p9-pin__mark { background: var(--color-accent); color: #3a2a00; box-shadow: 0 0 0 0 rgb(255 197 61 / 70%); }
+.p9-pin--fixed .p9-pin__mark { background: var(--color-secondary); animation: none; box-shadow: 0 4px 10px rgb(33 153 104 / 40%); }
+.p9-pin--fixed .p9-pin__name { background: var(--color-secondary-edge); color: #fff; }
+.p9-pin.is-picked .p9-pin__mark { transform: scale(1.15); box-shadow: 0 0 0 8px rgb(61 139 255 / 45%); animation: none; }
+.p9-pin.is-picked .p9-pin__name { background: var(--color-primary); color: #fff; }
+button.p9-pin__hit:hover .p9-pin__mark { transform: scale(1.08); }
+@keyframes p9-ping { 0% { box-shadow: 0 0 0 0 rgb(255 111 97 / 60%); } 100% { box-shadow: 0 0 0 22px rgb(255 111 97 / 0%); } }
+.p9-pin--current .p9-pin__mark { animation-name: p9-ping-gold; }
+@keyframes p9-ping-gold { 0% { box-shadow: 0 0 0 0 rgb(255 197 61 / 75%); } 100% { box-shadow: 0 0 0 24px rgb(255 197 61 / 0%); } }
+.p9-bird { position: absolute; width: 48px; height: 48px; object-fit: contain; filter: drop-shadow(0 4px 6px rgb(30 60 90 / 30%)); animation: p9-land .6s cubic-bezier(.2, .9, .3, 1.3) both; pointer-events: none; }
+.p9-bird--0 { left: -66px; top: -58px; }
+.p9-bird--1 { left: 26px; top: -64px; animation-delay: .15s; }
+.p9-bird--free { width: 44px; height: 44px; }
+.p9-bird--free-0 { left: 12%; top: 22%; animation-delay: .3s; }
+.p9-bird--free-1 { left: 48%; top: 14%; animation-delay: .45s; }
+.p9-bird--free-2 { left: 24%; top: 62%; animation-delay: .6s; }
+.p9-bird--free-3 { left: 90%; top: 70%; animation-delay: .75s; }
+@keyframes p9-land { from { opacity: 0; translate: 0 -30px; scale: .6; } }
+
+/* 공통 유리 패널 — 글자는 카드 바닥이 아니라 이 위에 놓는다 */
+.p9-panel { min-height: 0; border: 2px solid var(--glass-line); border-radius: 20px; background: var(--glass-2); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-inset); }
+
+/* 회의(혼자 출동)·결과·엔딩: 지도 왼쪽 + 패널 오른쪽 */
+.p9-solo { display: grid; grid-template-columns: 720px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px; }
+.p9-solo__pick { height: 100%; }
+.p9-solo__pick .v4-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; }
+.p9-solo__pick .v4-choice { padding: 8px; }
+.p9-solo__pick .v4-choice strong { font-size: 21px; }
+.p9-solo__pick .v4-choice small { font-size: 16px; }
+.p9-solo__result { display: grid; justify-items: center; gap: 8px; height: 100%; padding: 12px 14px; text-align: center; }
+.p9-solo__result > img { width: 92px; height: 92px; object-fit: contain; }
+.p9-solo__result strong { color: var(--color-text-main); font-family: var(--font-display); font-size: 24px; font-weight: 400; line-height: 1.2; }
+.p9-solo__result ul { display: grid; gap: 6px; width: 100%; margin: 0; padding: 0; list-style: none; text-align: left; }
+.p9-solo__result li { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: 6px; min-height: 42px; padding: 4px 10px; border-radius: 12px; background: var(--color-coral-soft); color: #7a2d25; font-size: 17px; font-weight: 800; line-height: 1.3; word-break: keep-all; }
+.p9-solo__result li::before { content: '✕'; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-coral); color: #fff; font-size: 15px; font-weight: 900; }
+.p9-solo__result li.is-did { background: var(--color-secondary-soft); color: #14704b; }
+.p9-solo__result li.is-did::before { content: '✓'; background: var(--color-secondary); }
+.p9-solo__result p { margin: 0; padding: 6px 14px; border-radius: 999px; background: rgb(255 255 255 / 80%); color: var(--ink); font-size: 17px; font-weight: 900; }
+
+/* 작전 결과: 누가 뭘 했나 + 무슨 일이 생겼나 */
+.p9-result__copy { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; height: 100%; padding: 12px 14px; animation: p9-fade .5s ease both; }
+.p9-did { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.p9-did li { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 50px; padding: 4px 10px 4px 6px; border-radius: 14px; background: var(--color-secondary-soft); }
+.p9-did img { width: 44px; height: 44px; object-fit: contain; }
+.p9-did span { display: grid; line-height: 1.2; }
+.p9-did b { color: var(--color-text-sub); font-size: 15px; font-weight: 800; }
+.p9-did span { color: #14704b; font-size: 17px; font-weight: 900; }
+.p9-result__copy > strong { display: grid; place-items: center; padding: 6px 12px; border-radius: 14px; background: rgb(255 255 255 / 70%); color: var(--color-text-main); font-family: var(--font-display); font-size: 22px; font-weight: 400; line-height: 1.35; text-align: center; word-break: keep-all; }
+@keyframes p9-fade { from { opacity: 0; translate: 0 10px; } }
+
+/* 릴레이 턴: 중앙 단서 + 왼쪽 순서 띠 + 오른쪽 행동 */
+.p9-play { position: relative; display: grid; grid-template-columns: 250px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px; }
+.p9-play.is-ok .p9-turn { animation: p9-ok .7s ease; }
+@keyframes p9-ok { 30% { box-shadow: inset 0 0 0 6px var(--color-secondary); background: rgb(53 196 138 / 18%); } }
+.p9-clue { grid-column: 1 / -1; justify-self: center; display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 10px; width: min(920px, calc(100% - 40px)); min-height: 66px; padding: 9px 18px; border: 3px solid rgb(255 255 255 / 78%); border-radius: 20px; background: rgb(255 255 255 / 74%); backdrop-filter: blur(7px) saturate(1.1); color: var(--color-text-main); box-shadow: 0 8px 20px rgb(66 55 110 / 18%), inset 0 0 0 2px var(--color-accent-soft); }
+.p9-clue__label { padding: 4px 11px; border-radius: 999px; background: var(--color-accent); color: #493500; font-size: 16px; font-weight: 900; white-space: nowrap; }
+.p9-clue strong { padding-right: 10px; border-right: 2px solid var(--color-border-soft); font-family: var(--font-display); font-size: 21px; font-weight: 400; line-height: 1.2; white-space: nowrap; }
+.p9-clue p { min-height: 1.4em; margin: 0; font-size: 20px; font-weight: 850; line-height: 1.4; word-break: keep-all; }
+.p9-clue__cursor { display: inline-block; width: 3px; height: 1em; margin-left: 4px; vertical-align: -2px; border-radius: 2px; background: var(--color-primary); animation: p9-clue-blink .75s steps(1) infinite; }
+.p9-clue__cursor.is-done { animation-duration: 1.25s; }
+@keyframes p9-clue-blink { 50% { opacity: 0; } }
+.p9-relay { display: grid; min-height: 0; padding: 12px; border: 2px solid var(--glass-line); border-radius: 20px; background: var(--glass-2); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-inset); }
+.p9-relay ol { display: grid; grid-auto-rows: minmax(0, 1fr); gap: 6px; margin: 0; padding: 0; list-style: none; min-height: 0; }
+.p9-relay li { position: relative; display: grid; grid-template-columns: 46px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 0; padding: 4px 8px; border: 2px solid transparent; border-radius: 14px; background: rgb(255 255 255 / 55%); opacity: .6; transition: opacity .2s ease, transform .2s ease; }
+.p9-relay li img { width: 46px; height: 46px; object-fit: contain; }
+.p9-relay li span { display: grid; line-height: 1.15; }
+.p9-relay li b { color: var(--ink); font-size: 17px; font-weight: 900; }
+.p9-relay li small { color: var(--color-text-sub); font-size: 14px; font-weight: 700; }
+.p9-relay li.is-now { opacity: 1; border-color: var(--color-primary); background: var(--color-primary-soft); transform: scale(1.03); box-shadow: 0 4px 0 var(--color-primary-deep); }
+.p9-relay li.is-now::after { content: '지금'; position: absolute; right: -6px; top: -12px; padding: 2px 8px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 13px; font-weight: 900; }
+.p9-relay li.is-done { opacity: .85; border-color: var(--color-secondary); }
+.p9-relay__check { position: absolute; right: 6px; top: 50%; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-secondary); color: #fff; translate: 0 -50%; }
+.p9-relay__check svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 3; fill: none; }
+.p9-turn { display: grid; place-items: center; min-height: 0; border-radius: 20px; }
+.p9-turn > .v4-choices { width: 100%; padding: 6px; }
+.p9-turn .v4-choice__art--contain { padding: 8px; background: rgb(255 255 255 / 45%); }
+.p9-turn .v4-choice__art--contain img { inset: 8px; width: calc(100% - 16px); height: calc(100% - 16px); }
+.p9-turn .v4-choice strong { font-size: 22px; }
+.p9-turn .v4-choice small { font-size: 17px; }
+
+/* 방송 턴: 말 카드 3장 */
+.p9-says { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: 100%; height: 100%; min-height: 0; padding: 6px; }
+.p9-say { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; min-height: 0; padding: 16px 14px; border: 2px solid var(--glass-line); border-radius: 22px; background: var(--glass-2); backdrop-filter: var(--glass-blur); color: var(--ink); text-align: center; cursor: pointer; box-shadow: 0 5px 0 var(--color-border-soft); transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+.p9-say:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+.p9-say:active { transform: translateY(5px); box-shadow: 0 0 0 var(--color-border-soft); }
+.p9-say.is-selected { border-color: var(--color-primary); background: var(--color-primary-soft); box-shadow: 0 5px 0 var(--color-primary-deep); }
+.p9-say__art { position: relative; min-height: 0; overflow: hidden; border-radius: 16px; background: rgb(255 255 255 / 60%); }
+.p9-say__art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.p9-say__text { display: grid; place-items: center; min-height: 92px; font-size: 20px; font-weight: 800; line-height: 1.45; word-break: keep-all; }
+.p9-say__text > span { display: block; width: 100%; white-space: nowrap; }
+.p9-say__source { justify-self: center; padding: 4px 12px; border-radius: 999px; background: rgb(255 255 255 / 85%); color: var(--color-text-sub); font-size: 16px; font-weight: 800; }
+
+/* 엔딩 */
+.p9-ending { display: grid; grid-template-columns: 720px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px; }
+.p9-ending__copy { display: grid; justify-items: center; gap: 6px; height: 100%; padding: 10px 14px; text-align: center; animation: p9-fade .6s ease both; }
+.p9-ending__emblem { width: 104px; height: 104px; object-fit: contain; filter: drop-shadow(0 8px 10px rgb(40 60 90 / 22%)); }
+.p9-ending__copy strong { color: var(--color-text-main); font-family: var(--font-display); font-size: 26px; font-weight: 400; line-height: 1.2; }
+.p9-ending__copy p { margin: 0; color: var(--color-text-main); font-size: 20px; font-weight: 700; line-height: 1.4; word-break: keep-all; }
+.p9-team { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; margin: 6px 0 0; padding: 0; list-style: none; }
+.p9-team li { display: grid; justify-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px; background: var(--color-secondary-soft); color: #14704b; font-size: 20px; font-weight: 900; line-height: 1.2; text-align: center; word-break: keep-all; }
+.p9-team img { width: 56px; height: 56px; object-fit: contain; }
+
+/* 도움말 */
 .p9-help p { margin: 0 0 10px; font-size: 18px; line-height: 1.5; }
 .p9-help ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
 .p9-help li { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 8px; align-items: center; padding: 6px; border: 2px solid var(--color-border-soft); border-radius: 12px; }
@@ -29,23 +121,22 @@
 .p9-help li span { font-size: 17px; font-weight: 850; }
 .p9-help li small { color: var(--color-text-sub); font-size: 16px; }
 
-/* 결과: 전 → 후 + 누가 뭘 가져왔나 */
-.p9-result { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) auto; gap: 14px; padding: 14px; }
-.p9-result .p9-scene { animation: p9-fade .6s ease both; }
-.p9-result .p9-scene--after { animation-delay: .35s; }
-@keyframes p9-fade { from { opacity: 0; translate: 0 10px; } }
-.p9-result__copy { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; padding: 10px 18px; border-radius: 18px; background: var(--glass-3); }
-.p9-result__pair { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.p9-result__pair li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: var(--color-secondary-soft); color: var(--ink); font-size: 17px; font-weight: 850; }
-.p9-result__pair img { width: 36px; height: 36px; object-fit: contain; }
-.p9-result__copy strong { color: var(--color-text-main); font-family: var(--font-display); font-size: 25px; font-weight: 400; line-height: 1.35; }
+/* 작은 태블릿에서도 이야기·출처를 읽을 수 있는 실제 16px 하한. */
+.p9-solo__pick .v4-choice small, .p9-solo__result li, .p9-solo__result p,
+.p9-did b, .p9-did span, .p9-clue__label, .p9-relay li b, .p9-relay li small,
+.p9-turn .v4-choice small, .p9-say__source, .p9-help p, .p9-help li span, .p9-help li small { font-size: 20px; }
+.p9-solo__result > img { width: 64px; height: 64px; }
+.p9-solo__result { gap: 6px; }
+.p9-solo__result li::before { content: '→'; background: #e2d7bc; color: #604e2c; }
+.p9-solo__result li { background: #f6f0e1; color: #604e2c; }
+.p9-solo__result li.is-did { background: var(--color-secondary-soft); color: #14704b; }
+.p9-solo__result li.is-did::before { content: '✓'; background: var(--color-secondary-edge); color: white; }
+.p9-relay li.is-now::after { font-size: 20px; top: -16px; }
+.p9-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.p9-team li { grid-template-columns: 36px minmax(0, 1fr); align-items: center; text-align: left; min-height: 60px; }
+.p9-team img { width: 36px; height: 36px; }
+.p9-ending__emblem { width: 88px; height: 88px; }
 
-/* 엔딩 */
-.p9-ending { position: relative; display: grid; }
-.p9-ending__scene { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
-.p9-ending__copy { position: absolute; left: 24px; right: 24px; bottom: 20px; display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 20px; border: 2px solid var(--glass-line); border-radius: 22px; background: var(--glass-3); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow); animation: p9-fade .6s ease both; }
-.p9-ending__copy img { width: 96px; height: 96px; object-fit: contain; }
-.p9-ending__copy strong { display: block; color: var(--color-text-main); font-family: var(--font-display); font-size: 28px; font-weight: 400; line-height: 1.2; }
-.p9-ending__copy p { margin: 4px 0 0; color: var(--color-text-main); font-size: 19px; font-weight: 700; line-height: 1.4; }
-
-@media (prefers-reduced-motion: reduce) { .p9-mission.is-ok, .p9-result .p9-scene { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .p9-pin__mark, .p9-bird, .p9-play.is-ok .p9-turn, .p9-result__copy, .p9-ending__copy, .p9-clue__cursor { animation: none; }
+}

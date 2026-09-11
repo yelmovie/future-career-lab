@@ -1,26 +1,33 @@
-/* P6 새 정원 — v4 StepShell 안 무대. 3구역 드롭 → 예측 → 시험. */
+/* P6 새 정원 — v4 StepShell 안 무대. 휴식/활동 2구역 드롭 → 시험. */
 .p6-stage { display: grid; }
 .p6-stage > * { min-height: 0; }
+.p6-page .v4-bubble { white-space: pre-line; }
 
 /* 정원 바탕 (SlotBoard 의 board 자리에 절대 배치) */
 .p6-garden { position: absolute; inset: 0; border-radius: 20px; background: linear-gradient(180deg, var(--color-secondary-soft), var(--color-panel-cream)); opacity: .9; }
-.p6-page .v4-slot { isolation: isolate; overflow: hidden; background: #e9f6ed; }
-.p6-page .v4-slot[data-slot='path'] { border-color: var(--color-coral); }
-.p6-page .v4-slot[data-slot='path'] .v4-slot__label { color: var(--color-coral-edge); }
-.p6-page .v4-slot__scene { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .58; }
-.p6-page .v4-slot::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, rgb(255 255 255 / 28%), rgb(255 255 255 / 8%) 44%, rgb(245 250 240 / 32%)); pointer-events: none; }
-.p6-page .v4-slot.is-ready { box-shadow: inset 0 0 0 4px rgb(44 142 108 / 32%); }
+.p6-page .v4-slot { isolation: isolate; overflow: hidden; background: transparent; backdrop-filter: none; }
+.p6-page .v4-slot__scene { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+.p6-page .v4-slot::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, rgb(6 28 20 / 5%), transparent 38%, rgb(6 28 20 / 4%)); pointer-events: none; }
+.p6-page .v4-slot.is-ready { border-color: var(--color-primary); box-shadow: inset 0 0 0 4px rgb(45 112 218 / 35%); }
+.p6-page .v4-slot.is-over { border-color: var(--color-primary-deep); box-shadow: inset 0 0 0 6px var(--color-primary), inset 0 0 0 10px rgb(255 255 255 / 88%); }
+.p6-page .v4-slot.is-over::after { background: rgb(45 112 218 / 12%); }
+.p6-page .v4-slot.is-over .v4-slot__label { background: var(--color-primary-deep); color: #fff; }
+.p6-page .v4-slotboard.is-dragging .v4-slot.is-full { border-color: var(--color-border-soft); box-shadow: none; }
+.p6-page .v4-slotboard.is-dragging .v4-slot.is-full::after { background: rgb(240 244 246 / 22%); }
+.p6-page .v4-slotboard.is-dragging .v4-slot.is-full .v4-slot__hint { background: #edf1f5; color: var(--color-text-sub); }
 .p6-page .v4-slot__label { justify-self: center; padding: 5px 12px; border: 2px solid rgb(255 255 255 / 92%); border-radius: 999px; background: var(--glass-3); box-shadow: 0 3px 10px rgb(34 62 48 / 16%); }
 .p6-page .v4-slot__hint { justify-self: center; padding: 4px 10px; border-radius: 999px; background: var(--glass-2); color: var(--color-text-main); font-weight: 800; }
 .p6-page .v4-chip img { width: 60px; height: 60px; }
+.p6-page .v4-pool { background: rgb(255 255 255 / 94%); }
+.p6-page .v4-pool.is-return-target { background: var(--color-secondary-soft); }
+.p6-page .v4-pool .v4-chip { min-height: 76px; }
 
 /* 시험 */
 .p6-test { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; height: 100%; padding: 14px; }
-.p6-garden--test { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px; opacity: 1; inset: auto; min-height: 0; overflow: hidden; }
-.p6-zone { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 6px; padding: 10px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: #e9f6ed; text-align: center; }
-.p6-zone[data-slot='path'] { border-color: var(--color-coral); }
-.p6-zone__scene { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .62; }
-.p6-zone::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, rgb(255 255 255 / 26%), rgb(255 255 255 / 4%) 45%, rgb(245 250 240 / 24%)); }
+.p6-garden--test { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 12px; opacity: 1; inset: auto; min-height: 0; overflow: hidden; }
+.p6-zone { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 6px; padding: 10px; border: 3px solid var(--color-border-soft); border-radius: 18px; background: transparent; text-align: center; }
+.p6-zone__scene { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+.p6-zone::after { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, rgb(6 28 20 / 6%), transparent 40%, rgb(6 28 20 / 4%)); }
 .p6-zone strong { justify-self: center; padding: 5px 10px; border: 2px solid #fff; border-radius: 999px; background: var(--glass-3); box-shadow: 0 3px 10px rgb(34 62 48 / 16%); font-family: var(--font-display); font-size: 20px; font-weight: 400; color: var(--color-text-main); }
 .p6-zone__items { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 8px; }
 .p6-zone__items img { width: 90px; height: 90px; object-fit: contain; filter: drop-shadow(0 6px 8px rgb(40 60 90 / 20%)); }
@@ -42,3 +49,15 @@
 @media (prefers-reduced-motion: reduce) {
   .p6-fly { transition: none; animation: none; }
 }
+
+/* 놓은 물건이 공간에 자리 잡고, 결과에서도 같은 배치를 볼 수 있게 한다. */
+.p6-page .v4-slot__hint { background: #fff; font-size: 20px; }
+.p6-page .v4-slot__chips { align-content: end; padding-bottom: 18px; }
+.p6-page .v4-chip.is-placed { display: grid; gap: 2px; justify-items: center; min-width: 124px; padding: 6px; border: 2px solid rgb(255 255 255 / 92%); background: rgb(255 255 255 / 94%); box-shadow: 0 5px 12px rgb(29 55 36 / 16%); font-size: 20px; }
+.p6-page .v4-chip.is-placed img { width: 68px; height: 68px; }
+.p6-page .v4-chip.is-placed.is-held { border-color: var(--color-primary); background: var(--color-primary-soft); box-shadow: inset 0 0 0 2px var(--color-primary); }
+.p6-page .v4-chip.is-placed.is-dragging { opacity: .32; border-style: dashed; box-shadow: none; }
+.p6-result { padding: 14px; background: #fff; border-width: 2px; }
+.p6-checks li { font-size: 20px; line-height: 1.35; }
+.p6-help { font-size: 20px; line-height: 1.55; }
+.p6-help p { margin: 0 0 14px; }

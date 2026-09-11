@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { TRAIT_KEYS } from '../shared/constants';
-import type { Artifacts, AudioSettings, GameSave, JobId, LogInput, PageNumber } from '../shared/types';
+import type { Artifacts, AudioSettings, GameSave, LogInput, PageNumber } from '../shared/types';
 import { createDefaultSave } from './defaultSave';
-import { loadSave, persistSave, type LoadResult } from './storage';
+import { clearRecoverySave, loadSave, persistSave, type LoadResult } from './storage';
 import { deriveStageCompletion } from './progress';
 import { isTeacherPassword, loadTeacherPreview, persistTeacherPreview } from './teacherAccess';
 
@@ -25,8 +25,6 @@ interface GameContextValue {
   grantReward: (reward: string) => void;
   setAudio: (settings: Partial<AudioSettings>) => void;
   setArtifacts: (patch: Partial<Artifacts>) => void;
-  setPrediction: (job: JobId | null) => void;
-  setAbilityStatements: (statements: string[]) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -48,6 +46,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startNew = useCallback(() => {
+    clearRecoverySave();
     const fresh = createDefaultSave();
     setSave(fresh);
     setHadSave(true);
@@ -123,8 +122,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ...current,
     artifacts: { ...current.artifacts, ...patch },
   })), [update]);
-  const setPrediction = useCallback((prediction: JobId | null) => update((current) => ({ ...current, prediction })), [update]);
-  const setAbilityStatements = useCallback((abilityStatements: string[]) => update((current) => ({ ...current, abilityStatements })), [update]);
 
   const value = useMemo<GameContextValue>(() => ({
     save,
@@ -145,9 +142,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     grantReward: (reward) => addUnique('rewardGranted', reward),
     setAudio,
     setArtifacts,
-    setPrediction,
-    setAbilityStatements,
-  }), [addUnique, setArtifacts, setPrediction, setAbilityStatements, completePage, hadSave, initial.issue, lockTeacherMode, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew, teacherMode, unlockTeacherMode]);
+  }), [addUnique, setArtifacts, completePage, hadSave, initial.issue, lockTeacherMode, logEvent, save, saveFailed, setAudio, setLastPage, setPageData, setPlayerName, startNew, teacherMode, unlockTeacherMode]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

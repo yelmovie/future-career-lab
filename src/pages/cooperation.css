@@ -1,0 +1,163 @@
+/* 스테이지 5: 1280×720 고정 무대 안에서 지도, 활동, 안내의 행을 분리한다. */
+.p9-coop .v4-bubble { white-space: pre-line; }
+.p9-coop .v4-instruction { font-size: 25px; }
+.p9-coop .v4-status { font-size: 20px; }
+.p9-coop .v4-next { min-width: 240px; padding-inline: 20px; }
+
+.coop-welcome,
+.coop-hub,
+.coop-work,
+.coop-result,
+.coop-ending {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 2px solid #cadfd1;
+  border-radius: 24px;
+  background: #f7fbf5;
+  color: var(--color-text-main);
+}
+
+.coop-welcome h2,
+.coop-hub h2,
+.coop-result h2,
+.coop-ending h2 { margin: 0; color: #205c43; font-family: var(--font-display); font-size: 29px; font-weight: 400; line-height: 1.2; }
+.coop-welcome p,
+.coop-hub p,
+.coop-result p,
+.coop-ending p { margin: 0; font-size: 22px; line-height: 1.35; }
+
+/* 시작: 숲의 전체 모습과 실제 협업 인물을 함께 소개한다. */
+.coop-welcome { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr); align-items: center; gap: 22px; padding: 18px 22px; }
+.coop-briefing { display: grid; grid-template-rows: auto auto minmax(0, 1fr); align-content: center; gap: 12px; min-width: 0; min-height: 0; }
+.coop-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+.coop-team-grid article { display: grid; grid-template-columns: 58px minmax(0, 1fr); align-content: center; align-items: center; column-gap: 8px; row-gap: 3px; min-width: 0; min-height: 108px; padding: 8px; border: 1px solid #d2e2d8; border-radius: 14px; background: #fff; }
+.coop-team-grid article img { grid-row: 1 / span 2; width: 58px; height: 84px; object-fit: contain; object-position: center bottom; }
+.coop-team-grid article strong { color: #205c43; font-size: 21px; line-height: 1.2; }
+.coop-team-grid article p { color: var(--color-text-sub); font-size: 20px; line-height: 1.25; }
+
+/* 지도와 핀의 기준 사각형은 원본 이미지의 비율을 유지한다. */
+.coop-map { position: relative; justify-self: center; align-self: center; width: auto; height: 100%; max-width: 100%; min-height: 0; aspect-ratio: 1536 / 570; border-radius: 18px; background: #e4f0df; }
+.coop-map__image { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+.coop-welcome .coop-map { width: 100%; height: auto; }
+.coop-map__pin { position: absolute; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 120px; min-height: 60px; padding: 7px 12px; border: 3px solid #fff; border-radius: 16px; background: #fff7df; color: #55401a; box-shadow: 0 3px 0 #94764d; font-size: 21px; font-weight: 900; line-height: 1.2; transform: translate(-50%, -50%); cursor: pointer; }
+.coop-map__mark { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #f4bf41; color: #45340f; }
+.coop-map__mark svg { width: 22px; height: 22px; stroke-width: 3; }
+.coop-map__label { white-space: nowrap; }
+.coop-map__pin:hover:not(:disabled) { border-color: var(--color-primary); }
+.coop-map__pin:focus-visible { outline: 4px solid var(--color-primary-deep); outline-offset: 3px; }
+.coop-map__pin.is-done { border-color: #fff; background: #e3f8ea; color: #176044; box-shadow: 0 3px 0 #3b7d58; }
+.coop-map__pin.is-done .coop-map__mark { background: #187b53; color: #fff; }
+.coop-map__pin:disabled { cursor: default; }
+.coop-hub { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; justify-items: center; gap: 12px; padding: 16px 20px; }
+.coop-hub > header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: 100%; }
+.coop-hub > p { text-align: center; }
+.coop-hub > .coop-map { max-height: 100%; }
+
+/* 작업: 인수인계 한 줄, 활동, 팀 안내를 별도의 고정 영역에 둔다. */
+.coop-work { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; padding: 12px 16px 16px; }
+.coop-handoff { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 2px; min-height: 64px; padding: 6px 12px; border-left: 5px solid #36845d; border-radius: 12px; background: #e7f3e9; }
+.coop-handoff > img { width: 54px; height: 58px; object-fit: contain; object-position: center bottom; }
+.coop-handoff strong { color: #205c43; font-size: 22px; line-height: 1.2; }
+.coop-handoff p { margin: 0; font-size: 22px; line-height: 1.3; }
+.coop-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; min-height: 0; }
+.coop-workspace > * { min-width: 0; min-height: 0; }
+.coop-work-notes { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 0; padding: 8px; border: 1px solid #d2e2d8; border-radius: 16px; background: #fff; }
+.coop-work-notes h3 { margin: 0; color: #205c43; font-size: 23px; line-height: 1.2; }
+.coop-work-notes > p { margin: 0; font-size: 21px; line-height: 1.3; }
+.coop-team-link { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.coop-team-link ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.coop-team-link li { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 2px; min-width: 0; }
+.coop-team-link li img { width: 44px; height: 64px; object-fit: contain; object-position: center bottom; }
+.coop-team-link li strong { color: #205c43; font-size: 20px; line-height: 1.2; }
+.coop-team-link li p { margin: 0; font-size: 20px; line-height: 1.25; }
+.coop-work-notes .coop-team-link { gap: 6px; }
+.coop-work-notes .coop-team-link li { row-gap: 0; }
+
+/* 공통 활동 무대. 장면이 줄어들어도 도구와 힌트의 높이는 유지한다. */
+.coop-activity { display: grid; gap: 10px; height: 100%; min-height: 0; }
+.coop-scene { position: relative; min-height: 0; overflow: hidden; border: 2px solid #bed6c6; border-radius: 16px; background: #e7eee0; }
+.coop-scene__image { display: block; width: 100%; height: 100%; object-fit: cover; }
+.coop-activity-hint { margin: 0; padding: 6px 10px; border-radius: 10px; background: #fff; color: var(--color-text-main); font-size: 22px; font-weight: 800; line-height: 1.3; text-align: center; }
+.coop-plant { grid-template-rows: minmax(0, 1fr) 76px; }
+.coop-plant-site { position: absolute; display: grid; place-items: center; width: 106px; height: 106px; min-height: 106px; padding: 5px; border: 3px dashed #fff; border-radius: 50%; background: rgb(35 74 45 / 80%); color: #fff; font-size: 21px; font-weight: 850; line-height: 1.2; text-align: center; transform: translate(-50%, -50%); cursor: pointer; }
+.coop-plant-site img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 6px; border-radius: 50%; clip-path: circle(50%); background: #edf7ee; object-fit: contain; pointer-events: none; }
+.coop-plant-site.is-over { border-style: solid; border-color: #ffc53d; box-shadow: inset 0 0 0 5px #187b53; }
+.coop-plant-site.is-ready { border-style: solid; border-color: #ffc53d; box-shadow: inset 0 0 0 5px #187b53; }
+.coop-plant-site > span { font-size: 24px; line-height: 1.2; }
+.coop-plant-site small { display: block; font-size: 20px; line-height: 1.2; }
+.coop-plant-site.is-planted,
+.coop-plant-site:disabled { border-style: solid; border-color: #f5fff4; background: rgb(228 248 231 / 68%); cursor: default; }
+.coop-palette { display: flex; align-items: center; gap: 14px; min-height: 0; padding: 4px 10px; border: 1px solid #cbded1; border-radius: 14px; background: #fff; }
+.coop-sapling { display: flex; align-items: center; justify-content: center; gap: 10px; flex: none; min-height: 64px; padding: 4px 14px; border: 2px solid #7eb696; border-radius: 12px; background: #ecf8ef; color: #205c43; font-size: 22px; font-weight: 850; cursor: grab; touch-action: none; user-select: none; }
+.coop-sapling img { width: 54px; height: 54px; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+.coop-sapling:active { cursor: grabbing; }
+.coop-sapling.is-dragging { opacity: .4; }
+.coop-sapling:disabled { opacity: .6; cursor: default; }
+.coop-palette p { min-width: 0; margin: 0; color: #205c43; font-size: 21px; font-weight: 800; line-height: 1.25; }
+.coop-sapling-ghost { position: fixed; z-index: 120; height: auto; padding: 4px; border: 2px solid #fff; border-radius: 14px; background: rgb(243 255 245 / 94%); box-shadow: 0 6px 16px rgb(19 59 33 / 24%); object-fit: contain; transform: translateX(-50%); pointer-events: none; user-select: none; }
+.coop-sapling-ghost img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.coop-water { grid-template-rows: minmax(0, 1fr) auto; }
+.coop-water .coop-scene { touch-action: none; }
+.coop-trail { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.coop-trail polyline { fill: none; stroke: #7ce4ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 1px #236486); }
+.coop-water-target { position: absolute; left: 50%; top: 57%; display: grid; place-items: center; width: 164px; min-width: 94px; min-height: 94px; padding: 9px; border: 3px solid #fff; border-radius: 18px; background: rgb(29 95 128 / 88%); color: #fff; font-size: 22px; font-weight: 850; line-height: 1.2; transform: translate(-50%, -50%); cursor: pointer; }
+.coop-water-target:disabled { background: #187b53; cursor: default; }
+.coop-quiet { grid-template-rows: minmax(0, 1fr) 64px auto; }
+.coop-noise-slider { display: grid; grid-template-columns: auto minmax(0, 1fr) 96px; align-items: center; gap: 14px; min-height: 64px; padding: 0 12px; border: 1px solid #cbded1; border-radius: 12px; background: #fff; font-size: 22px; font-weight: 800; }
+.coop-noise-slider input { width: 100%; min-width: 0; height: 60px; margin: 0; accent-color: #187b53; cursor: pointer; }
+.coop-noise-slider output { padding: 5px; border-radius: 10px; background: #fff1cc; color: #654b13; font-size: 20px; line-height: 1.2; text-align: center; }
+.is-quiet .coop-noise-slider output { background: #e2f8ec; color: #176044; }
+.coop-sound-waves { position: absolute; top: 50%; left: 50%; display: flex; align-items: center; gap: 7px; height: 70px; transform: translate(-50%, -50%); pointer-events: none; }
+.coop-sound-waves i { width: 8px; height: 46px; border: 2px solid #fff; border-radius: 8px; background: #f5b844; }
+.coop-sound-waves i:nth-child(2n) { height: 64px; }
+.coop-sound-waves i:nth-child(3) { height: 80px; }
+.is-quiet .coop-sound-waves { opacity: 0; }
+.coop-quiet-status { position: absolute; left: 12px; top: 12px; padding: 6px 12px; border: 2px solid #fff; border-radius: 12px; background: #715019; color: #fff; font-size: 21px; font-weight: 850; line-height: 1.25; }
+.is-quiet .coop-quiet-status { background: #187b53; }
+.coop-listen { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 10px 16px; border: 2px solid #fff; border-radius: 14px; background: #176044; color: #fff; box-shadow: 0 3px 0 #10432f; font-size: 21px; font-weight: 800; line-height: 1.2; cursor: pointer; }
+.coop-listen svg { flex: none; width: 26px; height: 26px; }
+.coop-listen:hover:not(:disabled) { background: #124b35; }
+.coop-listen[aria-pressed="true"] { background: #fff; color: #176044; border-color: #187b53; }
+.coop-listen:focus-visible { outline: 4px solid #ffcb45; outline-offset: 3px; }
+.coop-listen:disabled { color: #485c55; background: #edf3ef; border-color: #cbded1; box-shadow: none; cursor: default; }
+
+/* 장소 완료: 회복된 현장과 각 팀원이 이어 한 일을 함께 보여 준다. */
+.coop-result { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: center; gap: 22px; padding: 18px; }
+.coop-result__image { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; border-radius: 16px; background: #e7f0e3; }
+.coop-result__copy { display: grid; align-content: center; gap: 14px; min-width: 0; min-height: 0; }
+.coop-result__copy > span,
+.coop-result__copy > small,
+.coop-result__copy > time { justify-self: start; padding: 5px 10px; border-radius: 999px; background: #e0f2e5; color: #205c43; font-size: 20px; font-weight: 800; }
+.coop-result__copy .coop-team-link { gap: 10px; padding-top: 10px; border-top: 1px solid #cadfd1; }
+.coop-result__copy .coop-team-link li { grid-template-columns: 52px minmax(0, 1fr); column-gap: 10px; }
+.coop-result__copy .coop-team-link li img { width: 52px; height: 64px; }
+
+/* 마지막 비교: 사진과 슬라이더, 팀 요약에 독립된 높이를 준다. */
+.coop-ending { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding: 14px 18px; }
+.coop-ending > header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.coop-comparison { display: grid; grid-template-rows: minmax(0, 1fr) 64px; gap: 6px; min-height: 0; }
+.coop-comparison__pictures { position: relative; justify-self: center; width: auto; max-width: 100%; height: 100%; min-height: 0; aspect-ratio: 1536 / 570; overflow: hidden; border: 2px solid #c2d7c7; border-radius: 14px; background: #dbead5; }
+.coop-comparison__pictures { touch-action: none; cursor: ew-resize; }
+.coop-comparison__pictures img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.coop-comparison__after { position: absolute; inset: 0; }
+.coop-comparison__label { position: absolute; top: 7px; padding: 4px 8px; border: 1px solid #fff; border-radius: 8px; background: #fff9e9; color: #55401a; font-size: 18px; font-weight: 850; line-height: 1.2; pointer-events: none; }
+.coop-comparison__label--before { left: 7px; }
+.coop-comparison__label--after { right: 7px; background: #176044; color: #fff; }
+.coop-comparison__divider { position: absolute; top: 0; bottom: 0; width: 4px; background: #fff; box-shadow: 0 0 0 1px rgb(32 92 67 / 40%); transform: translateX(-50%); pointer-events: none; }
+.coop-comparison__handle { position: absolute; top: 50%; display: grid; place-items: center; width: 48px; height: 48px; border: 3px solid #fff; border-radius: 50%; background: #187b53; color: #fff; font-size: 24px; transform: translate(-50%, -50%); pointer-events: none; }
+.coop-comparison > label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; min-height: 64px; padding-inline: 12px; border: 1px solid #cadfd1; border-radius: 12px; background: #fff; color: #205c43; font-size: 21px; font-weight: 850; }
+.coop-comparison input { display: block; width: 100%; min-width: 0; height: 60px; margin: 0; accent-color: #187b53; cursor: ew-resize; }
+.coop-team-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+.coop-team-summary > article,
+.coop-team-summary > div { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 2px; padding: 5px 10px; border: 1px solid #cadfd1; border-radius: 12px; background: #fff; }
+.coop-team-summary img { grid-row: 1 / span 2; width: 44px; height: 58px; object-fit: contain; object-position: center bottom; }
+.coop-team-summary strong { color: #205c43; font-size: 20px; line-height: 1.2; }
+.coop-team-summary p { font-size: 20px; line-height: 1.25; }
+.coop-help p { margin: 0; font-size: 22px; line-height: 1.4; }
+.coop-help p + p { margin-top: 12px; }
+.coop-back-map { min-width: 136px; min-height: 60px; padding: 6px 14px; border: 2px solid #b6cbbb; border-radius: 12px; background: #fff; color: #205c43; font-size: 21px; font-weight: 800; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .coop-activity *, .coop-comparison * { animation: none; transition: none; }
+}

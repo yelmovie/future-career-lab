@@ -46,8 +46,6 @@ export function createDefaultSave(): GameSave {
     rewardGranted: [],
     audio: { bgmVolume: 0.28, sfxVolume: 0.7, muted: false },
     artifacts: createDefaultArtifacts(),
-    prediction: null,
-    abilityStatements: [],
     updatedAt: new Date().toISOString(),
   };
 }

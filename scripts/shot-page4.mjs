@@ -15,7 +15,7 @@ const save = {
   logs: [], pageData: {}, dailyMissionId: 'daily-1', certificateUnlocked: false, rewardGranted: [],
   audio: { bgmVolume: 0, sfxVolume: 0, muted: true },
   artifacts: { photos: [{ id: 'logging', quality: 'center' }, { id: 'stream', quality: 'center' }, { id: 'construction', quality: 'center' }], hypothesis: null, careLog: [], habitatStars: 0, traces: [], graphs: [], clip: null, allianceTurns: null },
-  prediction: 'drone', abilityStatements: [], updatedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 // 세부 핫스팟 중심 (stage1-2-content.ts 의 rect 와 같아야 한다)
 const HOTSPOT = {

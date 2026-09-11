@@ -1,115 +1,159 @@
-/* global self, caches, fetch, URL */
-/* 교실 와이파이 대비 오프라인 캐시. 같은 출처의 정적 자원을 캐시 우선으로 제공하고,
-   HTML 은 네트워크 우선(새 배포 반영) → 실패 시 캐시. */
-const VERSION = 'fcl-v3-2026.09.05';
-const SHELL = [
-  '/', '/index.html', '/manifest.webmanifest', '/og.png',
-  '/assets/backgrounds/page-01.webp',
-  '/assets/page-01/logo.webp', '/assets/page-01/badge.webp',
-  '/assets/page-01/keyart.webp',
-  // 홈·브리핑 BGM 은 설치 때 통째로 보관한다(오프라인 첫 화면에서 소리가 끊기지 않게). 나머지 트랙은 재생 시 보관.
-  '/audio/bgm/main.mp3',
-];
-
-async function precacheEntryAssets(cache) {
-  const response = await fetch('/index.html', { cache: 'no-store' });
-  if (!response.ok) return;
-  const html = await response.text();
-  const entryAssets = [...html.matchAll(/(?:src|href)="([^"#]+)"/g)]
-    .map((match) => new URL(match[1], self.location.origin))
-    .filter((url) => url.origin === self.location.origin)
-    .map((url) => url.pathname);
-  await cache.addAll([...new Set(entryAssets)]);
-
-  // Vite의 지연 로딩 청크 이름은 진입 JS 안에 들어 있다. 화면을 아직 열지 않았어도
-  // 코드와 CSS는 미리 보관해 두어 오프라인 새로고침에서 복구 화면으로 빠지지 않게 한다.
-  const scriptPaths = entryAssets.filter((asset) => asset.endsWith('.js'));
-  const chunkPaths = [];
-  for (const scriptPath of scriptPaths) {
-    const scriptResponse = await cache.match(scriptPath, { ignoreVary: true });
-    if (!scriptResponse) continue;
-    const script = await scriptResponse.text();
-    for (const match of script.matchAll(/assets\/[A-Za-z0-9_.-]+\.(?:js|css)/g)) {
-      chunkPaths.push(`/${match[0]}`);
-    }
+/* global self, caches, fetch, URL, Response, Request, Headers, AbortController, crypto */
+// Build fills these declarations from the exact files being shipped. No source pack is downloaded at install.
+const RELEASE = /* CLASSROOM_RELEASE */ null;
+const SHELL = /* CLASSROOM_SHELL */ [];
+const scope = new URL(self.registration.scope);
+const prefix = `future-career-lab:${scope.pathname}:`;
+const cacheName = `${prefix}${RELEASE?.version ?? 'development'}`;
+const assetUrl = (relative) => new URL(relative.replace(/^\//, ''), scope).href;
+const files = new Map((RELEASE?.files ?? []).map((file) => [assetUrl(file.url), file]));
+let preparing = false;
+let cancelled = false;
+let preparationAbort = null;
+const preparationPorts = new Set();
+function sendPreparation(value) {
+  for (const port of preparationPorts) {
+    try { port.postMessage(value); } catch { preparationPorts.delete(port); }
   }
-  if (chunkPaths.length) await cache.addAll([...new Set(chunkPaths)]);
+  if (value.state !== 'preparing') preparationPorts.clear();
+}
 
-  // 첫 HTML보다 먼저 읽힌 CSS의 자체 글꼴도 함께 보관한다.
-  const cssPaths = [...entryAssets, ...chunkPaths].filter((asset) => asset.endsWith('.css'));
-  const fontPaths = [];
-  for (const cssPath of cssPaths) {
-    const cssResponse = await cache.match(cssPath);
-    if (!cssResponse) continue;
-    const css = await cssResponse.text();
-    for (const match of css.matchAll(/url\((['"]?)([^)'"?#]+)\1\)/g)) {
-      const url = new URL(match[2], new URL(cssPath, self.location.origin));
-      if (url.origin === self.location.origin) fontPaths.push(url.pathname);
+async function checkedFetch(url, expected, signal) {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  const timeout = self.setTimeout(abort, 30000);
+  try {
+    const response = await fetch(new Request(url, { cache: 'reload', credentials: 'same-origin', signal: controller.signal }));
+    if (!response.ok || response.status !== 200) throw new Error('자료를 내려받지 못했습니다. 연결을 확인하고 다시 준비해 주세요.');
+    if (expected) {
+      const data = await response.clone().arrayBuffer();
+      const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      if (hash !== expected.sha256) throw new Error('자료 버전이 바뀌었습니다. 탐험을 저장한 뒤 앱을 다시 열고 준비해 주세요.');
     }
+    return response;
+  } finally {
+    self.clearTimeout(timeout);
+    signal?.removeEventListener('abort', abort);
   }
-  if (fontPaths.length) await cache.addAll([...new Set(fontPaths)]);
+}
+
+async function status() {
+  const cache = await caches.open(cacheName);
+  const keys = new Set((await cache.keys()).map((request) => request.url));
+  const downloaded = [...files].filter(([url]) => keys.has(url));
+  return {
+    version: RELEASE?.version, total: files.size, done: downloaded.length,
+    bytes: downloaded.reduce((sum, [, file]) => sum + file.bytes, 0),
+    totalBytes: RELEASE?.totalBytes ?? 0,
+    state: files.size > 0 && downloaded.length === files.size ? 'ready' : preparing ? 'preparing' : 'idle',
+  };
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(VERSION)
-    .then(async (cache) => {
-      await cache.addAll(SHELL);
-      await precacheEntryAssets(cache);
-    })
-    .then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    if (!RELEASE) return;
+    const cache = await caches.open(cacheName);
+    for (const relative of SHELL) {
+      const url = assetUrl(relative);
+      await cache.put(url, await checkedFetch(url, files.get(url)));
+    }
+    // A new worker waits while a class still uses the previous release.
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== VERSION).map((key) => caches.delete(key)))).then(() => self.clients.claim()),
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith(prefix) && key !== cacheName).map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
+
+self.addEventListener('message', (event) => {
+  const port = event.ports[0];
+  const send = (value) => port?.postMessage(value);
+  if (event.data?.type === 'CLASSROOM_STATUS') {
+    if (preparing && port) preparationPorts.add(port);
+    event.waitUntil(status().then(send).catch(() => send({ state: 'error', error: '기기의 저장 공간을 확인해 주세요.' })));
+  } else if (event.data?.type === 'CANCEL_CLASSROOM') {
+    cancelled = true;
+    preparationAbort?.abort();
+  } else if (event.data?.type === 'ACTIVATE_CLASSROOM_UPDATE') {
+    // Only the teacher's explicit update action activates a waiting worker.
+    event.waitUntil(self.skipWaiting());
+  } else if (event.data?.type === 'PREPARE_CLASSROOM') {
+    if (port) preparationPorts.add(port);
+    event.waitUntil((async () => {
+      if (preparing) { send({ ...(await status()), state: 'preparing' }); return; }
+      preparing = true;
+      cancelled = false;
+      try {
+        const cache = await caches.open(cacheName);
+        const snapshot = await status();
+        let done = snapshot.done;
+        let bytes = snapshot.bytes;
+        sendPreparation({ ...snapshot, state: 'preparing' });
+        for (const [url, file] of files) {
+          if (cancelled) break;
+          if (await cache.match(url)) continue;
+          preparationAbort = new AbortController();
+          await cache.put(url, await checkedFetch(url, file, preparationAbort.signal));
+          preparationAbort = null;
+          done += 1;
+          bytes += file.bytes;
+          sendPreparation({ ...snapshot, done, bytes, state: 'preparing' });
+        }
+        const final = await status();
+        sendPreparation({ ...final, state: cancelled && final.state !== 'ready' ? 'cancelled' : final.state });
+      } catch (error) {
+        const partial = await status().catch(() => ({}));
+        sendPreparation({ ...partial, state: cancelled ? 'cancelled' : 'error', error: cancelled ? undefined : error.name === 'AbortError' ? '연결이 오래 걸립니다. Wi-Fi를 확인하고 남은 자료를 다시 준비해 주세요.' : error.message || '기기의 저장 공간과 연결을 확인하고 다시 준비해 주세요.' });
+      } finally {
+        preparing = false;
+        preparationAbort = null;
+      }
+    })());
+  }
+});
+
+async function rangedResponse(request, cached) {
+  const range = request.headers.get('range');
+  if (!range) return cached;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  const data = await cached.arrayBuffer();
+  const size = data.byteLength;
+  if (!match || (!match[1] && !match[2])) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
+  const start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
+  const end = match[1] && match[2] ? Math.min(size - 1, Number(match[2])) : size - 1;
+  if (start > end || start >= size) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
+  const headers = new Headers(cached.headers);
+  headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
+  headers.set('Content-Length', String(end - start + 1));
+  headers.set('Accept-Ranges', 'bytes');
+  return new Response(data.slice(start, end + 1), { status: 206, headers });
+}
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
+  if (url.origin !== scope.origin || !url.pathname.startsWith(scope.pathname)) return;
   if (request.mode === 'navigate') {
-    event.respondWith(
-      caches.match('/index.html').then((cached) => {
-        const network = fetch(request).then((response) => {
-          const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put('/index.html', copy));
-          return response;
-        });
-        // 버전이 바뀌면 install 단계에서 최신 HTML을 다시 넣으므로, 수업 중에는
-        // 캐시를 먼저 보여 주고 네트워크 갱신은 뒤에서 처리한다.
-        return cached ?? network;
-      }),
-    );
+    event.respondWith((async () => {
+      const cache = await caches.open(cacheName);
+      return (await cache.match(assetUrl('/index.html'))) ?? fetch(request);
+    })());
     return;
   }
-
-  // 오디오는 range 요청이 섞여 캐시 응답이 깨질 수 있어 네트워크 우선.
-  // 온전한(200) 응답만 보관해 두면 다음 수업에서 와이파이가 끊겨도 BGM 이 나온다.
-  if (url.pathname.startsWith('/audio/')) {
-    event.respondWith(fetch(request).then((response) => {
-      if (response.status === 200) {
-        const copy = response.clone();
-        caches.open(VERSION).then((cache) => cache.put(request, copy));
-      }
-      return response;
-    }).catch(() => caches.match(request, { ignoreVary: true })));
-    return;
-  }
-
-  event.respondWith(
-    caches.match(request, { ignoreVary: true }).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (response.ok && (response.type === 'basic' || response.type === 'default')) {
-          const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      });
-    }),
-  );
+  if (!files.has(url.href)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(url.href);
+    if (cached) return rangedResponse(request, cached);
+    // A complete 200 response also makes later audio Range requests available offline.
+    const response = await checkedFetch(url.href, files.get(url.href));
+    await cache.put(url.href, response.clone());
+    return rangedResponse(request, response);
+  })().catch(() => new Response('자료를 준비하지 못했습니다. 연결 후 수업 자료 준비를 다시 실행해 주세요.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })));
 });

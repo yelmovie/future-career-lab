@@ -1,89 +1,87 @@
-# 미래 직업실 v4
+# 미래 직업실
 
-초등 5–6학년을 위한 체험형 진로교육 게임입니다. 설문이나 적성 단정 대신 **하나의 사건**을 네 직업의 도구로 직접 다루고, 마지막에 네 직업을 한 팀으로 묶어 해결합니다.
+숲에서 사라진 앵무새 지구와 젤리를 찾고, 숲의 다른 새들을 돕기 위해 드론 전문가·동물돌봄 전문가·생태연구가·방송기술자의 일을 체험하는 초등 진로교육 게임입니다. 관찰과 짐작 구분, 한 조건씩 비교, 조사 결과를 방송으로 알리기, 여러 직업의 협력을 중심으로 합니다.
 
-> 태풍에 하늘숲 동물원 새 정원 그물이 찢어져 앵무새 모모와 루비가 푸른솔 숲으로 날아갔다. 드론 현장가 → 동물돌봄 전문가 → 생태연구가 → 미래방송기술자가 되어 두 마리를 찾아 돌보고, 숲의 새들이 줄고 있다는 더 큰 문제를 밝히고, 넷을 연합해 푸른솔 숲의 새들을 지킨다. (서사: `docs/GAME_CONCEPT_v3.md`)
+**서비스:** [미래 직업실](https://16job.vercel.app/) · **공유 이미지:** [네 직업 협력](https://16job.vercel.app/og-career-team.jpg)
 
-앞 스테이지의 산출물(사진·돌봄 기록·연구 그래프·방송 클립)이 뒤 스테이지의 재료가 되고, 마지막 연합 작전에서 그 품질이 효과로 드러납니다.
-
-## 실행
+## 실행과 검증
 
 ```bash
-npm install
+npm ci
 npm run dev
+npm run verify
+npm run test:e2e
+node scripts/probe-offline.mjs
+node scripts/verify-classroom-release.mjs dist
 ```
 
-Windows PowerShell에서 실행 정책 때문에 `npm`이 막히면 `npm.cmd`를 사용하세요.
+Windows 실행 정책에 막히면 `npm.cmd`를 사용합니다. `verify`는 typecheck → lint → 단위 테스트 → 자산 검사 → production build 순서입니다. 마지막 오프라인 검사는 생성된 `dist/`로 로컬 preview를 시작합니다. 이미 실행 중인 production preview가 있으면 `node scripts/probe-offline.mjs --url=http://127.0.0.1:4177/`처럼 넘길 수 있습니다. 검사 결과를 실제 학생의 학습효과·실제 태블릿 완주 증거로 확대해 해석하지 않습니다.
 
-주 사용 환경은 **가로 1024×768 이상 태블릿·PC·전자칠판**입니다. 세로 화면이나 960×540보다 작은 가로 화면에서는 작은 버튼을 억지로 보여 주지 않고, 가로 태블릿 또는 PC로 열라는 안내가 표시됩니다.
+주 사용 환경은 가로 1024×768 이상 태블릿·PC·전자칠판입니다. 작은 화면이나 세로 화면에서는 방향 안내를 표시합니다. 학교 기기의 실제 터치, 음량, 뒷자리 가독성은 인수 시 별도로 확인합니다.
 
-## 검증
+## 현재 활동
 
-```bash
-npm run verify        # typecheck + lint + vitest + 에셋 매니페스트 + 프로덕션 빌드
-npm run test:e2e      # Playwright (vite 서버 자동 기동)
-node scripts/screenshot-pages.mjs   # 11페이지 × 3해상도 스크린샷 → test-results/screens
-```
+| 라우트 | 활동 | 기록과 피드백 |
+|---:|---|---|
+| 1 | 홈: 새 탐험·이어하기 | 같은 브라우저와 주소의 진행 기록 |
+| 2 | 사건 브리핑과 네 직업 만나기 | 역할·도구·사건 목표 |
+| 3 | 드론 비행: 경로 계획·촬영 | 장소별 사진, 선명도, 배터리 |
+| 4 | 증거판: 사진 확대·잠정 가설 | 관찰한 세부와 첫 가설 |
+| 5 | 두 마리 관찰과 돌봄·선택형 3D 모형 보기 | 보이는 사실·개체별 돌봄 기록·돌봄 전후 비교 |
+| 6 | 새 정원 설계·시험·재배치 | 여러 타당한 배치, 수정 기록 |
+| 7 | 숲 흔적·비교·모의실험·결론 | 한 조건의 변화와 근거, 수정한 결론 |
+| 8 | 화면 선택·마이크 조절과 교체·자막 편집·방송 다시 보기 | 화면 속 조사 정보로 자막 선택, 조사자료는 선택 참고 |
+| 9 | 함께 살리는 숲: 원하는 장소부터 묘목 심기·물길 표시·소리 조절 | 앞 탐험의 정보 → 내 행동 → 다른 팀의 도움 → 현장 변화·전후 지도 |
+| 10 | 옛 북마크 호환 경로 | 수료증으로 자동 이동; 별도 활동 없음 |
+| 11 | 탐험 결과와 수료증 | 완료 조건에 따른 결과·인쇄·이미지 저장 |
 
-## 게임 흐름 (11페이지)
+설정에는 학생용 가이드, 교사용 해금과 성취기준, 음소거·개별 음량, 확인 단계가 있는 기록 초기화, 정보·크레딧이 있습니다. 교사용 해금은 수업 시연용 편의 기능입니다.
 
-| 페이지 | 화면 | 스테이지 | 학생이 하는 일 | 산출물 |
-|---:|---|---|---|---|
-| 1 | HOME | – | 이어하기, 6노드 허브, 배지·직업도감 | – |
-| 2 | 탐험단 브리핑 | 소개 | 사건 접수, 직업 카드 4장 뒤집기, 이름·**예측 직업** 선택 | prediction |
-| 3 | 드론 정찰 비행 | S1 드론 현장가 | 바람·배터리 제약 속 경로 드래그, 목표 위 REC 타이밍 | 사진 3장(품질) |
-| 4 | 현장 증거판 | S1 | 사진 확대 관찰 → 3칸 분류 → 선잇기 → 가설 | hypothesis |
-| 5 | 구조된 모모와 루비 살피기 | S2 동물돌봄 | 두 마리 개체별 관찰·소리 분류·처치 매칭 | careLog |
-| 6 | 새 정원 다시 만들기 | S2 | 돌봄 기록 조건에 맞춘 배치, 예측 → 시뮬 → 별 | habitatStars |
-| 7 | 숲 생태 조사 | S3 생태연구가 | 흔적 수집(도감) → 그래프 읽기 → 슬라이더 하나씩 변인 실험 | traces, graphs |
-| 8 | 생방송 컨트롤룸 | S4 방송기술자 | 큐시트 6세그먼트(타이머 없음), 소스·출처 있는 자막·오디오 레벨·돌발 사고 | clip(신뢰) |
-| 9 | 네 직업 연합 작전 | S5 연합 | 위기 3개, 능력 힌트로 배지 짝짓기, 턴제 확산·쿨다운 | allianceTurns |
-| 10 | 탐험 돌아보기 | 결과 | 예측 vs 실제, 우리 동네 적용 순서, **"나는 이제 …할 수 있다"** 문장 | abilityStatements |
-| 11 | 탐험 수료증 | 보상 | 배지 5개 도장 + 능력 문장 인쇄(A4) | – |
+돌봄 장면의 3D 모형 보기는 열 때 뷰어를 불러옵니다. 지구·젤리의 돌봄 전후 GLB 네 개와 두 친구의 비교 그림 두 장을 제공합니다. 텍스처는 GLB 안에 포함합니다.
 
-파일 이름의 숫자는 v1 에셋 폴더 번호이고 게임 순서는 `src/app/App.tsx`와 `PAGE_META`가 결정합니다.
+## 교실에서 사용하기
 
-## 스테이지 추가·수정 방법
+현재 화면 구성은 인터넷 연결을 전제로 합니다. 수업 전에 같은 기기에서 서비스 주소를 열어 그림·음원·드래그 조작을 확인합니다. 이전 버전의 수업 자료 준비·업데이트 버튼은 현재 설정에서 제공하지 않습니다. 오프라인 관련 내부 검사 도구가 남아 있어도 현재 학생 화면의 오프라인 완주를 뜻하지 않습니다.
 
-1. `src/shared/constants.ts` — `PAGE_META`(제목·배경 폴더), `STAGE_PAGES`, `STAGE_META`(배지·보상·배우는 것)를 수정합니다.
-2. `src/app/App.tsx` — 페이지 번호에 컴포넌트를 연결합니다.
-3. 스테이지 로직은 `src/pages/pageXXModel.ts`(순수 함수 + vitest)와 화면 `PageXX.tsx`로 분리합니다.
-4. 산출물이 필요하면 `src/shared/types.ts`의 `Artifacts`에 필드를 더하고 `createDefaultArtifacts`를 갱신합니다.
-5. `npm run verify`와 `npm run test:e2e`를 통과시킵니다.
+같은 학생은 같은 브라우저와 `https://16job.vercel.app/` 주소를 사용합니다. 진행 기록은 기기에 저장되며 Production·Preview·다른 도메인은 기록을 공유하지 않습니다. 업데이트 확인은 수업을 마친 뒤 모든 앱 탭을 닫고 다시 여는 방식으로 진행합니다.
 
-## 기술 구조
+손상되었거나 현재 앱에서 읽을 수 없는 저장 기록은 새 진행으로 덮어쓰기 전에 원문을 `SAVE_KEY.recovery`에 보관합니다. 현재 키는 `future-career-lab.save.v1.recovery`입니다. 저장 공간 부족·브라우저 차단으로 이 백업을 만들 수 없으면 기존 기록 덮어쓰기도 중단하고 저장 실패를 알립니다. 복구가 필요하면 브라우저 자료를 지우거나 기록을 초기화하기 전에 운영 담당자에게 요청합니다.
 
-- React 19 + TypeScript + Vite 7: 앱 셸, HUD, 저장, 접근성, 결과, 인쇄
-- Phaser 3: 드론 비행(P3), 서식지 배치(P6), 도시 홀로그램(P9). 나머지는 DOM/CSS
-- localStorage `future-career-lab.save.v1` (schema v2, v1 자동 이행), 세션 시드로 결정적 랜덤
-- 서비스워커 `public/sw.js`: 정적 자원 캐시 우선, HTML 네트워크 우선 → 교실 와이파이가 끊겨도 진행
-- 글꼴 셀프호스팅(Jua·Pretendard, OFL). 외부 요청 0
-- 화면 v4: 모든 미션 화면은 `src/components/v4/StepShell`(점·지시 한 줄·무대·멘토 말풍선·다음 버튼) 위에 있다. 새 화면은 `docs/GAME_DESIGN_v4.md` 규격대로 StepShell+PictureChoice+SlotBoard 로 만든다
-- 디자인 v3: 밝은 파스텔 토큰(`src/styles/index.css` 상단 `--color-*`), 3D 엣지 버튼, 16px 글자 하한. 배경은 흰색 워시로 파스텔화
-- 신규 그림 자리 `public/assets/v3/` (`v3Asset()` + `fallbackTo()`, 파일 없으면 v2 그림) — 프롬프트는 `docs/ASSET_REQUEST_v3.md`
-- 정적 배포: Vercel + GitHub
+## 구조와 자산
 
-## 미디어와 라이선스
+- React·TypeScript: 라우트, 입력 UI, 저장, 설정, 결과. Phaser는 드론 캔버스에 사용합니다.
+- `src/shared/constants.ts`: 페이지·스테이지·배지 정보. `src/shared/types.ts`: 기록 형태.
+- `src/pages/*Model.ts`: 판정과 복원 함수. `src/components/v4/`: 공통 조작 구성요소.
+- `src/services/audioService.ts`: BGM·단서·효과음·듣기 실험의 우선순위, 음소거와 종료 관리.
+- `scripts/asset-inventory.mjs`: 실제 앱 import 경로에서 이미지·음원·글꼴 참조를 수집합니다.
+- `scripts/classroom-release.mjs`: 파일 해시가 포함된 `classroom-assets.json`과 버전별 SW를 빌드합니다. 실제 참조 자산과 OG·필수 파일만 `dist/`에 복사합니다. 미사용 그림·음원·스토리보드는 로컬 `_unused/`에 보존합니다.
+- Vite의 동적 import 후처리가 끝난 뒤 해시를 만들고, 실제 출력된 파일 전체의 바이트·SHA-256을 다시 대조합니다. 불일치하면 build가 실패합니다. 인수 파일을 복사한 뒤 `node scripts/verify-classroom-release.mjs dist`로 같은 검사를 재현할 수 있습니다.
+- `asset-build-report.json`은 해당 빌드의 배포·제외 목록입니다. 제외 목록은 삭제 지시가 아닙니다.
+- 고정 이름 이미지에 장기 immutable 캐시를 설정하지 않습니다. 앱 캐시는 배포 내용 해시와 scope별로 분리합니다.
 
-- 일러스트·배경(ChatGPT 이미지)·v2 에셋 14장(Google Imagen): 생성형 AI로 제작한 자체 자산 (ⓒ 2026 옐쌤)
-- BGM 6곡: 자체 제작
-- 효과음: Pixabay Content License 8개 + Mixkit Sound Effects Free License 4개 (표기 불필요)
-- 글꼴: Jua, Pretendard (SIL OFL 1.1, 원문 동봉)
+자산을 바꾼 뒤 `node scripts/validate-assets.mjs --write`로 바이트·해시·참조 목록을 갱신하고 `npm run assets:validate`를 실행합니다. 없는 파일은 fallback으로 숨기지 않고 참조를 실제 자산에 맞춥니다. 동적 파일명 패턴이 새로 생기면 인벤토리가 포함하는지 확인합니다.
 
-상세 출처는 [assets/CREDITS.md](./assets/CREDITS.md), 설계 근거는 `docs/GAME_DESIGN_v2.md`·`docs/GAME_CONCEPT_v3.md`, 에셋 요청·프롬프트는 `docs/ASSET_REQUEST_v3.md`(최신)·`docs/IMAGEN_PROMPTS_v2.md`에 있습니다.
+GLB를 추가하면 `node scripts/validate-glb.mjs public/assets/meshy --json`으로 glTF 2 헤더·JSON/BIN 청크·버퍼 범위·내장 텍스처·삼각형 수·이미지 헤더 크기를 검사합니다. `assets:validate`도 GLB 구조 오류를 차단합니다. 기본 용량 25MB·삼각형 100,000개·텍스처 한 변 4096px는 성능 검토용 경고값이며, `--max-bytes=숫자`, `--max-triangles=숫자`, `--max-texture-size=숫자`로 조절할 수 있습니다. `--strict-budget`을 명시하면 초과를 실패로 처리합니다. 이 검사는 전체 Khronos Validator나 텍스처 디코딩·실기기 렌더 검증을 대신하지 않습니다. 압축 확장이 요구하는 decoder도 외부망 없이 사용할 수 있게 배포에 포함해야 합니다.
 
-## 저작권과 라이선스
+## 새 사건·스테이지를 추가할 때
 
-```
-기획·제작: 옐쌤
-제공: issamGPT AI Mart
-ⓒ 2026 옐쌤
-```
+1. `src/shared/constants.ts`의 PAGE_META·STAGE_PAGES·STAGE_META와 `src/app/App.tsx` 라우트를 함께 정합니다.
+2. 기존 모델처럼 화면과 독립된 판정·복원 함수를 만들고, 새 조건과 잘못된 선택의 결과를 검증합니다.
+3. 실제 학습 기록을 `src/shared/types.ts`와 저장 이행에 연결합니다. 완료 여부만 남기지 않습니다.
+4. 공통 UI에 맞춰 화면을 만들고 `src/data/teacherGuide.ts`의 교사 설명·학습 연계를 갱신합니다.
+5. 자산 출처를 크레딧에 기록하고 자산 목록·해시를 갱신합니다.
+6. 전체 검사와 실제 입력 방식별 완주·오프라인 준비·새로고침 복원을 확인합니다.
 
-- 이 앱의 화면 캡처, 자체 제작 일러스트와 음원은 무단 복제·재배포·상업적 이용을 금합니다.
-- 이 앱의 일러스트는 생성형 AI로 제작했습니다.
-- 효과음의 저작권은 각 저작권자에게 있으며 Pixabay Content License·Mixkit Sound Effects Free License를 따릅니다.
-- 교육 내용 출처: 교육부 2022 개정 교육과정 (ncic.re.kr)
-- 이용 조건은 issamGPT AI Mart 이용약관을 따릅니다.
+## 출처와 인수
 
-앱 안에서는 상단 톱니 버튼 → **설정**에서 같은 고지와 크레딧, 성취기준, 학생·교사용 가이드를 볼 수 있습니다.
+기획·제작: 옐쌤 · 제공: issamGPT AI Mart · ⓒ 2026 옐쌤
+
+화면 캡처·자체 제작 일러스트와 음원의 무단 복제·재배포·상업적 이용을 금합니다. 외부 글꼴·효과음은 각 권리자의 조건을 따릅니다. 일러스트와 일부 음성은 생성형 AI로 제작했습니다. 기존 플랫폼 이용 조건과 업체 납품 조건은 계약에서 확정합니다.
+
+- [자산·글꼴·음원 크레딧](docs/CREDITS.md)
+- [폴더 구조와 에셋 관리](docs/ASSET_LAYOUT.md)
+- [운영·인수 가이드](docs/DELIVERY_GUIDE.md)
+- [고도화 분석과 목표](docs/reviews/ADVANCEMENT-PLAN-20260909.md)
+- [프로젝트 그림 기준](docs/PROJECT_IMAGE_STYLE.md)
+
+교육 내용 연계는 교육부 2022 개정 교육과정과 관련 기관의 교사용 자료를 참고합니다. 해당 활동이 성취기준 전체를 충족한다거나, 테스트 통과가 아동의 학습효과를 입증한다고 주장하지 않습니다. 원문 대조·권리 증빙의 확인 범위와 외부 인수 검사는 운영 가이드에 남깁니다.

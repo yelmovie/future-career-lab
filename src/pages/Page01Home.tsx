@@ -8,9 +8,23 @@ import type { PageNumber } from '../shared/types';
 import { audioService } from '../services/audioService';
 import { useGame } from '../state/GameContext';
 
+type TalkerId = 'student' | 'mentor';
+/** 키아트 속 두 인물. 누르면 말풍선이 뜨고, 다시 누르거나 다른 사람을 누르면 바뀐다. */
+const TALKERS: { id: TalkerId; name: string; says: string }[] = [
+  { id: 'student', name: '신입 탐험가', says: '숲의 새들이 자꾸 사라진대. 나 혼자서 찾을 수 있을까?' },
+  { id: 'mentor', name: '탐험단장', says: '하늘에서 찾고, 돌보고, 조사하고, 알려야 해. 네 직업이 힘을 모아야 풀려!' },
+];
+
 export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumber) => void }) {
   const { save, startNew, loadIssue, saveFailed } = useGame();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [talking, setTalking] = useState<TalkerId | null>(null);
+  const [met, setMet] = useState<TalkerId[]>([]);
+  const talk = (id: TalkerId) => {
+    audioService.playSfx('tap');
+    setTalking(talking === id ? null : id);
+    if (!met.includes(id)) setMet([...met, id]);
+  };
   const hasProgress = save.logs.length > 0 || save.stageProgress.completedPages.length > 0 || save.lastPage > 1;
   const currentStage = useMemo(() => STAGE_META.find((stage) => !save.stageProgress.completed[stage.id]) ?? STAGE_META[4]!, [save.stageProgress.completed]);
   const resumeTarget = save.lastPage > 1 ? save.lastPage : currentStage.page;
@@ -42,17 +56,29 @@ export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumb
           <img className="home-keyart" src={homeAsset('keyart')} alt="" />
         </div>
 
-        <aside className="home-dialog home-dialog--student" aria-label="신입 탐험가의 말">
-          <span>신입 탐험가</span>
-          <p>숲의 새들이 자꾸 사라진대. 나 혼자서 찾을 수 있을까?</p>
-        </aside>
-        <aside className="home-dialog home-dialog--mentor" aria-label="탐험단장의 말">
-          <span>탐험단장</span>
-          <p>하늘에서 찾고, 돌보고, 조사하고, 알려야 해. 네 직업이 힘을 모아야 풀려!</p>
-        </aside>
+        {/* 캐릭터를 누르면 말풍선이 뜬다 — 상시 노출 대신 탭 유도 */}
+        {TALKERS.map((talker) => (
+          <button
+            key={talker.id}
+            type="button"
+            className={`home-hotspot home-hotspot--${talker.id}${talking === talker.id ? ' is-on' : ''}${met.includes(talker.id) ? ' is-met' : ''}`}
+            aria-label={`${talker.name}에게 말 걸기`}
+            aria-pressed={talking === talker.id}
+            onClick={() => talk(talker.id)}
+          >
+            <span className="home-tap" aria-hidden="true" />
+          </button>
+        ))}
+        <div aria-live="polite">
+          {TALKERS.filter((talker) => talker.id === talking).map((talker) => (
+            <aside key={talker.id} className={`home-dialog home-dialog--${talker.id}`} aria-label={`${talker.name}의 말`}>
+              <span>{talker.name}</span>
+              <p>{talker.says}</p>
+            </aside>
+          ))}
+        </div>
 
         <div className="home-lockup">
-          <span className="home-kicker"><SparkIcon /> FUTURE CAREER LAB</span>
           <div className="home-logo-frame">
             <h1 id="home-title" aria-label="미래 직업실"><img src={homeAsset('logo')} alt="" /></h1>
           </div>

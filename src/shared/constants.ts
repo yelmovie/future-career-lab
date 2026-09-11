@@ -1,7 +1,7 @@
 import type { JobId, PageNumber, StageNumber, TraitKey } from './types';
 
 export const CONTENT_VERSION = '2026.09';
-export const SAVE_SCHEMA_VERSION = 2;
+export const SAVE_SCHEMA_VERSION = 3;
 export const SAVE_KEY = 'future-career-lab.save.v1';
 export const STORAGE_POLICY_TEXT = '기록은 이 기기에만 저장돼요. 서버로 보내지 않아요.';
 
@@ -45,8 +45,8 @@ export const PAGE_META: Record<PageNumber, { title: string; stage?: StageNumber;
   6: { title: '새 정원 다시 만들기', stage: 2, short: '다시 만들기', background: 7 },
   7: { title: '숲 생태 조사', stage: 3, short: '하나씩 바꿔 보기', background: 6 },
   8: { title: '생방송 컨트롤룸', stage: 4, short: '정확하게 알리기', background: 9 },
-  9: { title: '숲 살리기 연합 작전', stage: 5, short: '함께 풀기', background: 8 },
-  10: { title: '탐험 돌아보기', short: '예측과 실제', background: 3 },
+  9: { title: '함께 살리는 숲', stage: 5, short: '함께 풀기', background: 8 },
+  10: { title: '수료증으로 이동', short: '최종 보상', background: 3 },
   11: { title: '탐험 수료증', short: '최종 보상', background: 10 },
 };
 
@@ -78,7 +78,7 @@ export const STAGE_META: StageMeta[] = [
   { id: 2, job: 'care', label: '동물돌봄 전문가', jobTitle: '동물돌봄 전문가', subtitle: '살피고 고치기', goal: '구조된 지구와 젤리는 상태가 달라. 따로 살피고, 찢어진 새 정원을 다시 만들어.', reward: '돌봄 배지 + 돌봄 기록', learn: '관찰 → 기록 → 개체마다 다른 돌봄', page: 5, badge: '/assets/page-08/slot-04.webp', badgeName: '동물돌봄 배지' },
   { id: 3, job: 'ecology', label: '생태연구가', jobTitle: '생태연구가', subtitle: '하나씩 바꾸기', goal: '숲 가장자리에서 새가 사라진 이유를 찾아. 흔적을 모으고, 조건을 하나씩 바꿔 진짜 원인을 확인해.', reward: '생태 배지 + 연구 그래프', learn: '변인을 하나씩 바꿔 원인 찾기', page: 7, badge: '/assets/v2/badge-ecology.webp', badgeName: '생태연구가 배지' },
   { id: 4, job: 'broadcast', label: '미래방송기술자', jobTitle: '미래방송기술자', subtitle: '정확히 알리기', goal: '근거 있는 자막만 골라 생방송을 완성해. 사고가 나면 순서를 정해 복구해.', reward: '방송 배지 + 방송 클립', learn: '출처가 있는 정보만 내보내기', page: 8, badge: '/assets/v2/badge-broadcast.webp', badgeName: '방송기술자 배지' },
-  { id: 5, job: 'alliance', label: '네 직업 연합', jobTitle: '탐험단 연합', subtitle: '함께 풀기', goal: '네 직업이 각자 찾은 것을 둘씩 합쳐 숲 살리기 작전 3개를 끝내. 나무 심기, 물길 트기, 소음 줄이기.', reward: '연합 엠블럼 + 숲의 새소리 복귀', learn: '협업은 역할의 조합이다', page: 9, badge: '/assets/page-08/slot-10.webp', badgeName: '연합 엠블럼' },
+  { id: 5, job: 'alliance', label: '함께 살리는 숲', jobTitle: '탐험단 연합', subtitle: '함께 풀기', goal: '앞에서 모은 사진과 경험을 나누고, 돕고 싶은 장소부터 골라. 묘목을 심고, 막힌 물길을 표시하고, 조용한 작업 방법을 다른 팀에 전해 숲을 함께 돌봐.', reward: '연합 엠블럼 + 함께 바꾼 숲', learn: '여러 직업이 알아낸 정보를 나누고 서로의 일을 이어 받으면 복잡한 문제를 함께 해결할 수 있다', page: 9, badge: '/assets/page-08/slot-10.webp', badgeName: '연합 엠블럼' },
 ];
 
 export const JOB_LABELS: Record<JobId, string> = {
@@ -87,12 +87,3 @@ export const JOB_LABELS: Record<JobId, string> = {
   ecology: '생태연구가',
   broadcast: '미래방송기술자',
 };
-
-export const ABILITY_STATEMENTS = [
-  '바람과 배터리를 생각해서 드론 경로를 짤 수 있다',
-  '사진을 자세히 보고 단서를 근거로 이을 수 있다',
-  '동물 두 마리를 따로 살피고 다른 돌봄을 줄 수 있다',
-  '조건을 하나씩 바꿔서 원인을 찾을 수 있다',
-  '출처가 있는 정보만 골라 알릴 수 있다',
-  '문제에 맞는 직업을 짝지어 함께 해결할 수 있다',
-];

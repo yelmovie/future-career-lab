@@ -1,0 +1,36 @@
+{
+  "title": "construction equipment tracked.wav",
+  "creator": "cognito perceptu",
+  "soundId": 88422,
+  "sourcePage": "https://freesound.org/people/cognito%20perceptu/sounds/88422/",
+  "downloadedFile": "https://cdn.freesound.org/previews/88/88422_57789-hq.mp3",
+  "license": "CC0 1.0 Universal",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrievedAt": "2026-09-11",
+  "sourceSha256": "9c76adf93d6dd4988183d26a0d1c400a13b10019a365d5694c385ce9a1c91147",
+  "output": "public/audio/v9/construction-site-loop.wav",
+  "outputSha256": "209a17934c54ec60a40e7dcd3a34d538c6d9bf0cbfc3e731ad20b1938240ced5",
+  "processing": {
+    "revision": 2,
+    "masteredAt": "2026-09-12",
+    "startSeconds": 8,
+    "endSeconds": 20.8,
+    "crossfadeSeconds": 0.8,
+    "outputSeconds": 12,
+    "channels": 1,
+    "sampleRate": 22050,
+    "bitDepth": 16,
+    "dcOffsetRemoved": true,
+    "compression": {
+      "threshold": -26,
+      "knee": 12,
+      "ratio": 4,
+      "attack": 0.003,
+      "release": 0.12
+    },
+    "targetRmsDbfs": -12,
+    "peakCeilingDbfs": -1,
+    "rmsDbfs": -12,
+    "peakDbfs": -1.8356920761980082
+  }
+}

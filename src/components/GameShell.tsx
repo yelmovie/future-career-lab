@@ -42,7 +42,8 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
   const meta = PAGE_META[page];
   const sectionLabel = meta.stage ? `스테이지 ${meta.stage}` : page === 2 ? '사건 접수' : page === 10 ? '탐험 정리' : page === 11 ? '탐험 완료' : '게임 시작';
   const isHome = page === 1;
-  const teacherNextPage = teacherMode && page >= 2 && page < 11 ? (page + 1) as PageNumber : null;
+  const teacherNextPage = teacherMode && page >= 2 && page < 11 ? (page === 9 ? 11 : page + 1) as PageNumber : null;
+  const previousPage = (page === 11 ? 9 : page - 1) as PageNumber;
   // 교사용 해금 바로가기는 상단바에 둔다. 하단 띠로 두면 무대 높이를 64px 뺏어 v4 화면이 잘린다.
   const teacherShortcut = !teacherMode ? null : teacherNextPage ? (
     <button
@@ -78,7 +79,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
             <button className="icon-button" onClick={() => setSettingsOpen(true)} aria-label="설정 열기" title="설정"><GearIcon /></button>
           </div>
         ) : <>
-          <button className="icon-button icon-button--back" onClick={() => onNavigate((page - 1) as PageNumber)} aria-label="이전 화면으로" title="이전 화면"><ArrowIcon /></button>
+          <button className="icon-button icon-button--back" onClick={() => onNavigate(previousPage)} aria-label="이전 화면으로" title="이전 화면"><ArrowIcon /></button>
           <button className="icon-button" onClick={() => onNavigate(1)} aria-label="메인으로 이동"><HomeIcon /></button>
           <div className="title-lockup">
             <span>{sectionLabel}</span>
@@ -106,7 +107,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
               </li>
             ))}
           </ol>
-          <p className="flow-result">앞 미션에서 얻은 사진·기록·그래프·방송 클립이 다음 미션의 재료가 돼. 끝나면 <strong>처음 예측과 실제 플레이</strong>를 비교하고 수료증을 저장하거나 인쇄해.</p>
+          <p className="flow-result">앞 미션에서 얻은 사진·기록·그래프·방송 클립이 다음 미션의 재료가 돼. 다섯 스테이지를 끝내면 <strong>수료증</strong>을 저장하거나 인쇄할 수 있어.</p>
         </Modal>
       )}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onNavigate={onNavigate} />}
