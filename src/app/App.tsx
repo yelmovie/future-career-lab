@@ -99,7 +99,7 @@ export function App() {
             <strong className="device-notice__rotate-title">가로 화면으로 돌려 줘</strong>
             <p className="device-notice__rotate-copy">휴대폰이나 태블릿을 가로로 돌리면 게임을 시작할 수 있어.</p>
             <strong className="device-notice__fill-title">브라우저 메뉴를 숨겨 볼까?</strong>
-            <p className="device-notice__fill-copy">새로고침 대신 버튼을 눌러. 메뉴를 숨기고 게임을 열어 줄게.</p>
+            <p className="device-notice__fill-copy">새로고침 대신 버튼을 눌러. 그래도 열리지 않으면 Chrome에서 열어 줘.</p>
             <small>현재 게임 영역: {viewport.width}×{viewport.height}px</small>
             <button type="button" className="device-notice__play" onClick={fillMobileScreen}>게임 화면 채우기</button>
           </aside>
