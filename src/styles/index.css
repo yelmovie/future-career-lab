@@ -455,6 +455,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
     --fs-body: 22px;
     --fs-instruction: 25px;
     --touch-min: 70px;
+    --button-height-lg: 70px;
     --topbar-h: 84px;
     --footer-h: 74px;
   }

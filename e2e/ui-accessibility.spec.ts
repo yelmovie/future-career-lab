@@ -99,7 +99,17 @@ test('small and portrait screens show a full-size guide while an unfolded phone 
     };
   });
   expect(foldLayout).toEqual({ stageInside: true, smallControls: [] });
+  await page.goto('/#/page/1');
+  const smallHomeControls = await page.locator('.game-shell').evaluate((shell) => [...shell.querySelectorAll<HTMLElement>('button,input,[role="button"]')]
+    .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
+    .filter((control) => {
+      const box = control.getBoundingClientRect();
+      return box.width < 44 || box.height < 44;
+    })
+    .map((control) => control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 40)));
+  expect(smallHomeControls).toEqual([]);
   await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/#/page/3');
   await expect(page.locator('.device-notice')).toBeHidden();
   await expect(page.locator('.phaser-stage canvas')).toBeVisible();
   await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(.8, 4);
