@@ -6,11 +6,11 @@
 }
 
 /* 탭: 한 번에 한 묶음만. 닫기 버튼은 Modal 이 아래에 고정한다. */
-.settings-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.settings-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .settings-tab {
   min-height: 60px; padding: 0 8px; border: 2px solid var(--color-border-soft); border-radius: 14px;
-  background: rgb(255 255 255 / 92%); color: var(--color-text-sub); font-family: var(--font-display); font-size: 22px; font-weight: 400;
-  cursor: pointer; box-shadow: 0 3px 0 var(--color-border-soft); white-space: nowrap;
+  background: rgb(255 255 255 / 92%); color: var(--color-text-sub); font-family: var(--font-display); font-size: var(--fs-body); font-weight: 400;
+  cursor: pointer; box-shadow: 0 3px 0 var(--color-border-soft); line-height: 1.15;
 }
 .settings-tab:active { transform: translateY(3px); box-shadow: none; }
 .settings-tab[aria-selected='true'] { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary-deep); box-shadow: 0 3px 0 var(--color-primary-deep); }
@@ -64,6 +64,31 @@
 }
 /* 3D 버튼 아래 그림자(5px)에 안내 글이 붙지 않게 */
 .settings-block .button + .settings-hint { margin-top: 16px; }
+
+.settings-display { display: grid; gap: 12px; }
+.settings-display__value {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: var(--touch-min); padding: 10px 16px; border-radius: 14px;
+  background: var(--color-primary-soft); color: var(--color-primary-deep); font-weight: 800;
+}
+.settings-display__value output { font-family: var(--font-display); font-size: var(--fs-title); }
+.settings-display__slider { display: block; }
+.settings-display__slider input[type='range'] {
+  display: block; width: 100%; min-height: var(--touch-min); margin: 0; accent-color: var(--color-primary-deep);
+}
+.settings-display__presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.settings-display__presets button {
+  display: grid; place-items: center; gap: 2px; min-height: calc(var(--touch-min) + 10px); padding: 7px 10px;
+  border: 2px solid var(--color-border-soft); border-radius: 14px; background: #fff; color: var(--color-text-sub);
+  box-shadow: 0 3px 0 var(--color-border-soft); cursor: pointer;
+}
+.settings-display__presets button:active { transform: translateY(3px); box-shadow: none; }
+.settings-display__presets button[aria-pressed='true'] {
+  border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary-deep);
+  box-shadow: 0 3px 0 var(--color-primary-deep);
+}
+.settings-display__presets b { font-family: var(--font-display); font-size: var(--fs-head); font-weight: 400; }
+.settings-display__presets span { font-size: var(--fs-cap); font-weight: 800; }
 
 .settings-list {
   margin: 0;

@@ -46,6 +46,7 @@ test('modal inputs retain focus across state updates, trap Tab and restore the o
   const opener = page.getByRole('button', { name: '설정 열기' });
   await opener.click();
   const dialog = page.getByRole('dialog', { name: '설정', exact: true });
+  await dialog.getByRole('tab', { name: '소리', exact: true }).click();
   const volume = dialog.locator('.settings-slider input').first();
   await volume.focus();
   await page.keyboard.press('Home');
@@ -57,12 +58,55 @@ test('modal inputs retain focus across state updates, trap Tab and restore the o
   const close = dialog.getByRole('button', { name: '닫기', exact: true });
   await close.focus();
   await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('tab', { name: '소리', exact: true })).toBeFocused();
+  await expect(dialog.getByRole('tab', { name: '화면', exact: true })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(close).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(opener).toBeFocused();
+});
+
+test('players can resize the game from 80 to 100 percent and keep the choice', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await seed(page, 3);
+  await page.getByRole('button', { name: '설정 열기' }).click();
+  const dialog = page.getByRole('dialog', { name: '설정', exact: true });
+  const slider = dialog.getByRole('slider', { name: '게임 화면 크기 조절' });
+  await expect(dialog.getByRole('tab', { name: '화면', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(slider).toHaveValue('100');
+  await slider.focus();
+  await page.keyboard.press('Home');
+  await expect(slider).toHaveValue('80');
+  await expect(dialog).toContainText('현재 크기80%');
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(.64, 4);
+  expect(await page.evaluate(() => localStorage.getItem('future-career-lab.display-scale.v1'))).toBe('80');
+  const layout = await page.evaluate(() => {
+    const stage = document.querySelector('.stage')!.getBoundingClientRect();
+    const smallControls = [...document.querySelectorAll<HTMLElement>('.settings-modal button,.settings-modal input')]
+      .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
+      .filter((control) => {
+        const box = control.getBoundingClientRect();
+        return box.width < 47.5 || box.height < 47.5;
+      })
+      .map((control) => {
+        const box = control.getBoundingClientRect();
+        return `${control.getAttribute('aria-label') ?? control.textContent?.trim()}:${box.width.toFixed(1)}x${box.height.toFixed(1)}`;
+      });
+    return {
+      adjusted: document.documentElement.classList.contains('display-scale-adjusted'),
+      centered: Math.abs(stage.left - (innerWidth - stage.width) / 2) < 1,
+      smallControls,
+      touchMin: getComputedStyle(document.documentElement).getPropertyValue('--touch-min'),
+      closeMinHeight: getComputedStyle(document.querySelector<HTMLElement>('.modal-actions .button')!).minHeight,
+    };
+  });
+  expect(layout).toEqual({ adjusted: true, centered: true, smallControls: [], touchMin: '75.00px', closeMinHeight: '75px' });
+  await page.screenshot({ path: test.info().outputPath('display-scale-80.png'), animations: 'disabled' });
+  await dialog.getByRole('button', { name: '닫기', exact: true }).click();
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(.64, 4);
+  await page.getByRole('button', { name: '설정 열기' }).click();
+  await expect(page.getByRole('dialog', { name: '설정', exact: true }).getByRole('slider', { name: '게임 화면 크기 조절' })).toHaveValue('80');
 });
 
 test('tiny and portrait screens show a guide while common phones can play in landscape', async ({ page }) => {

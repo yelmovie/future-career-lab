@@ -5,6 +5,7 @@ import { version as APP_VERSION } from '../../package.json';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
 import { audioService } from '../services/audioService';
+import { DISPLAY_SCALE_MAX, DISPLAY_SCALE_MIN, getDisplayScalePercent, setDisplayScalePercent } from '../app/stageScale';
 import { Modal } from './Modal';
 import { MutedIcon, SoundIcon } from './Icons';
 import './settings.css';
@@ -13,8 +14,9 @@ const DEFAULT_BGM = 0.28;
 const DEFAULT_SFX = 0.7;
 
 /** 팝업 하나에 다 넣으면 1,000px 넘게 스크롤된다. 탭으로 나눠 한 화면에 한 묶음만 보여 준다. */
-type Tab = 'sound' | 'howto' | 'teacher' | 'info';
+type Tab = 'display' | 'sound' | 'howto' | 'teacher' | 'info';
 const TABS: readonly { id: Tab; label: string }[] = [
+  { id: 'display', label: '화면' },
   { id: 'sound', label: '소리' },
   { id: 'howto', label: '학생용 가이드' },
   { id: 'teacher', label: '교사용 가이드' },
@@ -41,7 +43,8 @@ const CREDIT_SFX: { title: string; creator: string }[] = [
 
 export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: PageNumber) => void }) {
   const { save, setAudio, startNew, teacherMode, unlockTeacherMode, lockTeacherMode } = useGame();
-  const [tab, setTab] = useState<Tab>('sound');
+  const [tab, setTab] = useState<Tab>('display');
+  const [displayScale, setDisplayScale] = useState(getDisplayScalePercent);
   const [confirmReset, setConfirmReset] = useState(false);
   const [teacherPassword, setTeacherPassword] = useState('');
   const [teacherError, setTeacherError] = useState('');
@@ -51,6 +54,11 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
   const apply = (patch: Partial<typeof save.audio>) => {
     audioService.unlock();
     setAudio(patch);
+  };
+
+  const applyDisplayScale = (value: number) => {
+    setDisplayScale(value);
+    setDisplayScalePercent(value);
   };
 
   return (
@@ -70,6 +78,43 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
       actions={<button className="button button--primary" onClick={onClose}>닫기</button>}
     >
       <div className="settings" role="tabpanel">
+        {tab === 'display' && (
+          <section className="settings-block settings-display">
+            <h3>게임 화면 크기</h3>
+            <p className="settings-hint">화면 가장자리가 잘리거나 버튼이 가려지면 크기를 조금 줄여 봐.</p>
+            <div className="settings-display__value" aria-live="polite">
+              <span>현재 크기</span>
+              <output>{displayScale}%</output>
+            </div>
+            <label className="settings-display__slider">
+              <span className="sr-only">게임 화면 크기 조절</span>
+              <input
+                type="range"
+                min={DISPLAY_SCALE_MIN}
+                max={DISPLAY_SCALE_MAX}
+                step={5}
+                value={displayScale}
+                aria-valuetext={`${displayScale}%`}
+                onChange={(event) => applyDisplayScale(Number(event.target.value))}
+              />
+            </label>
+            <div className="settings-display__presets" aria-label="화면 크기 바로 선택">
+              {[80, 90, 100].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={displayScale === value}
+                  onClick={() => { audioService.playSfx('tap'); applyDisplayScale(value); }}
+                >
+                  <b>{value}%</b>
+                  <span>{value === 80 ? '작게' : value === 90 ? '조금 작게' : '기본'}</span>
+                </button>
+              ))}
+            </div>
+            <p className="settings-hint">고른 크기는 이 기기에 자동으로 저장돼.</p>
+          </section>
+        )}
+
         {tab === 'sound' && (
           <section className="settings-block">
             <h3>소리</h3>

@@ -420,6 +420,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .modal-body::-webkit-scrollbar-thumb { border: 3px solid var(--color-surface); border-radius: 99px; background: var(--color-border-soft); }
 .modal-actions { flex: none; display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-8); margin: 0; padding: 12px 28px 18px; border-top: 2px solid rgb(217 228 243 / 72%); background: rgb(255 255 255 / 58%); }
 .modal-actions .button { min-width: 120px; }
+.modal button, .modal input, .modal select, .modal textarea { min-height: var(--touch-min) !important; }
 .modal { background: #fff; backdrop-filter: none; }
 .modal-actions { background: #fff; }
 
