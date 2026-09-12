@@ -142,7 +142,12 @@ async function measureBoundaries(page: Page, name: string, screenshot = false) {
   expect.soft(issues, `${name} at ${viewport.width}×${viewport.height}`).toEqual([]);
 }
 
-for (const viewport of [{ width: 1024, height: 768 }, { width: 1728, height: 972 }]) {
+for (const viewport of [
+  { width: 820, height: 500 },   // Galaxy Z Fold 계열 펼친 가로 화면·인앱 브라우저
+  { width: 1024, height: 768 },  // 학교 태블릿 가로
+  { width: 1366, height: 768 },  // 일반 노트북·웹앱
+  { width: 1920, height: 1080 }, // 전자칠판·대형 화면
+]) {
   test.describe(`${viewport.width}×${viewport.height}`, () => {
     test.use({ viewport, reducedMotion: 'reduce' });
     test('all routes and longer mission states keep the header, activity and mentor in separate rows', async ({ context }) => {

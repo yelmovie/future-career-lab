@@ -444,10 +444,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 .loader-orbit { width: 54px; height: 54px; border: 5px solid var(--color-border-soft); border-top-color: var(--color-accent); border-radius: 50%; animation: spin .9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 작은 휴대폰·세로 화면에서는 축소된 조작을 노출하지 않고 안전한 사용 환경을 안내한다. */
+/*
+ * 펼친 폴드 가로 화면은 CSS 폭이 1024px보다 작아도 실제 조작 공간이 충분하다.
+ * 이 구간은 무대를 그대로 축소하되 공통 글자와 터치 영역을 조금 키운다.
+ */
+@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 480px) and (max-width: 1023px) {
+  :root {
+    --fs-title: 30px;
+    --fs-head: 26px;
+    --fs-body: 22px;
+    --fs-instruction: 25px;
+    --touch-min: 70px;
+    --topbar-h: 84px;
+    --footer-h: 74px;
+  }
+}
+
+/* 세로 화면과 실제 조작 높이가 부족한 일반 휴대폰에서는 가로 전환 안내를 보여 준다. */
 .device-notice { display: none; }
 
-@media screen and (orientation: portrait), screen and (max-width: 1023px), screen and (max-height: 575px) {
+@media screen and (orientation: portrait), screen and (max-width: 719px), screen and (max-height: 479px) {
   /* 안내는 실제 뷰포트 크기로 읽는다. 숨긴 게임은 Tab 탐색에서도 빠진다. */
   .stage:has(.device-notice) { inset: 0; width: 100%; height: 100%; transform: none; }
   .game-shell:has(~ .device-notice) { display: none; }

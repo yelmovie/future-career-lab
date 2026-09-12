@@ -68,7 +68,7 @@ export function App() {
             <div className="device-notice__icon" aria-hidden="true">↻</div>
             <strong>더 큰 가로 화면에서 열어 줘</strong>
             <p>버튼을 편하게 누르려면 태블릿을 가로로 돌리거나 PC에서 열어 줘.</p>
-            <small>권장 화면: 가로 1024px 이상</small>
+            <small>권장 화면: 가로 720px · 세로 480px 이상</small>
           </aside>
         </>
       </Suspense>

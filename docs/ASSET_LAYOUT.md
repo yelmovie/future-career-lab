@@ -19,7 +19,7 @@
 
 현재 미디어 목록은 149개이며 앱에서 도달하는 수업 자료 148개와 별도의 OG 1개다. 대체 이미지와 GLB 네 개도 포함한다. `page-*`, `v2`~`v10`의 URL 구조를 유지하고, WebP로 교체한 PNG 주소 13개는 Vercel의 개별 호환 규칙으로 새 그림에 연결한다. 존재하지 않는 옛 3D 정원 샘플 슬롯은 에셋 목록에서 제거했다.
 
-이번 원본 PNG 13개는 `_unused/release-optimization-20260912/`에 보관했고 바이트·크기·SHA-256은 `docs/ASSET-OPTIMIZATION-20260912.json`에 기록했다. 학교 화단 전후 그림은 `public/assets/v10/`, 생성 원본은 `output/school-garden-20260912/`에 있다. 폐기한 두 화면 코드는 `_unused/retired-code-20260912/`에 보관한다. 배포용 빌드는 189파일, 65,668,644바이트이며 이후 빌드에서는 생성된 manifest 값을 기준으로 확인한다.
+이번 원본 PNG 13개는 `_unused/release-optimization-20260912/`에 보관했고 바이트·크기·SHA-256은 `docs/ASSET-OPTIMIZATION-20260912.json`에 기록했다. 학교 화단 전후 그림은 `public/assets/v10/`, 생성 원본은 `output/school-garden-20260912/`에 있다. 폐기한 두 화면 코드는 `_unused/retired-code-20260912/`에 보관한다. 배포용 빌드는 189파일, 65,668,896바이트이며 이후 빌드에서는 생성된 manifest 값을 기준으로 확인한다.
 
 ## 추가·교체 절차
 

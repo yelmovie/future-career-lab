@@ -111,7 +111,7 @@ test('small or portrait screens show a clear device guide instead of tiny contro
   await page.setViewportSize({ width: 915, height: 412 });
   await page.goto('/#/page/1');
   await expect(page.getByText('더 큰 가로 화면에서 열어 줘')).toBeVisible();
-  await expect(page.getByText('권장 화면: 가로 1024px 이상')).toBeVisible();
+  await expect(page.getByText('권장 화면: 가로 720px · 세로 480px 이상')).toBeVisible();
 
   await page.setViewportSize({ width: 768, height: 1024 });
   await expect(page.getByText('태블릿을 가로로 돌리거나 PC에서 열어 줘')).toBeVisible();
