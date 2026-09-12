@@ -146,6 +146,24 @@
 .certificate-border footer { width: 100%; display: flex; justify-content: center; align-items: center; padding-top: 12px; border-top: 1.5px solid var(--paper-gold-soft); color: #35495c; font-size: 16px; font-weight: 600; }
 .certificate-seal { position: absolute; right: 30px; bottom: 16px; width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 4px 8px rgb(120 90 30 / 25%)); }
 
+/* 휴대폰 가로에서도 날짜까지 한 장에 보이도록 수료증 장식 간격만 압축한다. */
+@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+  .certificate-layout { gap: 4px; }
+  .certificate-sheet { padding: 8px; }
+  .certificate-border { gap: 2px; padding: 12px 24px 10px; }
+  .certificate-border header { gap: 0; margin-top: 8px; }
+  .certificate-border header span, .certificate-border header p { font-size: 13px; }
+  .certificate-border header h2 { margin-top: 0; font-size: 32px; }
+  .certificate-copy { font-size: 14px; line-height: 1.45; }
+  .certificate-badges { gap: 18px; }
+  .certificate-badges > div { gap: 2px; }
+  .certificate-badges span { width: 58px; height: 58px; }
+  .certificate-badges b, .certificate-info, .certificate-border footer { font-size: 14px; }
+  .certificate-info { gap: 2px 16px; }
+  .certificate-border footer { padding-top: 4px; }
+  .certificate-seal { right: 22px; bottom: 10px; width: 58px; height: 58px; }
+}
+
 @page { size: A4 landscape; margin: 8mm; }
 @media print {
   .certificate-page .game-content { display: block; }

@@ -40,10 +40,13 @@
 .v4-foot { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; min-height: 132px; padding: 12px 24px 10px; }
 .v4-mentor { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 110px; }
 .v4-mentor > img { flex: none; width: 100px; height: 110px; align-self: end; margin-bottom: 0; object-fit: contain; object-position: bottom; filter: drop-shadow(0 10px 12px rgb(40 60 90 / 22%)); }
-.v4-bubble { position: relative; min-width: 0; max-width: 620px; margin: 0; padding: 10px 18px; border: 2px solid var(--glass-line); border-radius: 20px; background: var(--glass-3); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-inset), var(--glass-shadow); color: var(--ink); font-size: 21px; font-weight: 800; line-height: 1.35; box-shadow: var(--shadow-soft); }
+.v4-bubble { position: relative; min-width: 0; max-width: 620px; margin: 0; padding: 10px 18px; border: 2px solid var(--glass-line); border-radius: 20px; background: var(--glass-3); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-inset), var(--glass-shadow); color: var(--ink); font-size: 21px; font-weight: 800; line-height: 1.35; text-align: left; cursor: pointer; box-shadow: var(--shadow-soft); }
 .v4-bubble::before { content: ""; position: absolute; left: -22px; bottom: 18px; border: 11px solid transparent; border-right-color: var(--glass-line); }
-.v4-bubble span { display: block; margin-bottom: 2px; color: var(--color-primary-deep); font-size: 16px; font-weight: 900; }
-.v4-bubble span:empty { display: none; }
+.v4-bubble__name { display: block; margin-bottom: 2px; color: var(--color-primary-deep); font-size: 16px; font-weight: 900; }
+.v4-bubble__name:empty { display: none; }
+.v4-bubble__full { display: inline; color: var(--ink); }
+.v4-bubble__compact { display: none; }
+.v4-mentor-dialog { margin: 0; font-size: var(--fs-body); font-weight: 750; line-height: 1.6; }
 @keyframes v4-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
 
 .v4-next-wrap { position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-bottom: 0; }
@@ -143,6 +146,27 @@
 .modal-body .p5-help li::before, .modal-body .p7-help li::before, .modal-body .p8-help li::before { content: counter(v4-help); counter-increment: v4-help; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--color-accent); color: #3a2a00; font-family: var(--font-display); font-size: 20px; }
 .modal-body .p5-help, .modal-body .p7-help, .modal-body .p8-help { counter-reset: v4-help; }
 
+/* 휴대폰 가로: 짧은 멘토 버튼과 48px 터치 목표를 유지하면서 활동 영역을 넓힌다. */
+@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+  .v4-shell { grid-template-rows: minmax(var(--topbar-h), auto) minmax(0, 1fr) auto; }
+  .v4-head { gap: 10px; padding: 4px 16px; }
+  .v4-stage { margin-top: 4px; }
+  .v4-instruction { font-size: var(--fs-instruction); }
+  .v4-status, .v4-hint { font-size: var(--fs-body); }
+  .v4-bubble, .v4-bubble__name { font-size: var(--fs-body); }
+  .v4-next { min-height: var(--touch-min); font-size: var(--fs-head); }
+  .v4-foot { gap: 10px; min-height: calc(var(--touch-min) + 16px); height: calc(var(--touch-min) + 16px); padding: 6px 16px 4px; }
+  .v4-mentor { min-height: var(--touch-min); }
+  .v4-mentor > img { width: 76px; height: var(--touch-min); }
+  .v4-bubble { display: block; min-width: 270px; max-width: 520px; overflow: visible; padding-block: 6px; line-height: 1.2; }
+  .v4-bubble__name, .v4-bubble__compact { display: inline; margin: 0; }
+  .v4-bubble__name::after { content: ' · '; color: var(--color-text-sub); }
+  .v4-bubble__full { display: none; }
+  .v4-bubble__compact { color: var(--ink); font-weight: 850; }
+  .v4-next-wrap { gap: 2px; }
+  .v4-next-status, .v4-hint { display: none; }
+}
+
 /* 1024px 태블릿 축소(0.8배)에서도 안내 18px, 본문 16px을 확보한다. */
 .v4-card { background: rgb(255 255 255 / 66%); backdrop-filter: none; box-shadow: var(--shadow-card); }
 .v4-card::before { display: none; }
@@ -151,7 +175,7 @@
 .v4-help { width: var(--touch-min); height: var(--touch-min); }
 .v4-status, .v4-hint, .v4-choice small, .v4-slot__hint, .v4-slot__empty, .v4-pool__label { font-size: 20px; }
 .v4-bubble { font-size: var(--fs-instruction); border-radius: 16px; box-shadow: var(--shadow-soft); }
-.v4-bubble span { font-size: 20px; }
+.v4-bubble__name { font-size: 20px; }
 .v4-mentor > img { animation: none; }
 .v4-done { background: #fff; border-color: var(--color-border-soft); backdrop-filter: none; }
 .v4-done p { font-size: 20px; }

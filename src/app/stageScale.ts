@@ -32,7 +32,17 @@ export function installStageScale() {
     const width = window.visualViewport?.width ?? window.innerWidth;
     const height = window.visualViewport?.height ?? window.innerHeight;
     scale = Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
-    document.documentElement.style.setProperty('--stage-scale', scale.toFixed(4));
+    const root = document.documentElement.style;
+    root.setProperty('--stage-scale', scale.toFixed(4));
+    /*
+     * 고정 1280×720 무대를 축소해도 손가락으로 누르는 실제 크기는 48px을 지킨다.
+     * CSS 안에서는 transform 뒤의 실제 px로 나눌 수 없어, 여기서 필요한 논리 px을 계산한다.
+     */
+    root.setProperty('--responsive-touch-min', `${Math.max(60, 48 / scale).toFixed(2)}px`);
+    root.setProperty('--responsive-fs-title', `${Math.max(28, 19 / scale).toFixed(2)}px`);
+    root.setProperty('--responsive-fs-head', `${Math.max(24, 17 / scale).toFixed(2)}px`);
+    root.setProperty('--responsive-fs-body', `${Math.max(20, 16 / scale).toFixed(2)}px`);
+    root.setProperty('--responsive-fs-instruction', `${Math.max(23, 18 / scale).toFixed(2)}px`);
   };
   apply();
   window.addEventListener('resize', apply);

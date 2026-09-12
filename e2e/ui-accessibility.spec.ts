@@ -65,8 +65,8 @@ test('modal inputs retain focus across state updates, trap Tab and restore the o
   await expect(opener).toBeFocused();
 });
 
-test('small and portrait screens show a full-size guide while an unfolded phone can play in landscape', async ({ page }) => {
-  for (const viewport of [{ width: 915, height: 412 }, { width: 768, height: 1024 }]) {
+test('tiny and portrait screens show a guide while common phones can play in landscape', async ({ page }) => {
+  for (const viewport of [{ width: 719, height: 360 }, { width: 740, height: 349 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/#/page/3');
     await expect(page.locator('.device-notice')).toBeVisible();
@@ -78,33 +78,47 @@ test('small and portrait screens show a full-size guide while an unfolded phone 
     expect(await page.evaluate(() => Boolean(document.activeElement?.closest('.game-shell')))).toBe(false);
     await page.screenshot({ path: `artifacts/ui-accessibility-guide-${viewport.width}.png` });
   }
-  await page.setViewportSize({ width: 820, height: 500 });
-  await expect(page.locator('.device-notice')).toBeHidden();
-  await expect(page.locator('.game-shell')).toBeVisible();
-  await expect(page.locator('.phaser-stage canvas')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(820 / 1280, 4);
-  const foldLayout = await page.locator('.game-shell').evaluate((shell) => {
-    const viewport = { width: window.innerWidth, height: window.innerHeight };
-    const stage = document.querySelector('.stage')!.getBoundingClientRect();
-    const smallControls = [...shell.querySelectorAll<HTMLElement>('button,input,[role="button"]')]
-      .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
-      .filter((control) => {
-        const box = control.getBoundingClientRect();
-        return box.width < 44 || box.height < 44;
-      })
-      .map((control) => control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 40));
-    return {
-      stageInside: stage.left >= -1 && stage.top >= -1 && stage.right <= viewport.width + 1 && stage.bottom <= viewport.height + 1,
-      smallControls,
-    };
-  });
-  expect(foldLayout).toEqual({ stageInside: true, smallControls: [] });
+  for (const viewport of [{ width: 720, height: 350 }, { width: 740, height: 360 }, { width: 844, height: 390 }, { width: 915, height: 412 }, { width: 932, height: 430 }, { width: 820, height: 500 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/#/page/3');
+    await expect(page.locator('.device-notice')).toBeHidden();
+    await expect(page.locator('.game-shell')).toBeVisible();
+    await expect(page.locator('.phaser-stage canvas')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(Math.min(viewport.width / 1280, viewport.height / 720), 4);
+    const phoneLayout = await page.locator('.game-shell').evaluate((shell) => {
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const stage = document.querySelector('.stage')!.getBoundingClientRect();
+      const smallControls = [...shell.querySelectorAll<HTMLElement>('button,input,[role="button"]')]
+        .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
+        .filter((control) => {
+          const box = control.getBoundingClientRect();
+          return box.width < 47.5 || box.height < 47.5;
+        })
+        .map((control) => control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 40));
+      return {
+        stageInside: stage.left >= -1 && stage.top >= -1 && stage.right <= viewport.width + 1 && stage.bottom <= viewport.height + 1,
+        smallControls,
+      };
+    });
+    expect(phoneLayout).toEqual({ stageInside: true, smallControls: [] });
+  }
+  await page.setViewportSize({ width: 740, height: 360 });
+  await page.goto('/#/page/3');
+  const mentorButton = page.getByRole('button', { name: '드론 멘토 말 크게 보기' });
+  await expect(mentorButton).toBeVisible();
+  await mentorButton.click();
+  const mentorDialog = page.getByRole('dialog', { name: '드론 멘토가 알려 줄게' });
+  await expect(mentorDialog).toContainText('원 1, 2, 3을 차례로 눌러 점을 놓아.');
+  await mentorDialog.getByRole('button', { name: '알겠어' }).click();
+  await expect(mentorDialog).toHaveCount(0);
+  await expect(mentorButton).toBeFocused();
+
   await page.goto('/#/page/1');
   const smallHomeControls = await page.locator('.game-shell').evaluate((shell) => [...shell.querySelectorAll<HTMLElement>('button,input,[role="button"]')]
     .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
     .filter((control) => {
       const box = control.getBoundingClientRect();
-      return box.width < 44 || box.height < 44;
+      return box.width < 47.5 || box.height < 47.5;
     })
     .map((control) => control.getAttribute('aria-label') ?? control.textContent?.trim().slice(0, 40)));
   expect(smallHomeControls).toEqual([]);

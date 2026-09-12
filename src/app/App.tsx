@@ -67,8 +67,8 @@ export function App() {
           <aside className="device-notice" role="status" aria-live="polite">
             <div className="device-notice__icon" aria-hidden="true">↻</div>
             <strong>더 큰 가로 화면에서 열어 줘</strong>
-            <p>버튼을 편하게 누르려면 태블릿을 가로로 돌리거나 PC에서 열어 줘.</p>
-            <small>권장 화면: 가로 720px · 세로 480px 이상</small>
+            <p>휴대폰이나 태블릿을 가로로 돌리고 브라우저 메뉴를 접어 줘.</p>
+            <small>필요한 화면: 가로 720px · 세로 350px 이상</small>
           </aside>
         </>
       </Suspense>

@@ -107,14 +107,18 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
   expect(violations, violations.join('\n')).toEqual([]);
 });
 
-test('small or portrait screens show a clear device guide instead of tiny controls', async ({ page }) => {
-  await page.setViewportSize({ width: 915, height: 412 });
+test('unsupported screens show a guide while a common landscape phone can play', async ({ page }) => {
+  await page.setViewportSize({ width: 719, height: 360 });
   await page.goto('/#/page/1');
   await expect(page.getByText('더 큰 가로 화면에서 열어 줘')).toBeVisible();
-  await expect(page.getByText('권장 화면: 가로 720px · 세로 480px 이상')).toBeVisible();
+  await expect(page.getByText('필요한 화면: 가로 720px · 세로 350px 이상')).toBeVisible();
+
+  await page.setViewportSize({ width: 915, height: 412 });
+  await expect(page.locator('.device-notice')).toBeHidden();
+  await expect(page.locator('.game-shell')).toBeVisible();
 
   await page.setViewportSize({ width: 768, height: 1024 });
-  await expect(page.getByText('태블릿을 가로로 돌리거나 PC에서 열어 줘')).toBeVisible();
+  await expect(page.getByText('휴대폰이나 태블릿을 가로로 돌리고 브라우저 메뉴를 접어 줘.')).toBeVisible();
 });
 
 test.skip('mission order is reinforced with loaded visual assets — superseded by v4 specs', () => {});

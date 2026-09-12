@@ -445,26 +445,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /*
- * 펼친 폴드 가로 화면은 CSS 폭이 1024px보다 작아도 실제 조작 공간이 충분하다.
- * 이 구간은 무대를 그대로 축소하되 공통 글자와 터치 영역을 조금 키운다.
+ * 휴대폰·펼친 폴드 가로 화면. 1280×720 무대는 유지하되 실제 화면에서
+ * 글자 16~19px, 터치 영역 48px이 되도록 stageScale.ts가 계산한 값을 쓴다.
  */
-@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 480px) and (max-width: 1023px) {
+@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
   :root {
-    --fs-title: 30px;
-    --fs-head: 26px;
-    --fs-body: 22px;
-    --fs-instruction: 25px;
-    --touch-min: 70px;
-    --button-height-lg: 70px;
-    --topbar-h: 84px;
-    --footer-h: 74px;
+    --fs-title: var(--responsive-fs-title, 38px);
+    --fs-head: var(--responsive-fs-head, 34px);
+    --fs-body: var(--responsive-fs-body, 32px);
+    --fs-cap: var(--responsive-fs-body, 32px);
+    --fs-instruction: var(--responsive-fs-instruction, 36px);
+    --touch-min: var(--responsive-touch-min, 96px);
+    --button-height-lg: var(--responsive-touch-min, 96px);
+    --topbar-h: calc(var(--touch-min) + 8px);
+    --footer-h: var(--touch-min);
+    --content-pad: 8px;
   }
+
+  .topbar { gap: 8px; padding: 4px 12px; }
+  .topbar-actions { gap: 6px; }
+  .title-lockup { gap: 0; }
+  .title-lockup__heading { gap: 8px; }
+  .title-lockup span, .panel-header span, .teacher-mode-chip, .teacher-next { font-size: var(--fs-body); }
+  .title-lockup h1 { font-size: var(--fs-head); }
+  .icon-button svg { width: 32px; height: 32px; }
+  .button, .button--small, .button--large { font-size: var(--fs-body); }
+  .game-shell button,
+  .game-shell input,
+  .game-shell select,
+  .game-shell textarea { min-height: var(--touch-min) !important; }
+
 }
 
-/* 세로 화면과 실제 조작 높이가 부족한 일반 휴대폰에서는 가로 전환 안내를 보여 준다. */
+/* 세로 화면과 아주 작은 브라우저 영역에서는 더 큰 가로 화면 안내를 보여 준다. */
 .device-notice { display: none; }
 
-@media screen and (orientation: portrait), screen and (max-width: 719px), screen and (max-height: 479px) {
+@media screen and (orientation: portrait), screen and (max-width: 719px), screen and (max-height: 349px) {
   /* 안내는 실제 뷰포트 크기로 읽는다. 숨긴 게임은 Tab 탐색에서도 빠진다. */
   .stage:has(.device-notice) { inset: 0; width: 100%; height: 100%; transform: none; }
   .game-shell:has(~ .device-notice) { display: none; }

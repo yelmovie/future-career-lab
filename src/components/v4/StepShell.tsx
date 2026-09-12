@@ -48,6 +48,7 @@ export interface StepShellProps {
  */
 export function StepShell({ page, step, steps, instruction, mentor, mentorName, bubble, status, stageAction, next, help, done, className = '', onNavigate, children }: StepShellProps) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [mentorOpen, setMentorOpen] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
   const nextHintId = useId();
   const hintTimer = useRef(0);
@@ -107,7 +108,11 @@ export function StepShell({ page, step, steps, instruction, mentor, mentorName, 
         <footer className="v4-foot">
           <div className="v4-mentor">
             <img src={mentor} alt={mentorName ?? ''} />
-            {bubble && <p className="v4-bubble"><span>{mentorName}</span>{bubble}</p>}
+            {bubble && <button type="button" className="v4-bubble" aria-label={`${mentorName ?? '멘토'} 말 크게 보기`} onClick={() => setMentorOpen(true)}>
+              <span className="v4-bubble__name">{mentorName}</span>
+              <span className="v4-bubble__full">{bubble}</span>
+              <span className="v4-bubble__compact">멘토 말 보기</span>
+            </button>}
           </div>
           <div className="v4-next-wrap">
             {next.disabled && next.disabledMode === 'lock' && next.hint && <span id={nextHintId} className="v4-next-status" role="status">{next.hint}</span>}
@@ -154,6 +159,11 @@ export function StepShell({ page, step, steps, instruction, mentor, mentorName, 
       {helpOpen && help && (
         <Modal title="어떻게 하는 거야?" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
           {help}
+        </Modal>
+      )}
+      {mentorOpen && bubble && (
+        <Modal title={`${mentorName ?? '멘토'}가 알려 줄게`} onClose={() => setMentorOpen(false)} actions={<button className="button button--primary" onClick={() => setMentorOpen(false)}>알겠어</button>}>
+          <p className="v4-mentor-dialog">{bubble}</p>
         </Modal>
       )}
     </GameShell>
