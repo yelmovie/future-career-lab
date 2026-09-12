@@ -108,17 +108,17 @@ test('every visible control keeps a 48px touch target on a 1024px tablet', async
 });
 
 test('unsupported screens show a guide while a common landscape phone can play', async ({ page }) => {
-  await page.setViewportSize({ width: 719, height: 360 });
+  await page.setViewportSize({ width: 639, height: 360 });
   await page.goto('/#/page/1');
-  await expect(page.getByText('더 큰 가로 화면에서 열어 줘')).toBeVisible();
-  await expect(page.getByText('필요한 화면: 가로 720px · 세로 350px 이상')).toBeVisible();
+  await expect(page.getByText('가로 화면으로 돌려 줘')).toBeVisible();
+  await expect(page.getByText('현재 게임 영역: 639×360px')).toBeVisible();
 
   await page.setViewportSize({ width: 915, height: 412 });
   await expect(page.locator('.device-notice')).toBeHidden();
   await expect(page.locator('.game-shell')).toBeVisible();
 
   await page.setViewportSize({ width: 768, height: 1024 });
-  await expect(page.getByText('휴대폰이나 태블릿을 가로로 돌리고 브라우저 메뉴를 접어 줘.')).toBeVisible();
+  await expect(page.getByText('휴대폰이나 태블릿을 가로로 돌리면 게임을 시작할 수 있어.')).toBeVisible();
 });
 
 test.skip('mission order is reinforced with loaded visual assets — superseded by v4 specs', () => {});

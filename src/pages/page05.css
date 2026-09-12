@@ -132,7 +132,7 @@
 .p5-model-fallback { display: block; width: 100%; height: 330px; object-fit: contain; }
 
 /* 작은 휴대폰 가로에서는 48px 실제 터치 영역이 서로 겹치지 않도록 관찰점을 넓게 펼친다. */
-@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+@media screen and (orientation: landscape) and (min-width: 640px) and (max-width: 1023px) {
   .p5-body { grid-template-columns: 400px minmax(0, 1fr); gap: 12px; padding-inline: 16px; }
   .p5-bird { width: 380px; height: 100%; aspect-ratio: auto; }
   .p5-bird .v4-hotspot::before { width: 72px; height: 72px; }

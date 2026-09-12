@@ -41,6 +41,8 @@ export function App() {
   const { page, navigate } = useHashRouter();
   const { save, setLastPage } = useGame();
   const Page = pages[page];
+  const [mobileGameForced, setMobileGameForced] = useState(() => sessionStorage.getItem('future-career-lab.mobile-game-forced') === 'true');
+  const [viewport, setViewport] = useState(() => ({ width: Math.round(window.visualViewport?.width ?? window.innerWidth), height: Math.round(window.visualViewport?.height ?? window.innerHeight) }));
 
   useEffect(() => {
     if (page !== 1) setLastPage(page);
@@ -48,6 +50,10 @@ export function App() {
     audioService.playPageBgm(page);
     document.title = `${PAGE_META[page].title} · 미래 직업실`;
   }, [page, save.audio, setLastPage]);
+
+  useEffect(() => {
+    if (document.documentElement.classList.contains('low-height-scroll')) window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [page]);
 
   useEffect(() => {
     const unlock = () => audioService.unlock();
@@ -59,16 +65,43 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const measure = () => setViewport({ width: Math.round(window.visualViewport?.width ?? window.innerWidth), height: Math.round(window.visualViewport?.height ?? window.innerHeight) });
+    window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('force-mobile-game', mobileGameForced);
+    window.dispatchEvent(new Event('resize'));
+    return () => document.documentElement.classList.remove('force-mobile-game');
+  }, [mobileGameForced]);
+
+  const fillMobileScreen = () => {
+    sessionStorage.setItem('future-career-lab.mobile-game-forced', 'true');
+    setMobileGameForced(true);
+    if (!document.fullscreenElement) {
+      void document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => undefined);
+    }
+  };
+
   return (
     <AppErrorBoundary key={page}>
       <Suspense fallback={<RouteLoading />}>
         <>
           <Page onNavigate={navigate} />
-          <aside className="device-notice" role="status" aria-live="polite">
+          <aside className="device-notice" role="region" aria-label="화면 크기 안내">
             <div className="device-notice__icon" aria-hidden="true">↻</div>
-            <strong>더 큰 가로 화면에서 열어 줘</strong>
-            <p>휴대폰이나 태블릿을 가로로 돌리고 브라우저 메뉴를 접어 줘.</p>
-            <small>필요한 화면: 가로 720px · 세로 350px 이상</small>
+            <strong className="device-notice__rotate-title">가로 화면으로 돌려 줘</strong>
+            <p className="device-notice__rotate-copy">휴대폰이나 태블릿을 가로로 돌리면 게임을 시작할 수 있어.</p>
+            <strong className="device-notice__fill-title">브라우저 메뉴를 숨겨 볼까?</strong>
+            <p className="device-notice__fill-copy">새로고침 대신 버튼을 눌러. 메뉴를 숨기고 게임을 열어 줄게.</p>
+            <small>현재 게임 영역: {viewport.width}×{viewport.height}px</small>
+            <button type="button" className="device-notice__play" onClick={fillMobileScreen}>게임 화면 채우기</button>
           </aside>
         </>
       </Suspense>

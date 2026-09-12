@@ -31,9 +31,13 @@ export function installStageScale() {
     if (isTyping()) return;
     const width = window.visualViewport?.width ?? window.innerWidth;
     const height = window.visualViewport?.height ?? window.innerHeight;
-    scale = Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
-    const root = document.documentElement.style;
+    const rootElement = document.documentElement;
+    const lowHeightScroll = rootElement.classList.contains('force-mobile-game') && width >= 640 && width > height && height < 350;
+    scale = lowHeightScroll ? width / STAGE_WIDTH : Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
+    rootElement.classList.toggle('low-height-scroll', lowHeightScroll);
+    const root = rootElement.style;
     root.setProperty('--stage-scale', scale.toFixed(4));
+    root.setProperty('--stage-rendered-height', `${(STAGE_HEIGHT * scale).toFixed(2)}px`);
     /*
      * 고정 1280×720 무대를 축소해도 손가락으로 누르는 실제 크기는 48px을 지킨다.
      * CSS 안에서는 transform 뒤의 실제 px로 나눌 수 없어, 여기서 필요한 논리 px을 계산한다.
@@ -47,6 +51,7 @@ export function installStageScale() {
   apply();
   window.addEventListener('resize', apply);
   window.addEventListener('orientationchange', apply);
+  document.addEventListener('fullscreenchange', apply);
   window.visualViewport?.addEventListener('resize', apply);
   window.addEventListener('focusout', () => window.setTimeout(apply, 50));
 }

@@ -147,7 +147,7 @@
 .certificate-seal { position: absolute; right: 30px; bottom: 16px; width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 4px 8px rgb(120 90 30 / 25%)); }
 
 /* 휴대폰 가로에서도 날짜까지 한 장에 보이도록 수료증 장식 간격만 압축한다. */
-@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+@media screen and (orientation: landscape) and (min-width: 640px) and (max-width: 1023px) {
   .certificate-layout { gap: 4px; }
   .certificate-sheet { padding: 8px; }
   .certificate-border { gap: 2px; padding: 12px 24px 10px; }

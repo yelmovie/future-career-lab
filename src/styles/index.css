@@ -448,7 +448,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
  * 휴대폰·펼친 폴드 가로 화면. 1280×720 무대는 유지하되 실제 화면에서
  * 글자 16~19px, 터치 영역 48px이 되도록 stageScale.ts가 계산한 값을 쓴다.
  */
-@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+@media screen and (orientation: landscape) and (min-width: 640px) and (max-width: 1023px) {
   :root {
     --fs-title: var(--responsive-fs-title, 38px);
     --fs-head: var(--responsive-fs-head, 34px);
@@ -479,8 +479,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 
 /* 세로 화면과 아주 작은 브라우저 영역에서는 더 큰 가로 화면 안내를 보여 준다. */
 .device-notice { display: none; }
+.device-notice__play { display: none; }
+.device-notice__fill-title, .device-notice__fill-copy { display: none; }
 
-@media screen and (orientation: portrait), screen and (max-width: 719px), screen and (max-height: 349px) {
+@media screen and (orientation: portrait), screen and (max-width: 639px), screen and (max-height: 349px) {
   /* 안내는 실제 뷰포트 크기로 읽는다. 숨긴 게임은 Tab 탐색에서도 빠진다. */
   .stage:has(.device-notice) { inset: 0; width: 100%; height: 100%; transform: none; }
   .game-shell:has(~ .device-notice) { display: none; }
@@ -492,6 +494,57 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   .device-notice strong { color: var(--ink); font-family: var(--font-display); font-size: clamp(30px, 8vw, 42px); font-weight: 400; }
   .device-notice p { max-width: 24ch; margin: 0; font-size: clamp(20px, 5vw, 26px); font-weight: 750; line-height: 1.5; }
   .device-notice small { padding: 8px 14px; border-radius: 999px; background: var(--color-primary-soft); color: var(--color-primary-deep); font-size: 16px; font-weight: 850; }
+}
+
+/* 인앱 브라우저의 위·아래 메뉴로 높이가 줄었을 때: 한 번 눌러 전체 화면을 요청한다. */
+@media screen and (orientation: landscape) and (min-width: 640px) and (max-height: 349px) {
+  .device-notice {
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-areas: "icon title play" "icon copy play" "icon size play";
+    place-content: center stretch;
+    justify-items: stretch;
+    align-items: center;
+    gap: 2px 14px;
+    padding: 10px 22px;
+    text-align: left;
+  }
+  .device-notice__icon { grid-area: icon; width: 54px; height: 54px; border-width: 2px; border-radius: 18px; font-size: 38px; }
+  .device-notice strong { grid-area: title; font-size: clamp(22px, 3.2vw, 30px); line-height: 1.15; }
+  .device-notice p { grid-area: copy; max-width: none; font-size: clamp(15px, 2.2vw, 19px); line-height: 1.3; }
+  .device-notice small { grid-area: size; justify-self: start; padding: 2px 8px; font-size: 13px; }
+  .device-notice__rotate-title, .device-notice__rotate-copy { display: none; }
+  .device-notice__fill-title, .device-notice__fill-copy { display: block; }
+  .device-notice__play {
+    grid-area: play;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 176px;
+    min-height: 52px;
+    padding: 8px 16px;
+    border: 2px solid #d49a11;
+    border-radius: 16px;
+    background: var(--color-accent);
+    color: #382900;
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 4px 0 #c88700;
+    cursor: pointer;
+  }
+
+  html.force-mobile-game, html.force-mobile-game body { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+  html.force-mobile-game #root { position: relative; inset: auto; display: block; width: 100%; height: var(--stage-rendered-height); min-height: 100dvh; overflow: hidden; }
+  html.force-mobile-game .stage:has(.device-notice) {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: var(--stage-w);
+    height: var(--stage-h);
+    transform: translateX(-50%) scale(var(--stage-scale));
+    transform-origin: top center;
+  }
+  html.force-mobile-game .game-shell:has(~ .device-notice) { display: grid; }
+  html.force-mobile-game .device-notice { display: none; }
 }
 
 .sr-only { font-family: system-ui, sans-serif; position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }

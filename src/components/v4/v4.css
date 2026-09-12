@@ -147,7 +147,7 @@
 .modal-body .p5-help, .modal-body .p7-help, .modal-body .p8-help { counter-reset: v4-help; }
 
 /* 휴대폰 가로: 짧은 멘토 버튼과 48px 터치 목표를 유지하면서 활동 영역을 넓힌다. */
-@media screen and (orientation: landscape) and (min-width: 720px) and (min-height: 350px) and (max-width: 1023px) {
+@media screen and (orientation: landscape) and (min-width: 640px) and (max-width: 1023px) {
   .v4-shell { grid-template-rows: minmax(var(--topbar-h), auto) minmax(0, 1fr) auto; }
   .v4-head { gap: 10px; padding: 4px 16px; }
   .v4-stage { margin-top: 4px; }

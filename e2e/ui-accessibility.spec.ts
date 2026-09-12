@@ -66,7 +66,7 @@ test('modal inputs retain focus across state updates, trap Tab and restore the o
 });
 
 test('tiny and portrait screens show a guide while common phones can play in landscape', async ({ page }) => {
-  for (const viewport of [{ width: 719, height: 360 }, { width: 740, height: 349 }, { width: 768, height: 1024 }]) {
+  for (const viewport of [{ width: 639, height: 360 }, { width: 700, height: 349 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/#/page/3');
     await expect(page.locator('.device-notice')).toBeVisible();
@@ -78,7 +78,7 @@ test('tiny and portrait screens show a guide while common phones can play in lan
     expect(await page.evaluate(() => Boolean(document.activeElement?.closest('.game-shell')))).toBe(false);
     await page.screenshot({ path: `artifacts/ui-accessibility-guide-${viewport.width}.png` });
   }
-  for (const viewport of [{ width: 720, height: 350 }, { width: 740, height: 360 }, { width: 844, height: 390 }, { width: 915, height: 412 }, { width: 932, height: 430 }, { width: 820, height: 500 }]) {
+  for (const viewport of [{ width: 640, height: 350 }, { width: 667, height: 375 }, { width: 720, height: 350 }, { width: 740, height: 360 }, { width: 844, height: 390 }, { width: 915, height: 412 }, { width: 932, height: 430 }, { width: 820, height: 500 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/#/page/3');
     await expect(page.locator('.device-notice')).toBeHidden();
@@ -127,6 +127,54 @@ test('tiny and portrait screens show a guide while common phones can play in lan
   await expect(page.locator('.device-notice')).toBeHidden();
   await expect(page.locator('.phaser-stage canvas')).toBeVisible();
   await expect.poll(() => page.evaluate(() => Number(document.documentElement.style.getPropertyValue('--stage-scale')))).toBeCloseTo(.8, 4);
+});
+
+test('a low-height in-app browser can fill the screen or continue in a scrollable game view', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 915, height: 190 });
+  await page.goto('/#/page/3');
+  const notice = page.getByRole('region', { name: '화면 크기 안내' });
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText('현재 게임 영역: 915×190px');
+  const play = notice.getByRole('button', { name: '게임 화면 채우기' });
+  const playBox = (await play.boundingBox())!;
+  expect(playBox.width).toBeGreaterThanOrEqual(47.5);
+  expect(playBox.height).toBeGreaterThanOrEqual(47.5);
+  await page.screenshot({ path: testInfo.outputPath('in-app-browser-guide.png'), animations: 'disabled' });
+  await play.click();
+  await expect(notice).toBeHidden();
+  await expect(page.locator('.game-shell.page-3')).toBeVisible();
+  const layout = await page.evaluate(() => {
+    const stage = document.querySelector('.stage')!.getBoundingClientRect();
+    const controls = [...document.querySelectorAll<HTMLElement>('.game-shell button,.game-shell input,[role="button"]')]
+      .filter((control) => control.checkVisibility({ checkVisibilityCSS: true }))
+      .map((control) => control.getBoundingClientRect())
+      .filter((rect) => rect.width < 47.5 || rect.height < 47.5);
+    return {
+      lowHeightScroll: document.documentElement.classList.contains('low-height-scroll'),
+      stageTop: stage.top,
+      stageWidth: stage.width,
+      pageCanScroll: document.documentElement.scrollHeight > innerHeight || document.body.scrollHeight > innerHeight,
+      smallControlCount: controls.length,
+    };
+  });
+  expect(layout.lowHeightScroll).toBe(true);
+  expect(layout.stageTop).toBeCloseTo(0, 0);
+  expect(layout.stageWidth).toBeCloseTo(915, 0);
+  expect(layout.pageCanScroll).toBe(true);
+  expect(layout.smallControlCount).toBe(0);
+  await page.screenshot({ path: testInfo.outputPath('in-app-browser-game.png'), animations: 'disabled' });
+  const next = page.locator('.v4-next');
+  await next.scrollIntoViewIfNeeded();
+  await expect(next).toBeInViewport();
+
+  await page.evaluate(() => sessionStorage.setItem('future-career-lab.teacher-preview', 'true'));
+  await page.reload();
+  for (const route of [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]) {
+    await page.goto(`/#/page/${route}`);
+    await expect(page.locator(`.game-shell.page-${route}`)).toBeVisible();
+    await expect(notice).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  }
 });
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 1920, height: 1080 }, { width: 1024, height: 768 }]) {

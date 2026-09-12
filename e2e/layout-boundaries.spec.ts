@@ -143,6 +143,8 @@ async function measureBoundaries(page: Page, name: string, screenshot = false) {
 }
 
 for (const viewport of [
+  { width: 640, height: 350 },   // 작은 일반 휴대폰 가로 하한
+  { width: 667, height: 375 },   // iPhone SE 계열 가로
   { width: 740, height: 360 },   // 최종점검 휴대폰 가로 하한
   { width: 915, height: 412 },   // 큰 일반 휴대폰 가로·인앱 브라우저
   { width: 820, height: 500 },   // Galaxy Z Fold 계열 펼친 가로 화면·인앱 브라우저

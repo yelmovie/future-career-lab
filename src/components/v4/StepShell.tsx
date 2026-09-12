@@ -69,6 +69,9 @@ export function StepShell({ page, step, steps, instruction, mentor, mentorName, 
     setHint(null);
     audioService.playSfx('tap');
     next.onClick();
+    if (document.documentElement.classList.contains('low-height-scroll')) {
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0);
+    }
   };
 
   return (
