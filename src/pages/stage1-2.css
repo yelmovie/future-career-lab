@@ -117,3 +117,8 @@
 @keyframes zoom-help-pulse { 0% { transform: scale(.55); opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .zoom-help, .p4-photo__sticker { animation: none; opacity: .9; } }
 .page-4 .v4-done p { white-space: pre-line; }
+/* 사진의 같은 관찰 지점을 터치와 키보드에서 공유한다. 초점일 때만 돋보기 영역을 강조한다. */
+.zoom-observation { position: absolute; transform: translate(-50%, -50%); min-width: 64px; min-height: 64px; padding: 0; border: 0; background: transparent; color: #17374f; cursor: pointer; }
+.zoom-observation span { visibility: hidden; padding: 8px 12px; border-radius: 12px; background: #fff8dc; font-size: 22px; font-weight: 800; white-space: nowrap; }
+.zoom-observation:focus-visible { outline: 5px solid #ffd047; outline-offset: 3px; border-radius: 18px; background: rgb(255 208 71 / 18%); }
+.zoom-observation:focus-visible span { visibility: visible; }

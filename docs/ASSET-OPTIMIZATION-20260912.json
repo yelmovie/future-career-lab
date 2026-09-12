@@ -1,0 +1,148 @@
+{
+  "encoding": "WebP quality 90, method 6; original dimensions and alpha retained",
+  "images": [
+    {
+      "source": "/assets/meshy/healthy-pair.png",
+      "runtime": "/assets/meshy/healthy-pair.webp",
+      "width": 2400,
+      "height": 1650,
+      "beforeBytes": 964910,
+      "afterBytes": 109318,
+      "sourceSha256": "74aa255d0bb45e3d450a9a3321d60c4747882628f54c544461dfc13c2b4163d5",
+      "runtimeSha256": "ea4bd599c0c10c2e820b8a1bbc4b260c121aba817840ff29df63ac590658be30",
+      "archive": "_unused/release-optimization-20260912/assets/meshy/healthy-pair.png"
+    },
+    {
+      "source": "/assets/meshy/sick-pair.png",
+      "runtime": "/assets/meshy/sick-pair.webp",
+      "width": 2400,
+      "height": 1650,
+      "beforeBytes": 1178623,
+      "afterBytes": 129308,
+      "sourceSha256": "0bd9cc24a55c032c929eafaf5ea9c72fc273699a8986f5a58eb5bdaa50b9e324",
+      "runtimeSha256": "a7de40398a772e983a9f0e71217a837769e3ca3a12e95f57e97cfac75416be1a",
+      "archive": "_unused/release-optimization-20260912/assets/meshy/sick-pair.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-action-report.png",
+      "runtime": "/assets/v8/broadcast-action-report.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 2296481,
+      "afterBytes": 273760,
+      "sourceSha256": "c8e0db08e2f8400cf27236fe49736144f234bfb500a6fd6daebf7c958c36582b",
+      "runtimeSha256": "837a9a621fad42a5ff46efdaff93203490f2cf033009ef7d9daf3f28e7831e82",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-action-report.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-anchor-neutral.png",
+      "runtime": "/assets/v8/broadcast-anchor-neutral.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 1745835,
+      "afterBytes": 121094,
+      "sourceSha256": "752ae978393a216e5915103afda62dcdf9f282907f06b005b7047a21165bdeca",
+      "runtimeSha256": "c81956af26a786599b12bea45b8042280a4693aadf2bb1c53060ab8ef0147665",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-anchor-neutral.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-quiet.png",
+      "runtime": "/assets/v8/broadcast-graph-quiet.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 2779162,
+      "afterBytes": 432140,
+      "sourceSha256": "f2592e5d922d619017a9b389e42dedcc5816600d912a6933e677fbe49f13b5a5",
+      "runtimeSha256": "bf33482576e2d3764c6ee1cac92021263bf634f08720d5a9ba88a5baf77f6b13",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-graph-quiet.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-trees-grown.png",
+      "runtime": "/assets/v8/broadcast-graph-trees-grown.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 2893989,
+      "afterBytes": 468172,
+      "sourceSha256": "3d14e5c09668a45e7a57c295fe6849d375cdfb3671763c29172ac957af25182a",
+      "runtimeSha256": "bcb92364fec4af47de66a176b798daa6e03f06fe006e5d2507d5f5a7397b059f",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-graph-trees-grown.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-water.png",
+      "runtime": "/assets/v8/broadcast-graph-water.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 2680932,
+      "afterBytes": 392786,
+      "sourceSha256": "8fd919744e3f55641698876366ba3587db98fdd7c2175771b81c6dc30f434a41",
+      "runtimeSha256": "4711e8742621b5789d8a338a719a8ad77f735a39f2da0c1faf026e29a72df6b4",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-graph-water.png"
+    },
+    {
+      "source": "/assets/v8/broadcast-mic-recovered.png",
+      "runtime": "/assets/v8/broadcast-mic-recovered.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 2267901,
+      "afterBytes": 251528,
+      "sourceSha256": "1954edb4a8811a2b62e45f4c5ffea31a00ff718166c59f7fff719dbe32e02e48",
+      "runtimeSha256": "7eb4940f6f723da44d4cea79d98ec962ed919251a81cd80790654b2d6165b4cb",
+      "archive": "_unused/release-optimization-20260912/assets/v8/broadcast-mic-recovered.png"
+    },
+    {
+      "source": "/assets/v8/trace-cut-fruit-tree.png",
+      "runtime": "/assets/v8/trace-cut-fruit-tree.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 1765320,
+      "afterBytes": 195574,
+      "sourceSha256": "707f8b3bca232ffbd7a9bc5bfdc4805362784fbe5d2de7e77438c6862904599d",
+      "runtimeSha256": "76e15686387c135e34df7875014a368be45c451fc10821182d714b2f51948153",
+      "archive": "_unused/release-optimization-20260912/assets/v8/trace-cut-fruit-tree.png"
+    },
+    {
+      "source": "/assets/v9/cooperation-map-restored.png",
+      "runtime": "/assets/v9/cooperation-map-restored.webp",
+      "width": 2058,
+      "height": 764,
+      "beforeBytes": 2294729,
+      "afterBytes": 383718,
+      "sourceSha256": "d359d42e27ce549bbb5f97f1496d3fbab88c99097de0d7263f84bf5fc42ed03a",
+      "runtimeSha256": "33e69d8389883dde606ba944fa9203d88b5c38869d6a03cec3fa325b1ac51747",
+      "archive": "_unused/release-optimization-20260912/assets/v9/cooperation-map-restored.png"
+    },
+    {
+      "source": "/assets/v9/cooperation-quiet-site.png",
+      "runtime": "/assets/v9/cooperation-quiet-site.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 3129637,
+      "afterBytes": 525430,
+      "sourceSha256": "15906d951aa1b40f85f562c969c97a77d11cfb654b17ae8d0298b1a600d83680",
+      "runtimeSha256": "3b942b681eabef7da8cc378352009dff69885cdda2327f70062a99ba37f43212",
+      "archive": "_unused/release-optimization-20260912/assets/v9/cooperation-quiet-site.png"
+    },
+    {
+      "source": "/assets/v9/cooperation-sapling.png",
+      "runtime": "/assets/v9/cooperation-sapling.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 1334504,
+      "afterBytes": 89032,
+      "sourceSha256": "92d6d0ff6616a34c7c906232ffa24c8bd10f121b222ede41480adbc1c44077af",
+      "runtimeSha256": "757748f56496b3cf6e79e8201fae957ee2dbbcba2b694b0340498357203de228",
+      "archive": "_unused/release-optimization-20260912/assets/v9/cooperation-sapling.png"
+    },
+    {
+      "source": "/assets/v9/cooperation-water-cleared.png",
+      "runtime": "/assets/v9/cooperation-water-cleared.webp",
+      "width": 1254,
+      "height": 1254,
+      "beforeBytes": 3149021,
+      "afterBytes": 503154,
+      "sourceSha256": "b958c8d2ac0a99041a0023896e6671071515820408c297316600e2c34f635c37",
+      "runtimeSha256": "dfda30d12c199117ceaa81cfe7e4ddef2ee2f7d6856d59906477ec8137522db6",
+      "archive": "_unused/release-optimization-20260912/assets/v9/cooperation-water-cleared.png"
+    }
+  ]
+}

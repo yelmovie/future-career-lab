@@ -15,11 +15,13 @@ const baseSave = {
   updatedAt: new Date().toISOString(),
 };
 
-/** 페이지를 먼저 연 뒤 저장값을 심고 새로고침한다. 순서를 바꾸면 실행 중인 앱이 기본 저장값으로 덮어쓴다. */
+/** 홈 초기화가 끝난 뒤 저장값을 심고, 새로고침한 다음 목표 페이지로 이동한다. */
 async function seed(page: Page, pageNumber: number, save: object) {
-  await page.goto(`/#/page/${pageNumber}`);
+  await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, save] as const);
   await page.reload();
+  await page.goto(`/#/page/${pageNumber}`);
 }
 
 test.use({ viewport: { width: 1280, height: 720 } });
@@ -64,17 +66,10 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   await expect(page.getByRole('heading', { name: '사진을 눌러 이상한 곳을 찾아' })).toBeVisible();
   await expect(next).toHaveClass(/is-off/);
 
-  // 사진 3장: 확대 → 핫스팟 가운데 탭 (PHOTO_DETAILS 비율)
-  const details = [
-    { photo: '벌목지', x: .14 + .32 / 2, y: .28 + .36 / 2 },
-    { photo: '막힌 물길', x: .24 + .5 / 2, y: .34 + .28 / 2 },
-    { photo: '공사장', x: .5 + .12 / 2, y: .54 + .16 / 2 },
-  ];
-  for (const detail of details) {
-    await page.getByRole('button', { name: new RegExp(`^${detail.photo} 사진`) }).click();
-    const zoom = page.getByRole('dialog').locator('.zoom-frame img');
-    const box = (await zoom.boundingBox())!;
-    await zoom.click({ position: { x: box.width * detail.x, y: box.height * detail.y } });
+  // 사진 3장: 확대 → 실제 관찰 버튼으로 흔적 발견
+  for (const photo of ['벌목지', '막힌 물길', '공사장']) {
+    await page.getByRole('button', { name: new RegExp(`^${photo} 사진`) }).click();
+    await page.getByRole('dialog').locator('button.zoom-observation').click();
     await expect(page.locator('.zoom-mark')).toBeVisible();
     const label = page.locator('.zoom-mark__label');
     await expect(label).toBeVisible();

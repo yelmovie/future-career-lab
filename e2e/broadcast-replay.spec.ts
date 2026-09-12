@@ -23,6 +23,7 @@ async function openCompletedBroadcast(page: Page, log = aired) {
     { variable: 'water', from: 3, to: 8, before: 3, after: 4 },
   ] };
   await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, save }) => localStorage.setItem(key, JSON.stringify(save)), { key: SAVE_KEY, save });
   await page.reload();
   await page.goto('/#/page/8');
@@ -42,7 +43,7 @@ test('completed broadcast advances selections, supports scene navigation and res
   }, SAVE_KEY);
   const initial = await savedProgress();
   await expect(replay.getByRole('heading', { name: '첫 인사', exact: true })).toBeVisible();
-  await expect(replay.locator('img.p8-replay__image')).toHaveAttribute('src', '/assets/v8/broadcast-anchor-neutral.png');
+  await expect(replay.locator('img.p8-replay__image')).toHaveAttribute('src', '/assets/v8/broadcast-anchor-neutral.webp');
   await expect(replay.getByRole('button')).toHaveCount(2);
   await expect(page.getByText(/잠깐 멈/)).toHaveCount(0);
   await page.clock.fastForward(17_000);
@@ -59,7 +60,7 @@ test('completed broadcast advances selections, supports scene navigation and res
   await expect(replay.locator('.p8-replay__caption')).toContainText('앞서 확인되지 않은 말을 전해 바로잡습니다. 비교 실험 결과, 물을 채우자 새가 3마리에서 4마리로 늘었습니다.');
   await page.clock.fastForward(17_000);
   await expect(replay.getByRole('heading', { name: '시민 부탁', exact: true })).toBeVisible();
-  await expect(replay.locator('img.p8-replay__image')).toHaveAttribute('src', '/assets/v8/broadcast-mic-recovered.png');
+  await expect(replay.locator('img.p8-replay__image')).toHaveAttribute('src', '/assets/v8/broadcast-mic-recovered.webp');
   await page.clock.fastForward(17_000);
   await expect(replay.getByRole('heading', { name: '내 방송을 모두 봤어!', exact: true })).toBeVisible();
   await replay.getByRole('button', { name: '처음부터 다시 보기', exact: true }).click();

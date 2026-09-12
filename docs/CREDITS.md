@@ -143,3 +143,9 @@ License: https://pixabay.com/service/license-summary/
 같은 날 P8 내용에 맞는 `broadcast-anchor-neutral.png`(같은 남자 앵커·빈 파란 배경), `broadcast-graph-water.png`(물 채우기와 새 2마리), `broadcast-action-report.png`(새와 거리를 두고 전화로 도움을 요청하는 성인)를 각각 OpenAI 내장 image_gen으로 1장씩 추가 제작했다. v7 앵커 그림과 v8 자연 카드 이미지는 얼굴·복장·화풍 참조로만 사용했으며, 정확한 프롬프트·참조 역할·원본 경로도 위 문서에 기록했다. 결과 PNG는 생성 원본을 변경 없이 프로젝트로 복사했다.
 
 카드 자막과 그림의 뜻을 맞추기 위해 `broadcast-graph-trees-grown.png`(건강한 열매 묘목을 심고 보호)와 `broadcast-graph-quiet.png`(빈 운전석·땅에 내린 버킷·작업자가 들고 있는 열쇠로 기계 정지 표현)를 각각 OpenAI 내장 image_gen으로 추가 생성했다. 위 물 채우기·신고 카드의 스타일을 참조했으며, 벌목 장면이나 음파 그림을 재사용하지 않았다. 두 PNG의 정확한 생성 프롬프트·참조 역할·원본 경로·확인 내용도 같은 문서에 기록했다.
+
+## 최종 고도화 자산 (2026-09-12)
+
+학교 화단의 도움 전·후 그림 두 장은 OpenAI 내장 image_gen으로 새로 제작했다. 기존 프로젝트 화풍을 따르며 동일한 화단에서 빈 물그릇이 채워지고 새가 물을 마시는 변화만 보여 준다. 실제 학교나 인물을 촬영한 자료가 아니다. 파일·생성 이력은 [학교 화단 자산 기록](SCHOOL-GARDEN-ASSETS-20260912.md)에 정리했다.
+
+기존 방송·협업·나무 흔적·3D 미리보기 PNG 13장은 같은 그림을 WebP로 인코딩해 배포한다. 출처와 권리는 변환 전 기록을 그대로 따른다. 생성 원본은 `_unused/release-optimization-20260912/`에 보존하며 `scripts/optimize-release-images.py`로 변환을 재현할 수 있다. 런타임 경로는 같은 이름의 `.webp`이며 실제 참조·크기·해시는 asset manifest에서 확인한다. 학교 화단 생성 원본은 `output/school-garden-20260912/`에 보관하고 배포하지 않는다.

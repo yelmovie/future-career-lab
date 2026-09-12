@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { GameShell } from '../GameShell';
 import { ArrowIcon, CheckIcon, HelpIcon } from '../Icons';
 import { Modal } from '../Modal';
@@ -49,6 +49,7 @@ export interface StepShellProps {
 export function StepShell({ page, step, steps, instruction, mentor, mentorName, bubble, status, stageAction, next, help, done, className = '', onNavigate, children }: StepShellProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  const nextHintId = useId();
   const hintTimer = useRef(0);
   const touch = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -109,12 +110,14 @@ export function StepShell({ page, step, steps, instruction, mentor, mentorName, 
             {bubble && <p className="v4-bubble"><span>{mentorName}</span>{bubble}</p>}
           </div>
           <div className="v4-next-wrap">
-            {next.disabled && next.disabledMode === 'lock' && next.hint && <span className="v4-next-status" role="status">{next.hint}</span>}
-            {hint && next.disabled && next.disabledMode !== 'lock' && <span className="v4-hint" role="status">{hint}</span>}
+            {next.disabled && next.disabledMode === 'lock' && next.hint && <span id={nextHintId} className="v4-next-status" role="status">{next.hint}</span>}
+            {hint && next.disabled && next.disabledMode !== 'lock' && <span id={nextHintId} className="v4-hint" role="status">{hint}</span>}
+            {next.disabled && next.disabledMode !== 'lock' && !hint && <span id={nextHintId} className="sr-only">{next.hint ?? '아직 이 단계가 안 끝났어'}</span>}
             <button
               type="button"
               className={`v4-next${next.disabled ? ' is-off' : ' is-next-action'}`}
               disabled={Boolean(next.disabled && next.disabledMode === 'lock')}
+              aria-describedby={next.disabled && (next.disabledMode !== 'lock' || next.hint) ? nextHintId : undefined}
               onPointerDown={(event) => {
                 suppressClick.current = false;
                 if (event.isPrimary && event.button === 0 && event.pointerType !== 'mouse') {

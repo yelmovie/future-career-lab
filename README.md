@@ -13,6 +13,8 @@ npm run verify
 npm run test:e2e
 node scripts/probe-offline.mjs
 node scripts/verify-classroom-release.mjs dist
+node scripts/probe-loading.mjs
+node scripts/probe-deployment.mjs
 ```
 
 Windows 실행 정책에 막히면 `npm.cmd`를 사용합니다. `verify`는 typecheck → lint → 단위 테스트 → 자산 검사 → production build 순서입니다. 마지막 오프라인 검사는 생성된 `dist/`로 로컬 preview를 시작합니다. 이미 실행 중인 production preview가 있으면 `node scripts/probe-offline.mjs --url=http://127.0.0.1:4177/`처럼 넘길 수 있습니다. 검사 결과를 실제 학생의 학습효과·실제 태블릿 완주 증거로 확대해 해석하지 않습니다.
@@ -41,7 +43,9 @@ Windows 실행 정책에 막히면 `npm.cmd`를 사용합니다. `verify`는 typ
 
 ## 교실에서 사용하기
 
-현재 화면 구성은 인터넷 연결을 전제로 합니다. 수업 전에 같은 기기에서 서비스 주소를 열어 그림·음원·드래그 조작을 확인합니다. 이전 버전의 수업 자료 준비·업데이트 버튼은 현재 설정에서 제공하지 않습니다. 오프라인 관련 내부 검사 도구가 남아 있어도 현재 학생 화면의 오프라인 완주를 뜻하지 않습니다.
+처음부터 끝까지 오프라인으로 검증할 때는 production preview를 먼저 띄운 후 `node scripts/probe-full-journey.mjs --url=http://127.0.0.1:4197/`를 실행합니다. 새 브라우저에서 실제 자료 준비와 필수 활동을 진행하며 기존 완료 기록을 주입하지 않습니다. 운영 배포 검사는 `probe-deployment.mjs`가 담당합니다.
+
+첫 방문은 인터넷 연결이 필요합니다. 첫 화면 뒤 다음 활동의 그림·소리·코드를 자동으로 준비하며, 학생은 기다리지 않고 탐험할 수 있습니다. 상단에 **그림과 소리 준비 완료**가 표시된 기기는 연결이 끊겨도 준비한 버전을 사용할 수 있습니다. 준비 중 끊기면 연결 후 남은 파일부터 이어 받고, 실패하면 상태 버튼에서 다시 시도합니다. 설정의 옛 자료 준비 항목은 복구하지 않았습니다. 기기에서 캐시를 지웠거나 브라우저가 자료를 정리했다면 다시 준비해야 합니다.
 
 같은 학생은 같은 브라우저와 `https://16job.vercel.app/` 주소를 사용합니다. 진행 기록은 기기에 저장되며 Production·Preview·다른 도메인은 기록을 공유하지 않습니다. 업데이트 확인은 수업을 마친 뒤 모든 앱 탭을 닫고 다시 여는 방식으로 진행합니다.
 
@@ -65,6 +69,8 @@ GLB를 추가하면 `node scripts/validate-glb.mjs public/assets/meshy --json`�
 
 ## 새 사건·스테이지를 추가할 때
 
+내용만 바꿀 때는 데이터부터 수정합니다. 협업 장소·팀·문구·그림은 `src/data/cooperationMissions.json`, 선택형 학교 화단은 `src/data/schoolGarden.json`입니다. `cooperationContent.ts`는 데이터 타입 경계이며, 조작·완료·복원은 `stage5CooperationModel.ts`와 `schoolGardenModel.ts`에서 담당합니다. URL을 바꾸면 자산 목록·출처를 갱신합니다. 새 규칙은 기존 완료 기록을 무효화하지 않도록 복원 테스트를 만듭니다.
+
 1. `src/shared/constants.ts`의 PAGE_META·STAGE_PAGES·STAGE_META와 `src/app/App.tsx` 라우트를 함께 정합니다.
 2. 기존 모델처럼 화면과 독립된 판정·복원 함수를 만들고, 새 조건과 잘못된 선택의 결과를 검증합니다.
 3. 실제 학습 기록을 `src/shared/types.ts`와 저장 이행에 연결합니다. 완료 여부만 남기지 않습니다.
@@ -82,6 +88,9 @@ GLB를 추가하면 `node scripts/validate-glb.mjs public/assets/meshy --json`�
 - [폴더 구조와 에셋 관리](docs/ASSET_LAYOUT.md)
 - [운영·인수 가이드](docs/DELIVERY_GUIDE.md)
 - [고도화 분석과 목표](docs/reviews/ADVANCEMENT-PLAN-20260909.md)
+- [이번 고도화 계획](docs/reviews/ADVANCEMENT-PLAN-20260912.md)
+- [개선 후 최종점검](docs/reviews/FINAL-CHECK-20260912.md)
+- [현행 제작·기능향상 기록](docs/releases/2026-09-12-advancement.md)
 - [프로젝트 그림 기준](docs/PROJECT_IMAGE_STYLE.md)
 
 교육 내용 연계는 교육부 2022 개정 교육과정과 관련 기관의 교사용 자료를 참고합니다. 해당 활동이 성취기준 전체를 충족한다거나, 테스트 통과가 아동의 학습효과를 입증한다고 주장하지 않습니다. 원문 대조·권리 증빙의 확인 범위와 외부 인수 검사는 운영 가이드에 남깁니다.

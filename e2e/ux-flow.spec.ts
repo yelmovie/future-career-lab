@@ -45,6 +45,7 @@ function makeSave(completed = false) {
 
 async function seedSave(page: Page, save: ReturnType<typeof makeSave>) {
   await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, save]);
   await page.reload();
 }

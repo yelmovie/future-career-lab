@@ -1,23 +1,33 @@
 import { createRoot } from 'react-dom/client';
-import { App } from './app/App';
 import { installStageScale } from './app/stageScale';
-import { GameProvider } from './state/GameContext';
+import { startAutomaticClassroom } from './services/classroomReady';
 import './styles/index.css';
 import './styles/pages.css';
 
 installStageScale();
 
-createRoot(document.getElementById('root')!).render(
-  <div className="stage" id="stage">
-    <GameProvider>
-      <App />
-    </GameProvider>
-  </div>,
-);
-
-// 교실 와이파이가 끊겨도 이어서 진행되도록 정적 자원을 캐시한다. 개발 서버에서는 켜지 않는다.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
-  });
+let loadedModules = 0;
+function completedModule<T>(module: T): T {
+  loadedModules += 1;
+  const progress = document.querySelector<HTMLProgressElement>('#boot-progress');
+  if (progress) progress.value = loadedModules;
+  const label = document.getElementById('boot-progress-label');
+  if (label) label.textContent = `탐험 화면 준비 ${loadedModules}/2`;
+  return module;
 }
+
+void Promise.all([
+  import('./app/App').then(completedModule),
+  import('./state/GameContext').then(completedModule),
+]).then(([{ App }, { GameProvider }]) => {
+  createRoot(document.getElementById('root')!).render(
+    <div className="stage" id="stage"><GameProvider><App /></GameProvider></div>,
+  );
+  if (document.readyState === 'complete') startAutomaticClassroom();
+  else window.addEventListener('load', startAutomaticClassroom, { once: true });
+}).catch(() => {
+  const title = document.getElementById('boot-progress-label');
+  if (title) title.textContent = '연결을 확인하고 화면을 다시 열어 줘.';
+  const retry = document.getElementById('boot-retry');
+  if (retry) { retry.hidden = false; retry.addEventListener('click', () => window.location.reload(), { once: true }); }
+});

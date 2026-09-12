@@ -25,7 +25,7 @@ export const POINTS: { id: PointId; title: string; blurb: string }[] = [
 ];
 
 export const TRACES: Trace[] = [
-  { id: 'tree-cut', point: 'A', kind: 'habitat', title: '잘린 열매나무', note: '잘린 나무 옆에 열매 달린 가지가 있어.\n새들의 먹이가 줄었을까? 다른 곳과 비교해 보자.', image: v8Asset('trace-cut-fruit-tree', 'png'), x: 30, y: 74 },
+  { id: 'tree-cut', point: 'A', kind: 'habitat', title: '잘린 열매나무', note: '잘린 나무 옆에 열매 달린 가지가 있어.\n새들의 먹이가 줄었을까? 다른 곳과 비교해 보자.', image: v8Asset('trace-cut-fruit-tree', 'webp'), x: 30, y: 74 },
   { id: 'sound-chainsaw', point: 'A', kind: 'sound', title: '먼 기계 소리', note: '전기톱 소리. 나무를 베고 있어.', image: v5Asset('trace-machine-sound'), x: 66, y: 46, sound: 'chainsaw' },
   { id: 'feather-brown', point: 'B', kind: 'feather', title: '갈색 숲새 깃털', note: '개울가를 찾은 작은 숲새가 남긴 깃털이야.', image: v8Asset('trace-forest-feather-brown', 'png'), x: 30, y: 66 },
   { id: 'sound-forest-birds', point: 'B', kind: 'sound', title: '숲새 합창 녹음', note: '여러 종류의 작은 새가 함께 지저귄 지난주 녹음이야.', image: v8Asset('trace-forest-birdsong', 'png'), x: 72, y: 40, sound: 'forestBirdsong' },

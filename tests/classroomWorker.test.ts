@@ -2,6 +2,38 @@ import { describe, expect, it } from 'vitest';
 import { createClassroomHarness } from '../scripts/classroom-worker-harness.mjs';
 
 describe('classroom preparation and offline delivery', () => {
+  it('prepares later screen code before audio when the student is playing', async () => {
+    const h = createClassroomHarness();
+    await h.dispatch('install');
+    h.fetcher.mockClear();
+    const prepared = await h.message('PREPARE_CLASSROOM', { background: true });
+    expect(h.fetcher.mock.calls.map(([request]: [Request]) => request.url)).toEqual([
+      `${h.base}assets/stage.js`, `${h.base}audio/clue.mp3`,
+    ]);
+    expect(prepared.at(-1)!.state).toBe('ready');
+  });
+
+  it('keeps verified files when background preparation is interrupted, then resumes', async () => {
+    const h = createClassroomHarness();
+    await h.dispatch('install');
+    const fetchNormally = h.fetcher.getMockImplementation()!;
+    h.fetcher.mockImplementation(async (request) => {
+      if (request.url.endsWith('audio/clue.mp3')) {
+        await h.message('CANCEL_CLASSROOM');
+        throw new Error('interrupted');
+      }
+      return fetchNormally(request);
+    });
+    const interrupted = await h.message('PREPARE_CLASSROOM', { background: true });
+    expect(interrupted.at(-1)!.state).toBe('cancelled');
+    expect(interrupted.at(-1)!.done).toBe(2);
+    h.fetcher.mockImplementation(fetchNormally);
+    h.fetcher.mockClear();
+    const resumed = await h.message('PREPARE_CLASSROOM', { background: true });
+    expect(resumed.at(-1)!.state).toBe('ready');
+    expect(h.fetcher.mock.calls.map(([request]: [Request]) => request.url)).toEqual([`${h.base}audio/clue.mp3`]);
+  });
+
   it('installs just the shell, preserves other applications, and waits for an explicit update', async () => {
     const h = createClassroomHarness();
     h.stores.set('other-app-cache', new Map());

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adjustWorkNoise, canCompleteMission, COOP_MISSIONS, completeCooperationMission, finishCooperation, markBlockedWater, plantSapling, restoreCooperation, returnToCooperationMap, selectCooperationMission, startCooperation, type MissionId } from './stage5CooperationModel';
+import { adjustWorkNoise, chooseQuietPromise, canCompleteMission, COOP_MISSIONS, completeCooperationMission, finishCooperation, markBlockedWater, plantSapling, restoreCooperation, returnToCooperationMap, selectCooperationMission, startCooperation, type MissionId } from './stage5CooperationModel';
 
 describe('Stage 5 cooperation', () => {
   it('starts with the team and blocks completion until each meaningful action is done', () => {
@@ -28,7 +28,7 @@ describe('Stage 5 cooperation', () => {
       s = selectCooperationMission(s, id);
       if (id === 'trees') s = plantSapling(plantSapling(s, 'left'), 'right');
       else if (id === 'water') s = markBlockedWater(s);
-      else s = adjustWorkNoise(s, 25);
+      else s = adjustWorkNoise(chooseQuietPromise(s, 'barrier'), 25);
       expect(canCompleteMission(s)).toBe(true);
       s = returnToCooperationMap(completeCooperationMission(s));
     }
@@ -49,6 +49,8 @@ describe('Stage 5 cooperation', () => {
     let s = selectCooperationMission(startCooperation(restoreCooperation(null)), 'quiet');
     expect(canCompleteMission(s)).toBe(false);
     s = adjustWorkNoise(s, 30);
+    expect(canCompleteMission(s)).toBe(false);
+    s = chooseQuietPromise(s, 'break');
     expect(canCompleteMission(s)).toBe(true);
     s = adjustWorkNoise(s, 80);
     expect(canCompleteMission(s)).toBe(false);

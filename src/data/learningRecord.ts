@@ -23,6 +23,7 @@ export function getLearningRecord(save: GameSave): LearningEntry[] {
   const corrections = Array.isArray(broadcast.correctionLog) ? broadcast.correctionLog.length : save.logs.filter((log) => log.type === 'broadcast-correction').length;
   const cooperationLog = save.logs.find((log) => log.type === 'alliance-clear');
   const helpLogs = save.logs.filter((log) => log.type === 'cooperation-help');
+  const schoolLog = save.logs.find((log) => log.type === 'school-garden-help');
   return [
     { id: 'photos', title: '내가 찾은 현장', recorded: a.photos.length > 0,
       detail: a.photos.length ? a.photos.map((photo) => `${PHOTO_LABEL[photo.id]} 사진 (${photo.quality === 'center' ? '가운데 포착' : '가장자리 포착'})`).join(' · ') : '아직 저장된 사진이 없어.' },
@@ -36,6 +37,7 @@ export function getLearningRecord(save: GameSave): LearningEntry[] {
       detail: a.clip ? `시청자 신뢰도 ${a.clip.trust}점. 확인 안 된 말을 내보낸 기록 ${a.clip.corrections}회, 확인한 소식으로 바로잡은 기록 ${corrections}회.` : '아직 저장된 방송 결과가 없어.' },
     { id: 'cooperation', title: '함께 숲을 도운 일', recorded: Boolean(cooperationLog) || helpLogs.length > 0,
       detail: cooperationLog?.summary ?? (helpLogs.length ? helpLogs.map((log) => log.summary).join('\n') : save.stageProgress.completedPages.includes(9) ? '이전 탐험의 완료 기록을 보관하고 있어.' : '팀과 함께 숲을 도우면 여기에 기록이 모여.') },
+    ...(schoolLog ? [{ id: 'school-garden', title: '학교 화단에도 써 본 도움', recorded: true, detail: schoolLog.summary }] : []),
   ];
 }
 

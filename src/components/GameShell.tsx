@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { backgroundFor } from '../shared/assets';
 import { PAGE_META, STAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
@@ -7,6 +7,7 @@ import { audioService } from '../services/audioService';
 import { ArrowIcon, CheckIcon, HelpIcon, HomeIcon, MutedIcon, SoundIcon } from './Icons';
 import { Modal } from './Modal';
 import { SettingsModal } from './SettingsModal';
+import { ClassroomStatus } from './ClassroomStatus';
 
 const GAME_FLOW = STAGE_META.map((stage) => ({ stage: stage.id, short: stage.subtitle, title: `${stage.label} · ${stage.subtitle}`, goal: stage.goal, image: stage.badge }));
 
@@ -39,6 +40,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
   const { save, setAudio, teacherMode } = useGame();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const mainContent = useRef<HTMLElement>(null);
   const meta = PAGE_META[page];
   const sectionLabel = meta.stage ? `스테이지 ${meta.stage}` : page === 2 ? '사건 접수' : page === 10 ? '탐험 정리' : page === 11 ? '탐험 완료' : '게임 시작';
   const isHome = page === 1;
@@ -67,12 +69,17 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
 
   return (
     <div className={`game-shell page-${page} ${className}`} data-eyebrow={eyebrow} style={{ '--page-bg': `url("${backgroundFor(page)}")`, '--page-h': PAGE_HUE[page] } as React.CSSProperties}>
-      <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
+      <a className="skip-link" href="#main-content" onClick={(event) => {
+        // 화면 주소는 해시 라우터가 사용하므로 본문 이동은 초점만 옮긴다.
+        event.preventDefault();
+        mainContent.current?.focus({ preventScroll: true });
+      }}>본문으로 건너뛰기</a>
       <div className="ambient" aria-hidden="true" />
       <header className={`topbar${isHome ? ' topbar--home' : ''}`}>
         {isHome ? (
           <div className="topbar-actions home-topbar-actions" aria-label="메인 화면 도구">
             {teacherShortcut}
+            <ClassroomStatus mode="control" />
             <button className="icon-button" onClick={toggleMuted} aria-label={save.audio.muted ? '소리 켜기' : '소리 끄기'} title={save.audio.muted ? '소리 켜기' : '소리 끄기'}>
               {save.audio.muted ? <MutedIcon /> : <SoundIcon />}
             </button>
@@ -82,11 +89,12 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
           <button className="icon-button icon-button--back" onClick={() => onNavigate(previousPage)} aria-label="이전 화면으로" title="이전 화면"><ArrowIcon /></button>
           <button className="icon-button" onClick={() => onNavigate(1)} aria-label="메인으로 이동"><HomeIcon /></button>
           <div className="title-lockup">
-            <span>{sectionLabel}</span>
-            <h1>{meta.title}</h1>
+            <div className="title-lockup__heading"><span>{sectionLabel}</span><h1>{meta.title}</h1></div>
+            <ClassroomStatus mode="summary" />
           </div>
           <div className="topbar-actions">
             {teacherShortcut}
+            <ClassroomStatus mode="control" />
             <button className="icon-button" onClick={() => setHelpOpen(true)} aria-label="도움말" title="게임 흐름 보기"><HelpIcon /></button>
             <button className="icon-button" onClick={toggleMuted} aria-label={save.audio.muted ? '소리 켜기' : '소리 끄기'}>
               {save.audio.muted ? <MutedIcon /> : <SoundIcon />}
@@ -95,7 +103,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
           </div>
         </>}
       </header>
-      <main id="main-content" className="game-content">{children}</main>
+      <main id="main-content" ref={mainContent} className="game-content" tabIndex={-1} aria-label={meta.title}>{children}</main>
       {footer && <footer className="game-footer">{footer}</footer>}
       {helpOpen && (
         <Modal title="게임은 이렇게 이어져" className="modal--wide" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>

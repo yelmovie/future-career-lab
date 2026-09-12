@@ -5,6 +5,8 @@ import { backgroundFor, fallbackTo, pageAsset, v2Asset, v6Asset, v7Asset, v8Asse
 import { STAGE_META } from '../shared/constants';
 import type { CauseId, PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
+import { confirmComparedVariable, restoreComparedVariables } from './ecologyComparisonModel';
+import { useEcologyComparisonMedia } from './ecologyComparisonMedia';
 import {
   ACTIONS,
   FIELD_TRACES,
@@ -69,6 +71,7 @@ interface Stored {
   lastTrial: Trial | null;
   main: CauseId | null;
   conclusionHistory: CauseId[];
+  compared: CauseId[];
 }
 
 const isCause = (v: unknown): v is CauseId => VARIABLES.some((x) => x.id === v);
@@ -79,12 +82,12 @@ const readTrial = (v: unknown): Trial | null => {
 };
 
 function readStored(value: unknown): Stored {
-  const base: Stored = { step: 1, point: 'A', found: [], fewest: false, trials: [], active: null, lastTrial: null, main: null, conclusionHistory: [] };
+  const base: Stored = { step: 1, point: 'A', found: [], fewest: false, trials: [], active: null, lastTrial: null, main: null, conclusionHistory: [], compared: [] };
   if (!value || typeof value !== 'object') return base;
   const c = value as Omit<Partial<Stored>, 'step'> & { step?: unknown };
   const step = c.step === 2 ? 2 : c.step === 3 ? 3 : 1;
   // 이전 버전의 7마리 기준 기록도 같은 행동 기록으로 유지한다.
-  const trials = Array.isArray(c.trials) ? c.trials.map(readTrial).filter((t): t is Trial => t !== null).map((trial) => applyAction(trial.variable)) : [];
+  const trials = Array.isArray(c.trials) ? [...new Map(c.trials.map(readTrial).filter((t): t is Trial => t !== null).map((trial) => [trial.variable, applyAction(trial.variable)])).values()] : [];
   const lastTrial = readTrial(c.lastTrial);
   return {
     step,
@@ -96,7 +99,39 @@ function readStored(value: unknown): Stored {
     lastTrial: lastTrial ? applyAction(lastTrial.variable) : null,
     main: isCause(c.main) ? c.main : null,
     conclusionHistory: Array.isArray(c.conclusionHistory) ? c.conclusionHistory.filter(isCause) : [],
+    compared: restoreComparedVariables(trials, lastTrial, c.compared),
   };
+}
+
+function ComparisonPictures({ trial, position, confirmed, onReady, onUnavailable, onConfirm }: {
+  trial: Trial | null;
+  position: number;
+  confirmed: boolean;
+  onReady: (ready: boolean) => void;
+  onUnavailable: (unavailable: boolean) => void;
+  onConfirm: () => void;
+}) {
+  const media = useEcologyComparisonMedia(COMPARE_BEFORE, trial ? ACTION_SCENE[trial.variable] : null);
+  useEffect(() => { onReady(media.ready); }, [media.ready, onReady]);
+  useEffect(() => { onUnavailable(media.failed); }, [media.failed, onUnavailable]);
+  const { key: beforeKey, ...beforeImage } = media.before;
+  const afterImage = media.after;
+  return <>
+    <img key={`before:${beforeKey}`} className="p7-edge__scene" {...beforeImage} alt="행동하기 전: 나무가 적고 기계가 움직이며 개울이 마른 숲 가장자리" />
+    {trial && afterImage && <img key={`after:${afterImage.key}`} className="p7-edge__scene p7-edge__scene--after" src={afterImage.src} onLoad={afterImage.onLoad} onError={afterImage.onError} alt={`${getAction(trial.variable).label} 뒤의 숲 가장자리`} style={{ '--compare-position': `${position}%` } as CSSProperties} />}
+    {trial && media.failed && <section className="p7-comparison-recovery" aria-label="숫자와 설명으로 비교하기">
+      <h3>그림을 불러오지 못했어</h3>
+      <p>숫자와 설명을 보고 전과 후를 비교해 봐.</p>
+      <dl><div><dt>바꾸기 전</dt><dd>새 <b>{trial.before}</b>마리</dd></div><div><dt>{getAction(trial.variable).label} 뒤</dt><dd>새 <b>{trial.after}</b>마리</dd></div></dl>
+      <p className="p7-comparison-recovery__change">{ACTION_RESULT_COPY[trial.variable]}<br />새가 {trial.after - trial.before}마리 늘었어.</p>
+      <div className="p7-comparison-recovery__buttons">
+        <button type="button" onClick={media.retry}>그림 다시 불러오기</button>
+        {!confirmed && <button type="button" className="is-primary" onClick={onConfirm}>숫자를 비교했어</button>}
+      </div>
+      {confirmed && <p role="status">숫자 비교를 마쳤어.</p>}
+    </section>}
+    {trial && !media.ready && !media.failed && <p className="p7-comparison-loading" role="status">비교 그림을 불러오는 중…</p>}
+  </>;
 }
 
 function Birds({ count, className, arrivingFrom }: { count: number; className?: string; arrivingFrom?: number }) {
@@ -127,22 +162,24 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const [selectedTrace, setSelectedTrace] = useState<string | null>(null);
   const [fewest, setFewest] = useState(stored.fewest);
   const [trials, setTrials] = useState<Trial[]>(stored.trials);
+  const [compared, setCompared] = useState<CauseId[]>(stored.compared);
   const [active, setActive] = useState<CauseId | null>(stored.active);
   const [lastTrial, setLastTrial] = useState<Trial | null>(stored.lastTrial);
   const [main, setMain] = useState<CauseId | null>(stored.main);
   const [conclusionHistory, setConclusionHistory] = useState<CauseId[]>(needsConclusionReview && stored.main && stored.conclusionHistory.length === 0 ? [stored.main] : stored.conclusionHistory);
   const [conclusionFeedback, setConclusionFeedback] = useState(needsConclusionReview ? '예전 결론을 실험값과 다시 비교해 보자. 새가 가장 많이 돌아온 행동을 골라 줘.' : '');
-  const [comparePosition, setComparePosition] = useState(stored.lastTrial ? 0 : 50);
+  const [comparePosition, setComparePosition] = useState(stored.lastTrial ? stored.compared.includes(stored.lastTrial.variable) ? 100 : 0 : 50);
   const [animatedBirds, setAnimatedBirds] = useState(stored.lastTrial?.before ?? edgeBirds());
   const [comparisonReady, setComparisonReady] = useState(false);
-  const [isRevealing, setIsRevealing] = useState(Boolean(stored.lastTrial));
+  const [comparisonUnavailable, setComparisonUnavailable] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(Boolean(stored.lastTrial && !stored.compared.includes(stored.lastTrial.variable)));
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(7) && !needsConclusionReview);
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
   const [intro, setIntro] = useState(() => !completed && stored.step === 1 && stored.found.length === 0 && !(save.pageData.page07Intro === true));
 
   useEffect(() => {
-    setPageData('page07Ecology', { step, point, found, fewest, trials, active, lastTrial, main, conclusionHistory } satisfies Stored);
-  }, [step, point, found, fewest, trials, active, lastTrial, main, conclusionHistory]);
+    setPageData('page07Ecology', { step, point, found, fewest, trials, active, lastTrial, main, conclusionHistory, compared } satisfies Stored);
+  }, [step, point, found, fewest, trials, active, lastTrial, main, conclusionHistory, compared]);
 
   useEffect(() => {
     if (save.artifacts.traces.includes('foot-boot')) setArtifacts({ traces: normalizeFoundTraces(save.artifacts.traces) });
@@ -154,12 +191,18 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
       setIsRevealing(false);
       return;
     }
+    if (compared.includes(lastTrial.variable)) {
+      setAnimatedBirds(lastTrial.after);
+      setIsRevealing(false);
+      return;
+    }
     if (!comparisonReady) return;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setComparePosition(100);
       setAnimatedBirds(lastTrial.after);
       setIsRevealing(false);
+      setCompared((previous) => confirmComparedVariable(previous, lastTrial.variable));
       return;
     }
 
@@ -181,12 +224,13 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
         setComparePosition(100);
         setAnimatedBirds(lastTrial.after);
         setIsRevealing(false);
+        setCompared((previous) => confirmComparedVariable(previous, lastTrial.variable));
       }
     };
 
     frame = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(frame);
-  }, [lastTrial, comparisonReady]);
+  }, [lastTrial, comparisonReady, compared]);
 
   const bounce = (text: string, shake?: string) => {
     audioService.playSfx('warning');
@@ -224,8 +268,16 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const tried = (id: CauseId) => trials.find((t) => t.variable === id);
   const comparedVariables = new Set(trials.map((t) => t.variable));
   const trialsDone = comparedVariables.size >= MIN_TRIALS;
-  const comparisonCount = comparedVariables.size - (lastTrial && isRevealing && comparedVariables.has(lastTrial.variable) ? 1 : 0);
-  const comparisonsReady = trialsDone && !isRevealing;
+  const comparisonCount = compared.length;
+  const comparisonsReady = comparisonCount >= MIN_TRIALS && !isRevealing;
+  const confirmNumericComparison = () => {
+    if (!lastTrial) return;
+    setComparePosition(100);
+    setAnimatedBirds(lastTrial.after);
+    setCompared((previous) => confirmComparedVariable(previous, lastTrial.variable));
+    setIsRevealing(false);
+    audioService.playSfx('success');
+  };
   const pickAction = (id: CauseId) => {
     if (isRevealing || completed) return;
     if (tried(id)) { bounce('이건 벌써 해 봤어. 다른 걸 골라 볼까?', id); return; }
@@ -306,7 +358,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
     step === 1 ? '반짝이는 흔적을 눌러 봐' :
     step === 2 ? (fewest ? '숲 가장자리엔 새가 거의 없네' : '새가 제일 적은 곳은?') :
     trialsDone && !lastTrial ? '새를 제일 많이 돌아오게 한 건?' :
-    lastTrial ? (isRevealing ? '숲이 바뀌는 중…' : trialsDone ? '세 가지 비교 완료! 원인을 골라 보자' : '전과 후를 보고, 다음 행동을 골라 봐') :
+    lastTrial ? (isRevealing ? comparisonUnavailable ? '숫자로 전과 후를 비교해 봐' : '숲이 바뀌는 중…' : trialsDone ? '세 가지 비교 완료! 원인을 골라 보자' : '전과 후를 보고, 다음 행동을 골라 봐') :
     !active ? '하나만 골라서 비교해 보자' :
     '그림 안 파란 버튼으로 비교해 봐';
 
@@ -315,7 +367,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
     intro ? '숲에 새소리가 줄었대. 왜 그런지 흔적부터 찾아보자.' :
     step === 1 ? (selectedTrace ? getTrace(selectedTrace)?.note : null) ?? `${found.length}개 찾았어. 지점을 바꿔 볼까?` :
     step === 2 ? (fewest ? '왜 여기만 새가 없을까? 하나씩 바꿔서 알아보자.' : '새가 많이 앉은 곳과 적은 곳을 비교해 봐.') :
-    lastTrial ? (isRevealing ? '전과 후에 무엇이 달라지는지 살펴봐.' : trialsDone ? '세 가지 결과가 모였어.\n노란 버튼을 눌러 가장 효과가 컸던 행동을 골라 줘.' : `새가 ${lastTrial.after - lastTrial.before}마리 늘었어.\n그림 안 파란 버튼이나 아직 안 해 본 카드를 눌러 봐.`) :
+    lastTrial ? (isRevealing ? comparisonUnavailable ? "숫자와 설명을 살펴보고,\n'숫자를 비교했어'를 눌러 줘." : '전과 후에 무엇이 달라지는지 살펴봐.' : trialsDone ? '세 가지 결과가 모였어.\n노란 버튼을 눌러 가장 효과가 컸던 행동을 골라 줘.' : `새가 ${lastTrial.after - lastTrial.before}마리 늘었어.\n그림 안 파란 버튼이나 아직 안 해 본 카드를 눌러 봐.`) :
     trialsDone ? '세 가지를 다 해 봤어. 어느 게 새를 제일 많이 불렀지?' :
     active ? '준비됐어! 그림 안 파란 버튼을 눌러 봐.\n다른 조건은 그대로 두고 하나만 바꿀 거야.' : found.includes('tree-cut') ? '잘린 열매나무를 찾았지.\n오른쪽에서 비교할 행동 하나를 골라 줘.' : '오른쪽에서 행동을 고르고,\n그림 안 파란 버튼으로 비교해 보자.'
   );
@@ -329,7 +381,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
       : step === 2
         ? { label: '왜 그럴까?', disabled: !fewest, hint: '새가 제일 적은 곳을 골라', onClick: () => { setStep(3); audioService.playSfx('success'); } }
         : !comparisonsReady || lastTrial
-          ? { label: '원인 고르기', disabled: !comparisonsReady, hint: isRevealing ? '변화를 살펴보는 중이야' : `비교 완료 ${comparisonCount}/3 · 3개를 마쳐 줘`, onClick: openConclusion }
+          ? { label: '원인 고르기', disabled: !comparisonsReady, hint: isRevealing ? comparisonUnavailable ? '숫자 비교를 마치면 이어갈 수 있어' : '변화를 살펴보는 중이야' : `비교 완료 ${comparisonCount}/3 · 3개를 마쳐 줘`, onClick: openConclusion }
           : { label: '결과 확정', disabled: !main, hint: '가장 효과가 컸던 행동을 골라 줘', onClick: finish };
 
   const help = (
@@ -408,18 +460,9 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
       {step === 3 && (
         <div className="v4-card p7-lab">
           <div className={`p7-edge${lastTrial ? ' has-comparison' : ''}`} aria-live="polite">
-            <img className="p7-edge__scene" src={COMPARE_BEFORE.src} onError={fallbackTo(COMPARE_BEFORE.fallback)} alt="행동하기 전: 나무가 적고 기계가 움직이며 개울이 마른 숲 가장자리" />
+            <ComparisonPictures key={lastTrial?.variable ?? 'before'} trial={lastTrial} position={comparePosition} confirmed={Boolean(lastTrial && compared.includes(lastTrial.variable))} onReady={setComparisonReady} onUnavailable={setComparisonUnavailable} onConfirm={confirmNumericComparison} />
             {lastTrial && (
               <>
-                <img
-                  key={lastTrial.variable}
-                  className="p7-edge__scene p7-edge__scene--after"
-                  src={ACTION_SCENE[lastTrial.variable].src}
-                  onError={fallbackTo(ACTION_SCENE[lastTrial.variable].fallback)}
-                  onLoad={() => setComparisonReady(true)}
-                  alt={`${getAction(lastTrial.variable).label} 뒤의 숲 가장자리`}
-                  style={{ '--compare-position': `${comparePosition}%` } as CSSProperties}
-                />
                 <span className="p7-edge__before-label">바꾸기 전</span>
                 <span className="p7-edge__after-label">바꾼 뒤</span>
                 <span className="p7-edge__divider" style={{ left: `${comparePosition}%` }} aria-hidden="true" />
@@ -430,7 +473,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
                   min={0}
                   max={100}
                   value={comparePosition}
-                  disabled={isRevealing}
+                  disabled={isRevealing || !comparisonReady}
                   aria-label="숲 변화 전후 비교 막대"
                   aria-valuetext={`복원 후 장면 ${comparePosition}% 보기`}
                   onChange={(event) => setComparePosition(Number(event.target.value))}
@@ -483,8 +526,8 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
                 </div>
                 {lastTrial ? (
                   <div className={`p7-result${isRevealing ? ' is-running' : ''}`} role="status">
-                    <strong>{isRevealing ? `새가 돌아오는 중 · ${shownBirds}마리` : `새 ${lastTrial.before}마리 → ${lastTrial.after}마리`}</strong>
-                    <span>{isRevealing ? '바꾸기 전과 바꾼 뒤를 관찰해 봐.' : trialsDone ? '세 가지를 다 봤어! 노란 버튼으로 원인을 골라 줘.' : '비교 막대를 움직여 보고, 다음 행동을 골라 줘.'}</span>
+                    <strong>{isRevealing && !comparisonUnavailable ? `새가 돌아오는 중 · ${shownBirds}마리` : `새 ${lastTrial.before}마리 → ${lastTrial.after}마리`}</strong>
+                    <span>{isRevealing ? comparisonUnavailable ? '왼쪽 숫자와 설명으로 비교할 수 있어.' : '바꾸기 전과 바꾼 뒤를 관찰해 봐.' : trialsDone ? '세 가지를 다 봤어! 노란 버튼으로 원인을 골라 줘.' : '비교 막대를 움직여 보고, 다음 행동을 골라 줘.'}</span>
                   </div>
                 ) : (
                   <div className="p7-compare-prompt" role="status">

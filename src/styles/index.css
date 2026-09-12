@@ -140,10 +140,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 }
 
 .skip-link {
-  position: absolute; z-index: var(--z-modal); left: var(--space-16); top: -80px; padding: var(--space-8) var(--space-16);
-  background: var(--color-surface); color: var(--ink); border-radius: var(--radius-sm); font-size: var(--fs-body);
+  position: absolute; z-index: var(--z-modal); left: var(--space-16); top: -80px; display: inline-flex; align-items: center; min-height: var(--touch-min); padding: var(--space-8) var(--space-16);
+  background: var(--color-surface); color: var(--ink); border: 2px solid var(--focus); border-radius: var(--radius-sm); font-size: var(--fs-body); font-weight: 800;
 }
 .skip-link:focus { top: var(--space-8); }
+.game-content:focus-visible { outline-offset: -5px; }
 
 /*
  * 바탕: 흰 워시 대신 페이지 색(--page-h, GameShell 이 넣음)의 파스텔 그라데이션 + 색 얼룩 두 개 + 잔잔한 점 무늬.
@@ -186,7 +187,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   background: rgb(255 255 255 / 96%);
   border-bottom: 2px solid var(--page-tint-deep); box-shadow: 0 4px 14px hsl(var(--page-h) 50% 40% / 12%);
 }
-.title-lockup { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.title-lockup { min-width: 0; display: grid; align-content: center; gap: 3px; }
+.title-lockup__heading { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.title-lockup__heading > span { flex: none; }
 .title-lockup span, .panel-header span {
   display: block; color: var(--page-ink); font-size: 16px; font-weight: 900; letter-spacing: .08em; white-space: nowrap;
 }
@@ -444,7 +447,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 /* 작은 휴대폰·세로 화면에서는 축소된 조작을 노출하지 않고 안전한 사용 환경을 안내한다. */
 .device-notice { display: none; }
 
-@media (orientation: portrait), (max-width: 959px) and (max-height: 539px) {
+@media (orientation: portrait), (max-width: 1023px), (max-height: 575px) {
+  /* 안내는 실제 뷰포트 크기로 읽는다. 숨긴 게임은 Tab 탐색에서도 빠진다. */
+  .stage:has(.device-notice) { inset: 0; width: 100%; height: 100%; transform: none; }
+  .game-shell:has(~ .device-notice) { display: none; }
   .device-notice {
     position: fixed; z-index: calc(var(--z-modal) + 10); inset: 0; display: grid; place-content: center; justify-items: center;
     gap: 12px; padding: 28px; color: var(--ink); background: radial-gradient(circle at 50% 38%, #ffffff, #dfe9f7 72%); text-align: center;
@@ -455,7 +461,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   .device-notice small { padding: 8px 14px; border-radius: 999px; background: var(--color-primary-soft); color: var(--color-primary-deep); font-size: 16px; font-weight: 850; }
 }
 
-.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.sr-only { font-family: system-ui, sans-serif; position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

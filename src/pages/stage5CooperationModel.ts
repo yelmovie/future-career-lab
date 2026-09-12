@@ -1,6 +1,11 @@
 export const COOP_MISSIONS = ['trees', 'water', 'quiet'] as const;
 export type MissionId = typeof COOP_MISSIONS[number];
 export type PlantSite = 'left' | 'right';
+export type QuietPromise = 'barrier' | 'break';
+export const QUIET_PROMISES: Record<QuietPromise, { label: string; detail: string; result: string }> = {
+  barrier: { label: '가림벽 세우기', detail: '숲 쪽으로 퍼지는 소리를 줄여 주세요.', result: '네 부탁을 듣고 공사팀이 가림벽을 세웠어. 시끄러운 작업을 쉬는 시간도 정하고, 돌봄 팀과 새를 살폈어.' },
+  break: { label: '작업 쉬는 시간', detail: '큰 기계를 함께 쉬는 시간을 정해 주세요.', result: '네 부탁을 듣고 공사팀이 큰 기계를 쉬는 시간을 정했어. 작업할 때도 덜 시끄럽도록 가림벽을 세우고, 돌봄 팀과 새를 살폈어.' },
+};
 export interface CooperationState {
   version: 1;
   phase: 'welcome' | 'map' | 'work' | 'result' | 'ending';
@@ -10,6 +15,7 @@ export interface CooperationState {
   waterMarked: boolean;
   noiseLevel: number;
   noiseTouched: boolean;
+  quietPromise: QuietPromise | null;
   actions: number;
 }
 const isMission = (v: unknown): v is MissionId => COOP_MISSIONS.includes(v as MissionId);
@@ -17,7 +23,7 @@ const object = (v: unknown): Record<string, unknown> => v && typeof v === 'objec
 const number = (v: unknown, fallback: number, max: number) => typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : fallback;
 export function restoreCooperation(value: unknown, legacy?: unknown, alreadyCompleted = false): CooperationState {
   const raw = object(value);
-  const state: CooperationState = { version: 1, phase: 'welcome', current: null, completed: [], planted: [], waterMarked: false, noiseLevel: 80, noiseTouched: false, actions: 0 };
+  const state: CooperationState = { version: 1, phase: 'welcome', current: null, completed: [], planted: [], waterMarked: false, noiseLevel: 80, noiseTouched: false, quietPromise: null, actions: 0 };
   if (alreadyCompleted) return { ...state, phase: 'ending', completed: [...COOP_MISSIONS] };
   if (raw.version !== 1) {
     const old = object(legacy);
@@ -29,6 +35,7 @@ export function restoreCooperation(value: unknown, legacy?: unknown, alreadyComp
   state.waterMarked = raw.waterMarked === true;
   state.noiseLevel = number(raw.noiseLevel, 80, 100);
   state.noiseTouched = raw.noiseTouched === true;
+  state.quietPromise = raw.quietPromise === 'barrier' || raw.quietPromise === 'break' ? raw.quietPromise : null;
   state.actions = number(raw.actions, 0, 100000);
   state.current = isMission(raw.current) ? raw.current : null;
   state.phase = ['map', 'work', 'result', 'ending'].includes(String(raw.phase)) ? raw.phase as CooperationState['phase'] : 'welcome';
@@ -50,7 +57,10 @@ export function adjustWorkNoise(s: CooperationState, level: number): Cooperation
   if (s.phase !== 'work' || s.current !== 'quiet' || !Number.isFinite(level)) return s;
   return { ...s, noiseLevel: number(level, 80, 100), noiseTouched: true, actions: s.actions + (s.noiseTouched ? 0 : 1) };
 }
-export const canCompleteMission = (s: CooperationState): boolean => s.phase === 'work' && (s.current === 'trees' ? s.planted.length === 2 : s.current === 'water' ? s.waterMarked : s.current === 'quiet' && s.noiseTouched && s.noiseLevel <= 35);
+export function chooseQuietPromise(s: CooperationState, promise: QuietPromise): CooperationState {
+  return s.phase === 'work' && s.current === 'quiet' && (promise === 'barrier' || promise === 'break') && promise !== s.quietPromise ? { ...s, quietPromise: promise } : s;
+}
+export const canCompleteMission = (s: CooperationState): boolean => s.phase === 'work' && (s.current === 'trees' ? s.planted.length === 2 : s.current === 'water' ? s.waterMarked : s.current === 'quiet' && s.noiseTouched && s.noiseLevel <= 35 && s.quietPromise !== null);
 export function completeCooperationMission(s: CooperationState): CooperationState {
   return canCompleteMission(s) && s.current && !s.completed.includes(s.current) ? { ...s, phase: 'result', completed: [...s.completed, s.current] } : s;
 }

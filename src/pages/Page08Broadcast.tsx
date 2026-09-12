@@ -42,12 +42,12 @@ const MENTOR = pageAsset(3, 3);
 const SOURCES: SourceId[] = ['drone', 'studio', 'reporter'];
 const SOURCE_IMAGE: Record<SourceId, string> = {
   drone: v6Asset('broadcast-field-poster'),
-  studio: v8Asset('broadcast-anchor-neutral', 'png'),
-  reporter: v8Asset('broadcast-mic-recovered', 'png'),
+  studio: v8Asset('broadcast-anchor-neutral', 'webp'),
+  reporter: v8Asset('broadcast-mic-recovered', 'webp'),
 };
 /** 한 뉴스 특집처럼 톤을 맞춘 근거 이미지. 소문은 출처 글을 읽어 가려낸다. */
 const KIND_IMAGE: Record<CaptionCard['kind'], string> = {
-  opening: v8Asset('broadcast-anchor-neutral', 'png'),
+  opening: v8Asset('broadcast-anchor-neutral', 'webp'),
   graph: v7Asset('broadcast-evidence-graph'),
   photo: v6Asset('broadcast-field-poster'),
   action: v7Asset('broadcast-action-poster'),
@@ -59,18 +59,18 @@ const PHOTO_IMAGE = {
   construction: v8Asset('broadcast-photo-construction-v2'),
 } as const;
 const GRAPH_IMAGE: Record<string, string> = {
-  'graph-noise': v8Asset('broadcast-graph-quiet', 'png'),
-  'graph-logging': v8Asset('broadcast-graph-trees-grown', 'png'),
-  'graph-water': v8Asset('broadcast-graph-water', 'png'),
+  'graph-noise': v8Asset('broadcast-graph-quiet', 'webp'),
+  'graph-logging': v8Asset('broadcast-graph-trees-grown', 'webp'),
+  'graph-water': v8Asset('broadcast-graph-water', 'webp'),
 };
 const CAPTION_IMAGE: Record<string, string> = {
   'rumor-cat': v8Asset('broadcast-rumor-cat-v2'),
-  'opening-rescue': '/assets/meshy/healthy-pair.png',
-  'opening-news': v8Asset('broadcast-anchor-neutral', 'png'),
-  'opening-help': v8Asset('broadcast-graph-trees-grown', 'png'),
-  'action-plant': v8Asset('broadcast-graph-trees-grown', 'png'),
-  'action-noise': v8Asset('broadcast-graph-quiet', 'png'),
-  'action-report': v8Asset('broadcast-action-report', 'png'),
+  'opening-rescue': '/assets/meshy/healthy-pair.webp',
+  'opening-news': v8Asset('broadcast-anchor-neutral', 'webp'),
+  'opening-help': v8Asset('broadcast-graph-trees-grown', 'webp'),
+  'action-plant': v8Asset('broadcast-graph-trees-grown', 'webp'),
+  'action-noise': v8Asset('broadcast-graph-quiet', 'webp'),
+  'action-report': v8Asset('broadcast-action-report', 'webp'),
 };
 const cardImage = (card: CaptionCard) => (
   card.photo
@@ -109,6 +109,14 @@ const CAPTION_HINT: Record<string, string> = {
   cause: '한 가지만 바꿔서 비교했어.\n새가 몇 마리로 늘었는지 전해 줘.',
   action: '숲과 새를 위해 할 수 있는 일을 골라\n시민들에게 함께 도와 달라고 부탁하자.',
   correction: '앞서 잘못 전한 말을 바로잡을 차례야.\n직접 확인한 소식으로 다시 알려 주자.',
+};
+/** 카드 제목은 빠르게 훑고, 아래 원문을 읽은 뒤 실제 자막을 고른다. */
+const CAPTION_TITLE: Record<string, string> = {
+  'opening-rescue': '구조 소식', 'opening-news': '줄어든 새들', 'opening-help': '새 돕기 탐험',
+  'photo-logging': '열매나무 벌목', 'photo-stream': '막힌 물길', 'photo-construction': '숲 옆 공사장',
+  'graph-logging': '열매나무 늘리기', 'graph-noise': '소리 줄이기', 'graph-water': '물 채우기',
+  'action-plant': '열매나무 지키기', 'action-noise': '기계 소리 줄이기', 'action-report': '돌봄센터에 알리기',
+  'rumor-city': '도시로 간 새들', 'rumor-cat': '고양이 이야기', 'rumor-back': '새가 돌아올까?', 'rumor-trees': '줄어든 나무',
 };
 const CAPTION_TASK: Record<string, string> = {
   opening: '첫 인사에 넣을 소식을 골라', scene: '사진을 설명할 자막을 골라',
@@ -160,6 +168,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   const cards = useMemo(() => buildCaptionCards(save.artifacts, readEvidenceTrials(save.pageData.page07Ecology)), [save.artifacts, save.pageData.page07Ecology]);
   const [state, setState] = useState<BroadcastState>(() => restoreBroadcast(save.pageData[SAVE_KEY]) ?? createBroadcast(save.sessionSeed));
   const [completed, setCompleted] = useState(save.stageProgress.completedPages.includes(8));
+  const [rewardVisible, setRewardVisible] = useState(false);
   const [react, setReact] = useState<{ text: string; shake?: string } | null>(null);
   const [audioDone, setAudioDone] = useState(() => audioZone(state.draft.level) === 'ok');
   const [evidenceOpen, setEvidenceOpen] = useState(false);
@@ -186,9 +195,9 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
     ...entry,
     poster: entry.source === 'drone' && entry.caption.photo ? cardImage(entry.caption) : SOURCE_IMAGE[entry.source],
   })), [state, cards]);
-  const showReplay = done && replayScenes.length > 0;
+  const showReplay = done && !rewardVisible && replayScenes.length > 0;
   const programPoster = recovery
-    ? v8Asset('broadcast-mic-recovered', 'png')
+    ? v8Asset('broadcast-mic-recovered', 'webp')
     : incident
     ? v7Asset('broadcast-mic-failure-poster')
     : state.draft.source
@@ -238,6 +247,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
       contextRef: `p8:trust-${clip.trust}`,
     });
     setCompleted(true);
+    setRewardVisible(true);
     audioService.playSfx('reward');
   };
 
@@ -305,7 +315,9 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
     !state.draft.source ? (segment?.need ?? '') :
     caption && !caption.sourced ? '이 말은 아직 확인하지 못했어.\n직접 알아본 소식과 비교해서 골라 보자.' : CAPTION_HINT[segment?.id ?? 'opening']
   );
-  const next = done
+  const next = rewardVisible
+    ? { label: '내 방송 이어 보기', onClick: () => setRewardVisible(false) }
+    : done
     ? { label: '숲 살리기 작전으로', onClick: () => onNavigate(9) }
     : recovery
       ? { label: '방송 이어가기', onClick: continueBroadcast }
@@ -327,7 +339,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
   );
 
   return (
-    <StepShell page={8} className="p8-page" step={step} steps={SEGMENTS.length} instruction={instruction ?? '자막을 골라'} mentor={MENTOR} mentorName="방송 멘토" bubble={bubble} status={`시청자 신뢰도 ${result?.trust ?? state.trust}`} next={{ ...next, disabledMode: 'lock' }} help={help} done={result && !showReplay ? { title: `${STAGE.badgeName}를 얻었어`, message: `네가 고른 화면과 말로 숲 소식을 전했어! 시청자 신뢰도 ${result.trust}점이야.`, badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined} onNavigate={onNavigate}>
+    <StepShell page={8} className="p8-page" step={step} steps={SEGMENTS.length} instruction={instruction ?? '자막을 골라'} mentor={MENTOR} mentorName="방송 멘토" bubble={bubble} status={`시청자 신뢰도 ${result?.trust ?? state.trust}`} next={{ ...next, disabledMode: 'lock' }} help={help} done={result && (rewardVisible || replayScenes.length === 0) ? { title: `${STAGE.badgeName}를 얻었어`, message: `네가 고른 화면과 말로 숲 소식을 전했어! 시청자 신뢰도 ${result.trust}점이야.`, badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined} onNavigate={onNavigate}>
       {showReplay ? <BroadcastReplay scenes={replayScenes} badge={{ src: STAGE.badge, alt: STAGE.badgeName }} /> : <div className={`p8-stage${recovery ? ' is-recovery' : ''}`}>
         <div className={`v4-card p8-screen${done ? ' is-off' : ''}${recovery ? ' is-recovered' : ''}`} aria-label="송출 화면">
           <span className="p8-onair">{done ? '방송 완료' : recovery ? '방송 다시 연결' : incident ? '소리 끊김' : '방송 미리보기'}</span>
@@ -366,7 +378,7 @@ export default function Page08Broadcast({ onNavigate }: PageProps) {
                 ariaLabel="자막 고르기"
                 selected={state.draft.captionId}
                 onSelect={pickCaption}
-                options={options.map((card) => ({ id: card.id, image: cardImage(card), label: card.text, caption: card.evidenceLabel === '연습 자료' ? `${card.origin} · 연습` : card.origin }))}
+                options={options.map((card) => ({ id: card.id, image: cardImage(card), label: CAPTION_TITLE[card.id] ?? card.origin, description: card.text, accessibleLabel: card.text, caption: card.evidenceLabel === '연습 자료' ? `${card.origin} · 연습` : card.origin }))}
               />
               {caption && <div className="p8-source-review"><button type="button" className="button button--ghost" onClick={() => setEvidenceOpen(true)}>조사자료 보기</button><span>{evidenceReviewed ? '궁금한 내용을 더 살펴봤어' : '더 궁금할 때 살펴봐도 돼'}</span></div>}
             </div>

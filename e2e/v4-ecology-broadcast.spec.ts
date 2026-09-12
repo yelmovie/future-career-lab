@@ -43,6 +43,7 @@ function makeSave() {
 
 async function seed(page: Page) {
   await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, makeSave()]);
   await page.reload();
 }
@@ -89,12 +90,14 @@ async function captureBroadcastLayout(page: Page, scene: string) {
 test.use({ viewport: { width: 1280, height: 720 } });
 
 test('page 7: existing six clues migrate to the cut fruit tree without losing progress', async ({ page }) => {
-  await seed(page);
   const legacy = ['foot-boot', 'sound-chainsaw', 'feather-brown', 'sound-forest-birds', 'foot-songbird', 'feather-blue'];
   const base = makeSave();
   const value = { ...base, pageData: { page07Intro: true, page07Ecology: { step: 1, point: 'C', found: legacy } }, artifacts: { ...base.artifacts, traces: legacy } };
-  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
-  await page.reload();
+  await page.addInitScript(({ key, marker, value }) => {
+    if (sessionStorage.getItem(marker) === '1') return;
+    localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem(marker, '1');
+  }, { key: SAVE_KEY, marker: 'e2e:legacy-six-clue-migration:seeded', value });
   await page.goto('/#/page/7');
   await expect(page.locator('.v4-status')).toHaveText('흔적 6/6');
   const clue = page.getByRole('button', { name: '잘린 열매나무 다시 살펴보기', exact: true });
@@ -128,15 +131,24 @@ test('page 7: observations, fair comparisons, unsupported conclusion blocked and
     const scene = field.querySelector('.p7-scene')!.getBoundingClientRect();
     const spot = field.querySelector('.p7-scene .v4-hotspot')!.getBoundingClientRect();
     const icon = field.querySelector('.p7-scene .v4-hotspot img')!.getBoundingClientRect();
+    const tabs = field.querySelector('.p7-tabs')!.getBoundingClientRect();
+    const stamps = field.querySelector('.p7-stamps')!.getBoundingClientRect();
+    const spots = [...field.querySelectorAll('.p7-scene .v4-hotspot')].map((item) => item.getBoundingClientRect());
     return {
       sideSpace: Math.round(stage.width - fieldRect.width),
-      sceneHeight: Math.round(scene.height),
+      withinStage: fieldRect.top >= stage.top - 1 && fieldRect.bottom <= stage.bottom + 1,
+      tabsGap: scene.top - tabs.bottom,
+      stampsGap: stamps.top - scene.bottom,
+      hotspotsVisible: spots.every((item) => item.left >= scene.left && item.right <= scene.right && item.top >= scene.top && item.bottom <= scene.bottom),
       spotSize: Math.round(spot.width),
       iconSize: Math.round(icon.width),
     };
   });
   expect(fieldLayout.sideSpace).toBeGreaterThanOrEqual(70);
-  expect(fieldLayout.sceneHeight).toBeLessThanOrEqual(272);
+  expect(fieldLayout.withinStage).toBe(true);
+  expect(fieldLayout.tabsGap).toBeGreaterThanOrEqual(0);
+  expect(fieldLayout.stampsGap).toBeGreaterThanOrEqual(0);
+  expect(fieldLayout.hotspotsVisible).toBe(true);
   expect(fieldLayout.spotSize).toBeGreaterThanOrEqual(80);
   expect(fieldLayout.iconSize).toBeGreaterThanOrEqual(64);
 
@@ -334,6 +346,7 @@ test('page 7: reloading the third comparison replays it before unlocking the con
     },
     artifacts: { ...base.artifacts, traces: found },
   };
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
   await page.reload();
   await page.goto('/#/page/7');
@@ -391,6 +404,7 @@ test('page 8: microphone retry and recovery persist until explicit keyboard cont
       },
     },
   };
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
   await page.reload();
   await page.goto('/#/page/8');
@@ -425,7 +439,7 @@ test('page 8: microphone retry and recovery persist until explicit keyboard cont
   await expect(recoveryHeading).toBeVisible();
   await expect(retryFeedback).toHaveCount(0);
   const recoveredImage = page.locator('.p8-screen .p8-program-media img');
-  await expect(recoveredImage).toHaveAttribute('src', '/assets/v8/broadcast-mic-recovered.png');
+  await expect(recoveredImage).toHaveAttribute('src', '/assets/v8/broadcast-mic-recovered.webp');
   await expect(page.locator('.p8-screen')).toContainText('잘 들리나요? 숲 소식을 계속 전해 드리겠습니다.');
   await expect(page.getByRole('group', { name: '화면 고르기', exact: true })).toHaveCount(0);
   await expect(page.getByRole('group', { name: '자막 고르기', exact: true })).toHaveCount(0);
@@ -502,6 +516,7 @@ test('page 8: all four segments finish without opening optional investigation da
       ] },
     },
   };
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
   await page.reload();
   await page.goto('/#/page/8');
@@ -520,23 +535,23 @@ test('page 8: all four segments finish without opening optional investigation da
     await expect(captions.getByRole('button')).toHaveCount(3);
     await expect(captions).not.toContainText(/SNS|익명|그러던데/);
     if (segment.source === '스튜디오 카메라') {
-      await expect(page.locator('.p8-screen .p8-program-media img')).toHaveAttribute('src', '/assets/v8/broadcast-anchor-neutral.png');
+      await expect(page.locator('.p8-screen .p8-program-media img')).toHaveAttribute('src', '/assets/v8/broadcast-anchor-neutral.webp');
     }
     if (segment.title === '조사 결과') {
       await expect(captions).toContainText('기계 소리를 줄이자 새가 1마리에서 7마리로 늘었습니다');
       await expect(captions).toContainText('물을 채우자 새가 1마리에서 2마리로 늘었습니다');
       await expect(captions).not.toContainText(/SNS|익명|그러던데/);
-      await expect(captions.getByRole('button', { name: /먹이나무를 늘리자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-trees-grown.png');
-      await expect(captions.getByRole('button', { name: /기계 소리를 줄이자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-quiet.png');
-      await expect(captions.getByRole('button', { name: /물을 채우자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-water.png');
+      await expect(captions.getByRole('button', { name: /먹이나무를 늘리자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-trees-grown.webp');
+      await expect(captions.getByRole('button', { name: /기계 소리를 줄이자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-quiet.webp');
+      await expect(captions.getByRole('button', { name: /물을 채우자/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-water.webp');
     }
     if (segment.title === '시민 부탁') {
       await expect(captions).toContainText('숲 옆의 시끄러운 기계 소리를 줄여 주세요');
       await expect(captions).toContainText('다친 새를 보면 돌봄센터에 알려 주세요');
       await expect(captions).not.toContainText(/SNS|익명|그러던데|도시로 갔다고/);
-      await expect(captions.getByRole('button', { name: /새가 먹을 열매나무를/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-trees-grown.png');
-      await expect(captions.getByRole('button', { name: /시끄러운 기계 소리를/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-quiet.png');
-      await expect(captions.getByRole('button', { name: /다친 새를 보면/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-action-report.png');
+      await expect(captions.getByRole('button', { name: /새가 먹을 열매나무를/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-trees-grown.webp');
+      await expect(captions.getByRole('button', { name: /시끄러운 기계 소리를/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-graph-quiet.webp');
+      await expect(captions.getByRole('button', { name: /다친 새를 보면/ }).locator('img')).toHaveAttribute('src', '/assets/v8/broadcast-action-report.webp');
     }
     await captions.getByRole('button', { name: new RegExp(segment.caption) }).click();
     if (segment.title === '현장 보여주기') {
@@ -558,6 +573,12 @@ test('page 8: all four segments finish without opening optional investigation da
     }
   }
   await expect(page.getByRole('heading', { name: '방송 끝!', exact: true })).toBeVisible();
+  const reward = page.locator('.v4-done');
+  await expect(reward).toContainText('방송기술자 배지를 얻었어');
+  await expect(reward.getByRole('img', { name: '방송기술자 배지', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: '내가 만든 방송', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '내 방송 이어 보기', exact: true }).click();
+  await expect(page.getByRole('region', { name: '내가 만든 방송', exact: true })).toBeVisible();
   const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(save.artifacts.clip).toEqual({ trust: 100, corrections: 0 });
   expect(save.pageData.p8Broadcast.log.map((entry: { segmentId: string }) => entry.segmentId)).toEqual(['opening', 'scene', 'cause', 'action']);
@@ -594,6 +615,7 @@ test('page 8: legacy low-trust correction on the last segment can finish with a 
       },
     },
   };
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
   await page.reload();
   await page.goto('/#/page/8');
@@ -635,6 +657,7 @@ test('page 8: optional investigation data shows the selected photo and returns t
       draft: { source: null, captionId: null, level: 55 }, pendingCorrection: null, reviewedCaptionIds: [], correctionLog: [],
     } },
   };
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: SAVE_KEY, value });
   await page.reload();
   await page.goto('/#/page/8');

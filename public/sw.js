@@ -18,13 +18,13 @@ function sendPreparation(value) {
   if (value.state !== 'preparing') preparationPorts.clear();
 }
 
-async function checkedFetch(url, expected, signal) {
+async function checkedFetch(url, expected, signal, background = false) {
   const controller = new AbortController();
   const abort = () => controller.abort();
   signal?.addEventListener('abort', abort, { once: true });
   const timeout = self.setTimeout(abort, 30000);
   try {
-    const response = await fetch(new Request(url, { cache: 'reload', credentials: 'same-origin', signal: controller.signal }));
+    const response = await fetch(new Request(url, { cache: 'reload', credentials: 'same-origin', signal: controller.signal, priority: background ? 'low' : 'auto' }));
     if (!response.ok || response.status !== 200) throw new Error('자료를 내려받지 못했습니다. 연결을 확인하고 다시 준비해 주세요.');
     if (expected) {
       const data = await response.clone().arrayBuffer();
@@ -94,15 +94,22 @@ self.addEventListener('message', (event) => {
         let done = snapshot.done;
         let bytes = snapshot.bytes;
         sendPreparation({ ...snapshot, state: 'preparing' });
-        for (const [url, file] of files) {
+        // Page code and illustrations come before optional 3D and long background music.
+        // Explicit/manual preparation preserves manifest order for existing integrations.
+        const background = event.data.background === true;
+        const priority = (url) => /\.(?:js|css|html|woff2)$/.test(url) ? 0 : /\.(?:glb|mp3|wav)$/.test(url) ? 2 : 1;
+        const queue = [...files];
+        if (background) queue.sort(([a], [b]) => priority(a) - priority(b));
+        for (const [url, file] of queue) {
           if (cancelled) break;
           if (await cache.match(url)) continue;
           preparationAbort = new AbortController();
-          await cache.put(url, await checkedFetch(url, file, preparationAbort.signal));
+          await cache.put(url, await checkedFetch(url, file, preparationAbort.signal, background));
           preparationAbort = null;
           done += 1;
           bytes += file.bytes;
           sendPreparation({ ...snapshot, done, bytes, state: 'preparing' });
+          if (background) await new Promise((resolve) => self.setTimeout(resolve, 100));
         }
         const final = await status();
         sendPreparation({ ...final, state: cancelled && final.state !== 'ready' ? 'cancelled' : final.state });
@@ -155,5 +162,5 @@ self.addEventListener('fetch', (event) => {
     const response = await checkedFetch(url.href, files.get(url.href));
     await cache.put(url.href, response.clone());
     return rangedResponse(request, response);
-  })().catch(() => new Response('자료를 준비하지 못했습니다. 연결 후 수업 자료 준비를 다시 실행해 주세요.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })));
+  })().catch(() => new Response('인터넷 연결을 확인한 뒤 화면을 다시 불러와 주세요. 받은 자료와 탐험 기록은 남아 있습니다.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })));
 });

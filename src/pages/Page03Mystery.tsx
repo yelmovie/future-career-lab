@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { StepShell } from '../components/v4/StepShell';
 import { PictureChoice } from '../components/v4/PictureChoice';
 import { CheckIcon, SearchIcon } from '../components/Icons';
@@ -35,6 +35,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
   const [openPhoto, setOpenPhoto] = useState<PhotoId | null>(null);
   const [ring, setRing] = useState(false);
   const [react, setReact] = useState<string | null>(null);
+  const closePhoto = useRef<HTMLButtonElement>(null);
 
   const allFound = found.length === PHOTO_DETAILS.length;
   const openMeta = openPhoto ? PHOTO_DETAILS.find((item) => item.photo === openPhoto)! : null;
@@ -58,17 +59,23 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
     setOpenPhoto(id);
   };
 
+  const discover = (detail: DetailId) => {
+    if (!openMeta) return;
+    if (found.includes(detail)) return;
+    const next = [...found, detail];
+    setFound(next);
+    setPageData('p4Details', next);
+    requestAnimationFrame(() => closePhoto.current?.focus());
+    audioService.playSfx('clue');
+    logEvent({ page: 4, type: 'detail-found', contextRef: `detail-${detail}`, summary: `사진을 확대해 ${openMeta.label}을 찾았어.`, tags: ['관찰', detail], traits: { exploration: 1, analysis: 1 } });
+  };
+
   const inspect = (event: MouseEvent<HTMLImageElement>) => {
     if (!openPhoto || !openMeta) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const detail = hitDetail(openPhoto, (event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height);
     if (!detail) { audioService.playSfx('tap'); say(openMeta.hint); return; }
-    if (found.includes(detail)) return;
-    const next = [...found, detail];
-    setFound(next);
-    setPageData('p4Details', next);
-    audioService.playSfx('clue');
-    logEvent({ page: 4, type: 'detail-found', contextRef: `detail-${detail}`, summary: `사진을 확대해 ${openMeta.label}을 찾았어.`, tags: ['관찰', detail], traits: { exploration: 1, analysis: 1 } });
+    discover(detail);
   };
 
   const choose = (id: CauseId) => {
@@ -164,7 +171,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
               </div>
             </li>
           </ol>
-          <p className="p4-explain__note">이제 사육사가 이 짐작대로 숲을 뒤질 수 있어. 사진 3장은 증거로 다음 직업들에게 넘어가.</p>
+          <p className="p4-explain__note">사진은 사육사가 새를 찾는 데 도움이 돼. 새가 줄어든 이유는 조사 팀과 더 알아보자.</p>
         </div>
       )}
 
@@ -174,11 +181,12 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
           onClose={() => setOpenPhoto(null)}
           actions={<>
             {!openFound && <button className="button button--ghost" onClick={() => { setRing(true); audioService.playSfx('tap'); }}>못 찾겠어요</button>}
-            <button className="button button--primary" onClick={() => setOpenPhoto(null)}>{openFound ? '찾았어! 닫기' : '닫기'}</button>
+            <button ref={closePhoto} className="button button--primary" onClick={() => setOpenPhoto(null)}>{openFound ? '찾았어! 닫기' : '닫기'}</button>
           </>}
         >
           <div className="zoom-frame">
             <img src={photoAsset(openPhoto)} alt={`${openMeta.label} 찾기`} onClick={inspect} />
+            {!openFound && <button type="button" className="zoom-observation" aria-label={`사진 관찰하기: ${openMeta.hint}`} onClick={() => discover(openMeta.id)} style={{ left: `${(openMeta.rect.x + openMeta.rect.width / 2) * 100}%`, top: `${(openMeta.rect.y + openMeta.rect.height / 2) * 100}%`, width: `${openMeta.rect.width * 100}%`, height: `${openMeta.rect.height * 100}%` }}><span>이곳 살펴보기</span></button>}
             {openFound && (
               <span className="zoom-mark" style={{ left: `${openMeta.rect.x * 100}%`, top: `${openMeta.rect.y * 100}%`, width: `${openMeta.rect.width * 100}%`, height: `${openMeta.rect.height * 100}%` }}>
                 <span className="zoom-mark__label">{openMeta.label}</span>

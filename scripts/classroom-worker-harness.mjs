@@ -43,9 +43,9 @@ export function createClassroomHarness() {
         await work;
         return response ? await response : undefined;
     };
-    const message = async (type) => {
+    const message = async (type, options = {}) => {
         const updates = [];
-        await dispatch('message', { data: { type }, ports: [{ postMessage: (value) => updates.push(value) }] });
+        await dispatch('message', { data: { type, ...options }, ports: [{ postMessage: (value) => updates.push(value) }] });
         return updates;
     };
     return { base, stores, contents, fetcher, skipWaiting, dispatch, message };

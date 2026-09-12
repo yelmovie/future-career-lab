@@ -9,6 +9,7 @@ async function seed(page: Page, legacy?: unknown) {
   save.artifacts.clip = { trust: 100, corrections: 0 };
   if (legacy) save.pageData.p9Alliance = legacy;
   await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: KEY, value: save });
   await page.reload(); await page.goto('/#/page/9');
 }
@@ -42,6 +43,8 @@ test('team helps in chosen order using marking, sound adjustment and planting, t
   await page.getByRole('button', { name: '숲 옆 공사장 도와주기', exact: true }).click();
   await expect(page.getByRole('button', { name: '공사팀에 약속 전하기' })).toBeDisabled();
   await page.getByRole('slider', { name: '공사 소리 줄이기' }).fill('20');
+  await expect(page.getByRole('button', { name: '공사팀에 약속 전하기' })).toBeDisabled();
+  await page.getByRole('button', { name: '가림벽 세우기', exact: true }).click();
   await expect(page.getByRole('button', { name: '공사팀에 약속 전하기' })).toBeEnabled();
   await page.getByRole('slider', { name: '공사 소리 줄이기' }).fill('80');
   await expect(page.getByRole('button', { name: '공사팀에 약속 전하기' })).toBeDisabled();
@@ -79,6 +82,7 @@ test('team helps in chosen order using marking, sound adjustment and planting, t
 });
 
 test('tablet touch events support drag cancellation, tap alternatives, water marking and a slider', async ({ browser }) => {
+  test.setTimeout(120_000);
   const context = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true });
   const page = await context.newPage(); await seed(page);
   await page.getByRole('button', { name: '함께 숲으로 가기' }).tap();
@@ -107,6 +111,7 @@ test('tablet touch events support drag cancellation, tap alternatives, water mar
   await expect(page.locator('.coop-result')).toBeVisible();
   await page.getByRole('button', { name: '다른 곳도 도와주기' }).tap();
   await page.getByRole('button', { name: '숲 옆 공사장 도와주기', exact: true }).tap();
+  await page.getByRole('button', { name: '작업 쉬는 시간', exact: true }).tap();
   const slider = await page.getByRole('slider', { name: '공사 소리 줄이기' }).boundingBox();
   await touch('touchStart', slider!.x + slider!.width * .8, slider!.y + slider!.height / 2);
   await touch('touchMove', slider!.x + slider!.width * .2, slider!.y + slider!.height / 2); await touch('touchEnd');

@@ -17,6 +17,7 @@ async function openQuietWork(page: Page, muted = false) {
   await page.addInitScript(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: KEY, value: save });
   await page.goto('/#/page/9');
   await expect(page.getByRole('slider', { name: '공사 소리 줄이기' })).toHaveValue('80');
+  await page.getByRole('button', { name: '가림벽 세우기', exact: true }).click();
 }
 
 /** Read the real media/Web Audio graph without replacing Audio, play(), or timers. */

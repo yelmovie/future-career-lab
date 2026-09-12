@@ -1,0 +1,13 @@
+{
+  "title": "학교 화단에 온 새도 도와주자",
+  "scene": "여기는 열매와 그늘이 충분하고 조용해. 그런데 물그릇이 비어 있어.",
+  "before": "/assets/v10/school-garden-before.webp",
+  "after": "/assets/v10/school-garden-after.webp",
+  "choices": [
+    { "id": "trees", "label": "나무 더 심기", "image": "/assets/v9/cooperation-sapling.webp", "hint": "나무는 이미 무성하고 열매도 많아. 새가 바라보는 빈 그릇을 살펴봐." },
+    { "id": "water", "label": "깨끗한 물 주기", "image": "/assets/v5/garden-water.png", "hint": "빈 그릇을 찾았구나! 물 주기 버튼을 꾹 누르거나 여러 번 눌러 봐." },
+    { "id": "quiet", "label": "소리 줄이기", "image": "/assets/v2/badge-broadcast.webp", "hint": "학교 화단은 이미 조용해. 이곳에 없는 것이 무엇인지 다시 살펴봐." }
+  ],
+  "result": "물그릇을 채우니 새가 물을 마셔! 장소가 달라지면 필요한 도움도 달라져.",
+  "teamwork": "사육사와 선생님이 물그릇을 살피고, 방송 팀이 친구들에게 함께 돌보자고 알려 줘."
+}

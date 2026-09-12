@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType, type LazyExoticComponent } from 'react';
 import { PAGE_META } from '../shared/constants';
 import type { PageNumber } from '../shared/types';
 import { useGame } from '../state/GameContext';
@@ -24,6 +24,19 @@ const pages: Record<PageNumber, LazyExoticComponent<ComponentType<{ onNavigate: 
   11: lazy(() => import('../pages/Page10Certificate')), // 수료증
 };
 
+function RouteLoading() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 12000);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return <div className="app-loader" role="status">
+    <span className="loader-orbit" />
+    <strong>{slow ? '연결이 느려서 조금 더 걸리고 있어.' : '다음 탐험 화면을 준비하고 있어…'}</strong>
+    {slow && <button className="button" onClick={() => window.location.reload()}>연결 확인 후 다시 열기</button>}
+  </div>;
+}
+
 export function App() {
   const { page, navigate } = useHashRouter();
   const { save, setLastPage } = useGame();
@@ -48,7 +61,7 @@ export function App() {
 
   return (
     <AppErrorBoundary key={page}>
-      <Suspense fallback={<div className="app-loader"><span className="loader-orbit" /><strong>미래 직업실을 준비하고 있어…</strong></div>}>
+      <Suspense fallback={<RouteLoading />}>
         <>
           <Page onNavigate={navigate} />
           <aside className="device-notice" role="status" aria-live="polite">

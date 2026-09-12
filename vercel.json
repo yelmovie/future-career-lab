@@ -3,11 +3,69 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/assets/meshy/healthy-pair.png",
+      "destination": "/assets/meshy/healthy-pair.webp"
+    },
+    {
+      "source": "/assets/meshy/sick-pair.png",
+      "destination": "/assets/meshy/sick-pair.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-action-report.png",
+      "destination": "/assets/v8/broadcast-action-report.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-anchor-neutral.png",
+      "destination": "/assets/v8/broadcast-anchor-neutral.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-quiet.png",
+      "destination": "/assets/v8/broadcast-graph-quiet.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-trees-grown.png",
+      "destination": "/assets/v8/broadcast-graph-trees-grown.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-graph-water.png",
+      "destination": "/assets/v8/broadcast-graph-water.webp"
+    },
+    {
+      "source": "/assets/v8/broadcast-mic-recovered.png",
+      "destination": "/assets/v8/broadcast-mic-recovered.webp"
+    },
+    {
+      "source": "/assets/v8/trace-cut-fruit-tree.png",
+      "destination": "/assets/v8/trace-cut-fruit-tree.webp"
+    },
+    {
+      "source": "/assets/v9/cooperation-map-restored.png",
+      "destination": "/assets/v9/cooperation-map-restored.webp"
+    },
+    {
+      "source": "/assets/v9/cooperation-quiet-site.png",
+      "destination": "/assets/v9/cooperation-quiet-site.webp"
+    },
+    {
+      "source": "/assets/v9/cooperation-sapling.png",
+      "destination": "/assets/v9/cooperation-sapling.webp"
+    },
+    {
+      "source": "/assets/v9/cooperation-water-cleared.png",
+      "destination": "/assets/v9/cooperation-water-cleared.webp"
     }
   ]
 }

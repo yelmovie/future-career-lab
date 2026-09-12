@@ -43,6 +43,7 @@ async function seed(page: Page) {
     };
   });
   await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [SAVE_KEY, makeSave()]);
   await page.reload();
 }

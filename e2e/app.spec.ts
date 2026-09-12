@@ -167,7 +167,8 @@ test('teacher password unlocks every screen at once without changing progress', 
 });
 
 test('unlocked certificate saves as PNG and has a clean print view', async ({ page }) => {
-  await page.goto('/#/page/11');
+  await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate((key) => {
     const now = new Date().toISOString();
     localStorage.setItem(key, JSON.stringify({
@@ -186,6 +187,7 @@ test('unlocked certificate saves as PNG and has a clean print view', async ({ pa
     }));
   }, SAVE_KEY);
   await page.reload();
+  await page.goto('/#/page/11');
   await expect(page.getByLabel('미래 직업실 탐험 수료증')).toBeVisible();
   await expect(page.getByText('테스트 탐험가', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/나는 이제 조건을 하나씩/)).toHaveCount(0);

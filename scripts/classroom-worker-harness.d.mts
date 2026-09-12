@@ -15,6 +15,6 @@ interface ClassroomHarness {
   fetcher: Mock<(request: Request) => Promise<Response>>;
   skipWaiting: Mock<() => Promise<undefined>>;
   dispatch(type: string, extra?: Record<string, unknown>): Promise<Response | undefined>;
-  message(type: string): Promise<WorkerSnapshot[]>;
+  message(type: string, options?: { background?: boolean }): Promise<WorkerSnapshot[]>;
 }
 export function createClassroomHarness(): ClassroomHarness;

@@ -7,7 +7,6 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/assets/page-01/badge.webp" type="image/webp" />
     <link rel="apple-touch-icon" href="/assets/page-01/badge.webp" />
-    <link rel="preload" href="/assets/fonts/Pretendard-Regular.sub.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/Jua-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="description" content="드론 전문가·동물돌봄 전문가·생태연구가·방송기술자가 되어 함께 숲을 살리는 초등 진로 체험 게임." />
     <link rel="canonical" href="https://16job.vercel.app/" />
@@ -31,7 +30,17 @@
     <title>미래 직업실</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-screen" role="status">
+        <strong>미래 직업실</strong>
+        <span id="boot-progress-label">탐험 화면 준비 0/2</span>
+        <progress id="boot-progress" max="2" value="0" aria-label="탐험 화면 준비"></progress>
+        <button id="boot-retry" type="button" hidden>다시 열기</button>
+      </div>
+    </div>
+    <style>
+      .boot-screen{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#eaf5f1;color:#203b46;font-family:system-ui,sans-serif;font-size:22px}.boot-screen strong{font-size:34px}.boot-screen progress{width:min(320px,70vw);height:18px;accent-color:#187953}.boot-screen button{min-height:60px;padding:12px 30px;border:2px solid #d6a122;border-radius:16px;background:#ffd14b;color:#243343;font:inherit;font-weight:700}.boot-screen [hidden]{display:none}
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

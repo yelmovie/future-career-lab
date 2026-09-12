@@ -108,3 +108,8 @@
 .p8-page .p8-program-media img { object-position: center; }
 .p8-page .p8-program-media[aria-label="드론 사진"] img { object-fit: contain; }
 .p8-announcement { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.p8-page .p8-captions .v4-choice { gap: 7px; padding: 10px; text-align: left; background: #fffaf2; }
+.p8-page .p8-captions .v4-choice strong { font-size: 23px; line-height: 1.25; }
+.p8-page .p8-captions .v4-choice-card { background: #fffaf2; }
+.p8-page .p8-captions .v4-choice__description { padding-top: 8px; border-top: 1px solid #d5deea; color: var(--color-text-main); font-size: 20px; line-height: 1.4; }
+.p8-page .p8-captions .v4-choice-card > small { justify-self: start; padding: 3px 8px; border-radius: 8px; background: var(--color-bg); font-weight: 700; }

@@ -12,7 +12,7 @@ interface Props {
 }
 
 const START_ORBIT = '20deg 82deg 105%';
-const PAIR_IMAGES = { sick: '/assets/meshy/sick-pair.png', healthy: '/assets/meshy/healthy-pair.png' };
+const PAIR_IMAGES = { sick: '/assets/meshy/sick-pair.webp', healthy: '/assets/meshy/healthy-pair.webp' };
 const A11Y = JSON.stringify({
   front: '앞모습', back: '뒷모습', left: '왼쪽 모습', right: '오른쪽 모습',
   'upper-front': '위에서 본 앞모습', 'upper-back': '위에서 본 뒷모습', 'upper-left': '위에서 본 왼쪽', 'upper-right': '위에서 본 오른쪽',

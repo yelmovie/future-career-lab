@@ -7,23 +7,36 @@ export interface ClassroomState {
   version?: string;
   error?: string;
   updateAvailable: boolean;
+  online: boolean;
 }
 
-let current: ClassroomState = { state: 'checking', done: 0, total: 0, bytes: 0, totalBytes: 0, updateAvailable: false };
+let current: ClassroomState = { state: 'checking', done: 0, total: 0, bytes: 0, totalBytes: 0, updateAvailable: false, online: typeof navigator === 'undefined' || navigator.onLine };
 const listeners = new Set<() => void>();
 let registration: ServiceWorkerRegistration | undefined;
 let preparationPort: MessagePort | undefined;
+let automaticStarted = false;
+let automaticTimer: number | undefined;
+let retryTimer: number | undefined;
+let retryCount = 0;
 
 function publish(patch: Partial<ClassroomState>): void {
   current = { ...current, error: undefined, ...patch };
   for (const listener of listeners) listener();
+  if (patch.state === 'ready') retryCount = 0;
+  if (automaticStarted && patch.state === 'error' && current.online && retryCount < 3) {
+    window.clearTimeout(retryTimer);
+    retryTimer = window.setTimeout(() => scheduleAutomaticPreparation(0), 5000 * 2 ** retryCount++);
+  }
 }
 
 async function worker(): Promise<ServiceWorker> {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) throw new Error('수업 자료 준비는 배포된 앱에서 사용할 수 있습니다.');
   registration = await navigator.serviceWorker.getRegistration();
   if (!registration) registration = await navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
-  await navigator.serviceWorker.ready;
+  await new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error('연결을 확인하고 남은 자료를 다시 준비해 줘.')), 12000);
+    void navigator.serviceWorker.ready.then(() => { window.clearTimeout(timeout); resolve(); }, (error) => { window.clearTimeout(timeout); reject(error); });
+  });
   publish({ updateAvailable: Boolean(registration.waiting) });
   const active = registration.active;
   if (!active) throw new Error('앱 준비를 마치지 못했습니다. 잠시 뒤 다시 확인해 주세요.');
@@ -55,14 +68,15 @@ export async function refreshClassroom(): Promise<void> {
       }
     };
     active.postMessage({ type: 'CLASSROOM_STATUS' }, [channel.port2]);
-    void registration?.update().then(() => publish({ updateAvailable: Boolean(registration?.waiting) })).catch(() => undefined);
+    if (navigator.onLine) void registration?.update().then(() => publish({ updateAvailable: Boolean(registration?.waiting) })).catch(() => undefined);
   } catch (error) {
     publish({ state: 'unavailable', error: error instanceof Error ? error.message : '이 기기에서는 수업 자료 준비를 사용할 수 없습니다.' });
   }
 }
 
-export async function prepareClassroom(): Promise<void> {
+export async function prepareClassroom(background = false): Promise<void> {
   if (current.state === 'preparing') return;
+  if (!navigator.onLine) { publish({ online: false, state: 'error', error: '인터넷에 다시 연결하면 남은 그림과 소리를 이어서 준비할게.' }); return; }
   publish({ state: 'preparing' });
   try {
     const active = await worker();
@@ -76,10 +90,43 @@ export async function prepareClassroom(): Promise<void> {
         preparationPort = undefined;
       }
     };
-    active.postMessage({ type: 'PREPARE_CLASSROOM' }, [channel.port2]);
+    active.postMessage({ type: 'PREPARE_CLASSROOM', background }, [channel.port2]);
   } catch (error) {
     publish({ state: 'error', error: error instanceof Error ? error.message : '자료 준비를 시작하지 못했습니다.' });
   }
+}
+
+/** The first screen stays interactive. Later resources arrive one at a time after it has settled. */
+function scheduleAutomaticPreparation(delay = 4500): void {
+  window.clearTimeout(automaticTimer);
+  automaticTimer = window.setTimeout(() => {
+    if (!navigator.onLine || document.visibilityState === 'hidden' || current.state === 'preparing' || current.state === 'ready') return;
+    const begin = () => {
+      if (navigator.onLine && document.visibilityState !== 'hidden') void prepareClassroom(true);
+    };
+    if ('requestIdleCallback' in window) window.requestIdleCallback(begin, { timeout: 1500 });
+    else begin();
+  }, delay);
+}
+
+export function startAutomaticClassroom(): void {
+  if (automaticStarted || !import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  automaticStarted = true;
+  const reconnect = () => {
+    publish({ online: navigator.onLine });
+    if (navigator.onLine) { retryCount = 0; scheduleAutomaticPreparation(600); }
+    else cancelClassroom();
+  };
+  window.addEventListener('online', reconnect);
+  window.addEventListener('offline', reconnect);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') cancelClassroom();
+    else { void refreshClassroom().then(() => scheduleAutomaticPreparation(600)); }
+  });
+  // On a first visit, even the small worker shell waits for the visible screen.
+  // An existing worker can report already prepared resources immediately.
+  if (navigator.serviceWorker.controller) void refreshClassroom().then(() => scheduleAutomaticPreparation());
+  else window.setTimeout(() => { void refreshClassroom().then(() => scheduleAutomaticPreparation(600)); }, 4500);
 }
 
 export function cancelClassroom(): void {

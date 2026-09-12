@@ -78,7 +78,7 @@ export type V8Asset =
   | 'closeup-red-water' | 'recovery-red-water' | 'recovery-green-shelter'
   | 'trace-forest-feather-brown' | 'trace-forest-feather-blue'
   | 'trace-forest-birdsong' | 'trace-forest-footprints' | 'trace-cut-fruit-tree';
-export const v8Asset = (name: V8Asset, extension: 'jpg' | 'png' = 'jpg') => `/assets/v8/${name}.${extension}`;
+export const v8Asset = (name: V8Asset, extension: 'jpg' | 'png' | 'webp' = 'jpg') => `/assets/v8/${name}.${extension}`;
 /** P9 릴레이용 v9 그림 자리 (docs/ASSET_REQUEST_v9.md). 없으면 fallbackTo 로 지금 그림. */
 export type V9Asset = 'forest-map-restored' | 'expert-drone' | 'expert-ecology' | 'expert-care' | 'expert-broadcast';
 export const v9Asset = (name: V9Asset) => `/assets/v9/${name}.webp`;

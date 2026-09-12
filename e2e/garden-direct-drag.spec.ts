@@ -6,7 +6,8 @@ type Placement = { shade: string[]; perch: string[] };
 type Point = { x: number; y: number };
 
 async function seedGarden(page: Page) {
-  await page.goto('/#/page/6');
+  await page.goto('/#/page/1');
+  await expect(page.locator('.game-shell')).toBeVisible();
   await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({
     schemaVersion: 2, contentVersion: '2026.09', sessionSeed: 42, playerName: '정원 탐험가', lastPage: 6,
     stageProgress: { completed: { 1: true, 2: false, 3: false, 4: false, 5: false }, completedPages: [3, 4, 5] },
@@ -17,6 +18,7 @@ async function seedGarden(page: Page) {
     updatedAt: new Date().toISOString(),
   })), SAVE_KEY);
   await page.reload();
+  await page.goto('/#/page/6');
   await expect(page.locator('.v4-slotboard')).toBeVisible();
   await expect(page.locator('.v4-pool .v4-chip')).toHaveCount(4);
 }

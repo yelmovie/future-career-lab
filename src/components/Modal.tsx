@@ -17,33 +17,40 @@ interface ModalProps {
 export function Modal({ title, children, onClose, actions, subheader, className = '' }: ModalProps) {
   const titleId = useId();
   const modalRef = useRef<HTMLElement>(null);
+  const closeAction = useRef(onClose);
+  useEffect(() => { closeAction.current = onClose; }, [onClose]);
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusable = () => Array.from(modalRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])') ?? []);
-    window.requestAnimationFrame(() => focusable()[0]?.focus());
+    const focusable = () => Array.from(modalRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])') ?? [])
+      .filter((element) => element.getClientRects().length > 0 && !element.closest('[inert]'));
+    const initialFocus = window.requestAnimationFrame(() => (focusable()[0] ?? modalRef.current)?.focus());
     const onKey = (event: KeyboardEvent) => {
+      if (!modalRef.current?.getClientRects().length) return;
       if (event.key === 'Escape') {
-        onClose?.();
+        event.preventDefault();
+        closeAction.current?.();
         return;
       }
       if (event.key !== 'Tab') return;
       const items = focusable();
-      if (items.length === 0) return;
+      if (items.length === 0) { event.preventDefault(); modalRef.current?.focus(); return; }
       const first = items[0]!;
       const last = items[items.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!modalRef.current?.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+      else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
-      previous?.focus();
+      window.cancelAnimationFrame(initialFocus);
+      if (previous?.isConnected) previous.focus();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="modal-backdrop" role="presentation" onPointerDown={(event) => event.target === event.currentTarget && onClose?.()}>
-      <section ref={modalRef} className={`modal ${className}`} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <section ref={modalRef} className={`modal ${className}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <h2 id={titleId}>{title}</h2>
         {subheader && <div className="modal-subheader">{subheader}</div>}
         <div className="modal-body">{children}</div>

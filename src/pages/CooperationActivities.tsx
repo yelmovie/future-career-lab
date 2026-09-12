@@ -127,10 +127,10 @@ export function QuietWorkActivity({ level, onLevel, image, audioEnabled }: { lev
     : listening ? '손잡이를 왼쪽으로 밀면 기계 소리도 작아져.'
     : '공사 소리를 듣고, 손잡이를 왼쪽으로 밀어 봐.';
   return <div className={`coop-activity coop-quiet${level <= 35 ? ' is-quiet' : ''}`}>
-    <div className="coop-scene"><img className="coop-scene__image" src={image} alt="숲 옆에서 일하는 공사팀" /><div className="coop-sound-waves" aria-hidden="true">{[1, 2, 3, 4, 5].map((n) => <i key={n} style={{ height: `${10 + level * n / 6}%` }} />)}</div><span className="coop-quiet-status">{level <= 35 ? '새가 쉬기 편한 조용한 방법' : '기계 소리가 아직 커'}</span>
+    <div className="coop-scene"><img className="coop-scene__image" src={image} alt="숲 옆에서 일하는 공사팀" /><div className="coop-sound-waves" aria-hidden="true">{[1, 2, 3, 4, 5].map((n) => <i key={n} style={{ height: `${10 + level * n / 6}%` }} />)}</div><span className="coop-quiet-status">{level <= 35 ? '작아진 소리 미리 듣기' : '지금은 기계 소리가 커'}</span>
       <button type="button" className="coop-listen" disabled={!audioEnabled} aria-pressed={listening && audioEnabled} onClick={toggleListening}>{!audioEnabled ? <MutedIcon /> : <SoundIcon />}<span>{listening && audioEnabled ? '공사 소리 멈추기' : '공사 소리 듣기'}</span></button>
     </div>
-    <label className="coop-noise-slider"><span>공사 소리 줄이기</span><input type="range" min="0" max="100" step="5" value={level} aria-valuetext={level === 0 ? '기계 소리 없음' : level <= 35 ? '조용한 작업 방법' : '시끄러운 작업 방법'} onChange={(e) => onLevel(Number(e.target.value))} /><output>{level === 0 ? '소리 없음' : level <= 35 ? '조용해' : '시끄러워'}</output></label>
+    <label className="coop-noise-slider"><span>공사 소리 줄이기</span><input type="range" min="0" max="100" step="5" value={level} aria-valuetext={level === 0 ? '기계 소리 없음' : level <= 35 ? '작아진 소리' : '큰 소리'} onChange={(e) => onLevel(Number(e.target.value))} /><output>{level === 0 ? '소리 없음' : level <= 35 ? '조용해' : '시끄러워'}</output></label>
     <p className="coop-activity-hint" role="status">{hint}</p>
   </div>;
 }
