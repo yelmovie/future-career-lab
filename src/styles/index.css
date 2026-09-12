@@ -447,7 +447,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
 /* 작은 휴대폰·세로 화면에서는 축소된 조작을 노출하지 않고 안전한 사용 환경을 안내한다. */
 .device-notice { display: none; }
 
-@media (orientation: portrait), (max-width: 1023px), (max-height: 575px) {
+@media screen and (orientation: portrait), screen and (max-width: 1023px), screen and (max-height: 575px) {
   /* 안내는 실제 뷰포트 크기로 읽는다. 숨긴 게임은 Tab 탐색에서도 빠진다. */
   .stage:has(.device-notice) { inset: 0; width: 100%; height: 100%; transform: none; }
   .game-shell:has(~ .device-notice) { display: none; }
@@ -467,12 +467,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
 
+@page { size: A4 landscape; margin: 8mm; }
+
 @media print {
   html, body { height: auto; overflow: visible; background: #fff; }
   body { background: #fff !important; }
   #root { position: static; display: block; background: #fff; }
   .stage { position: static; width: auto; height: auto; overflow: visible; transform: none; background: #fff; }
   .topbar, .game-footer, .ambient, .no-print, .icon-button, .certificate-actions, .device-notice { display: none !important; }
-  .game-shell { display: block; height: auto; overflow: visible; background: #fff !important; color: #000 !important; }
+  .game-shell { display: block !important; height: auto; overflow: visible; background: #fff !important; color: #000 !important; }
   .game-content { display: block; width: 100%; padding: 0; overflow: visible; }
 }

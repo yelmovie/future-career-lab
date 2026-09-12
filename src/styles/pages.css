@@ -150,7 +150,7 @@
 @media print {
   .certificate-page .game-content { display: block; }
   .certificate-layout { display: block; width: 100%; height: auto; }
-  .certificate-sheet { width: 100%; height: 190mm; min-width: 0; aspect-ratio: auto; box-shadow: none; padding: 5mm; break-inside: avoid; }
+  .certificate-sheet { width: 268mm; max-width: 100%; height: 190mm; min-width: 0; margin: 0 auto; aspect-ratio: auto; box-shadow: none; padding: 5mm; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .certificate-border { padding: 8mm 12mm 6mm; }
   .certificate-border header h2 { font-size: 26pt; }
   .certificate-seal { width: 22mm; height: 22mm; }

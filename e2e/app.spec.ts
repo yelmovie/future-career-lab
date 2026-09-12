@@ -225,4 +225,13 @@ test('unlocked certificate saves as PNG and has a clean print view', async ({ pa
   await expect(page.locator('.topbar')).toBeHidden();
   await expect(page.locator('.certificate-sheet')).toBeVisible();
   await expect(page.locator('.certificate-copy > span')).toHaveText(certificateLines);
+  // Chrome's print preview uses a portrait-oriented media viewport before it
+  // applies @page. The small-screen notice must never hide the print document.
+  await page.setViewportSize({ width: 800, height: 1100 });
+  await expect(page.locator('.device-notice')).toBeHidden();
+  await expect(page.locator('.game-shell')).toBeVisible();
+  await expect(page.locator('.certificate-sheet')).toBeVisible();
+  const printBox = await page.locator('.certificate-sheet').boundingBox();
+  expect(printBox?.width).toBeGreaterThan(700);
+  expect(printBox?.height).toBeGreaterThan(500);
 });
