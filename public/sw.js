@@ -148,8 +148,17 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== scope.origin || !url.pathname.startsWith(scope.pathname)) return;
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
+      // 온라인 재방문은 항상 현재 배포의 HTML을 먼저 확인한다. 이전 HTML이 새 배포에서
+      // 사라진 청크 이름을 가리키는 상태를 막고, 오프라인일 때만 검증된 수업용 셸로 돌아간다.
+      try {
+        const response = await fetch(new Request(request, { cache: 'reload' }));
+        if (response.ok) return response;
+      } catch {
+        // 아래 오프라인 캐시로 복구한다.
+      }
       const cache = await caches.open(cacheName);
-      return (await cache.match(assetUrl('/index.html'))) ?? fetch(request);
+      return (await cache.match(assetUrl('/index.html')))
+        ?? new Response('인터넷 연결을 확인한 뒤 화면을 다시 불러와 주세요.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     })());
     return;
   }

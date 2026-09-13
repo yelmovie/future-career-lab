@@ -35,11 +35,12 @@
         <strong>미래 직업실</strong>
         <span id="boot-progress-label">탐험 화면 준비 0/2</span>
         <progress id="boot-progress" max="2" value="0" aria-label="탐험 화면 준비"></progress>
+        <small id="boot-recovery-help" hidden>카카오톡 안에서 계속 안 열리면 오른쪽 위 메뉴를 눌러 Chrome에서 열어 줘.</small>
         <button id="boot-retry" type="button" hidden>다시 열기</button>
       </div>
     </div>
     <style>
-      .boot-screen{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#eaf5f1;color:#203b46;font-family:system-ui,sans-serif;font-size:22px}.boot-screen strong{font-size:34px}.boot-screen progress{width:min(320px,70vw);height:18px;accent-color:#187953}.boot-screen button{min-height:60px;padding:12px 30px;border:2px solid #d6a122;border-radius:16px;background:#ffd14b;color:#243343;font:inherit;font-weight:700}.boot-screen [hidden]{display:none}
+      .boot-screen{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:#eaf5f1;color:#203b46;font-family:system-ui,sans-serif;font-size:22px;text-align:center}.boot-screen strong{font-size:34px}.boot-screen progress{width:min(320px,70vw);height:18px;accent-color:#187953}.boot-screen small{max-width:28ch;font-size:18px;line-height:1.55}.boot-screen button{min-height:60px;padding:12px 30px;border:2px solid #d6a122;border-radius:16px;background:#ffd14b;color:#243343;font:inherit;font-weight:700}.boot-screen button:disabled{opacity:.65}.boot-screen [hidden]{display:none}
     </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
