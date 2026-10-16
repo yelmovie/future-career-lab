@@ -29,8 +29,8 @@ const BIRD_SLOT_X: Record<GardenSlot, string> = { shade: '25%', perch: '75%' };
 
 /** 시험 결과에 따라 하늘이 주는 힌트. 정답을 그대로 말하지 않고 앵무새 입장에서 묻는다. */
 function resultHint(result: GardenResult): string {
-  if (!result.waterQuiet) return '젤리가 물을 못 찾고 서성여. 젤리는 어디서 쉬고 싶어 할까?';
-  if (!result.hideoutQuiet) return '지구가 숨을 곳을 못 찾았어. 사람 소리가 안 들리는 곳이 어디였지?';
+  if (!result.waterQuiet) return '앵자가 물을 못 찾고 서성여. 앵자는 어디서 쉬고 싶어 할까?';
+  if (!result.hideoutQuiet) return '꾸꾸가 숨을 곳을 못 찾았어. 사람 소리가 안 들리는 곳이 어디였지?';
   return '놀이 줄에서 놀면 소리가 나. 쉬는 새를 방해하지 않을 곳은 어디일까?';
 }
 
@@ -96,14 +96,14 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
         : { label: result ? '옮겨서 다시' : '시험하기', disabled: testing, hint: '잠깐만, 보는 중이야', onClick: result ? () => setSession((current) => ({ ...current, tested: false, step: 1 })) : runTest };
 
   const bubble = completed
-    ? '지구와 젤리는 괜찮아졌어. 그런데 숲에 살던 다른 새들은?\n요즘 새소리가 줄었대.'
+    ? '꾸꾸와 앵자는 괜찮아졌어. 그런데 숲에 살던 다른 새들은?\n요즘 새소리가 줄었대.'
     : step === 1
       ? gardenHint(placed)
       : result
         ? perfect ? '둘 다 편해 보여! 새 정원 완성이야.' : resultHint(result)
-        : testing ? '지구와 젤리가 어디로 가는지 잘 봐.' : '정말 편한지 불러서 살펴보자.';
+        : testing ? '꾸꾸와 앵자가 어디로 가는지 잘 봐.' : '정말 편한지 불러서 살펴보자.';
 
-  /** 시험 화면에서 새가 가는 자리: 젤리는 물그릇, 지구는 숨는 집을 찾아간다. */
+  /** 시험 화면에서 새가 가는 자리: 앵자는 물그릇, 꾸꾸는 숨는 집을 찾아간다. */
   const slotOf = (item: GardenItem): GardenSlot => (Object.keys(placed) as GardenSlot[]).find((slot) => placed[slot].includes(item)) ?? 'shade';
   const birdX = (item: GardenItem) => (testing || result ? BIRD_SLOT_X[slotOf(item)] : '50%');
 
@@ -112,13 +112,13 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
       page={6}
       step={step}
       steps={2}
-      instruction={completed ? '지구와 젤리가 새 정원에서 쉬어' : INSTRUCTIONS[step - 1]!}
+      instruction={completed ? '꾸꾸와 앵자가 새 정원에서 쉬어' : INSTRUCTIONS[step - 1]!}
       mentor={MENTOR}
       mentorName={MENTOR_NAME}
       bubble={bubble}
       status={result ? <span aria-label={`별 ${result.stars}개`}>{'★'.repeat(result.stars)}{'☆'.repeat(3 - result.stars)}</span> : `물건 ${count}/4`}
-      help={<div className="p6-help"><p>아래 물건을 잡고 원하는 공간으로 끌어 놓아 봐. 물건을 누른 다음 공간을 눌러도 돼. 키보드는 Enter로 물건을 고르고, 방향키로 공간을 바꾼 뒤 Enter로 놓아 줘.</p><p>지구는 조용한 은신처, 젤리는 쉬면서 마실 물이 필요해. 놀이 줄은 넓은 활동 공간에 놓고, 먹이 나무는 쉬는 곳이나 노는 곳 중 네가 고를 수 있어.</p><p>한 공간에 세 물건까지 놓을 수 있어. 놓인 물건도 다른 공간으로 끌어 옮길 수 있어. 빼려면 아래 물건 칸으로 끌어 주거나 물건을 눌러 줘.</p></div>}
-      done={completed ? { title: `${STAGE.badgeName}를 얻었어`, message: '지구와 젤리는 새 정원에서 쉬어. 이제 숲의 다른 새들을 둘러보자.', badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined}
+      help={<div className="p6-help"><p>아래 물건을 잡고 원하는 공간으로 끌어 놓아 봐. 물건을 누른 다음 공간을 눌러도 돼. 키보드는 Enter로 물건을 고르고, 방향키로 공간을 바꾼 뒤 Enter로 놓아 줘.</p><p>꾸꾸는 조용한 은신처, 앵자는 쉬면서 마실 물이 필요해. 놀이 줄은 넓은 활동 공간에 놓고, 먹이 나무는 쉬는 곳이나 노는 곳 중 네가 고를 수 있어.</p><p>한 공간에 세 물건까지 놓을 수 있어. 놓인 물건도 다른 공간으로 끌어 옮길 수 있어. 빼려면 아래 물건 칸으로 끌어 주거나 물건을 눌러 줘.</p></div>}
+      done={completed ? { title: `${STAGE.badgeName}를 얻었어`, message: '꾸꾸와 앵자는 새 정원에서 쉬어. 이제 숲의 다른 새들을 둘러보자.', badge: { src: STAGE.badge, alt: STAGE.badgeName } } : undefined}
       next={next}
       className="p6-page"
       onNavigate={onNavigate}
@@ -138,8 +138,8 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                   <div className="p6-zone__items">{placed[slot.id].map((id) => { const chip = CHIPS.find((item) => item.id === id)!; return <img key={id} src={chip.image} alt={chip.label} />; })}</div>
                 </div>
               ))}
-              <img className={`p6-fly p6-fly--green${testing ? ' is-moving' : ''}`} style={{ left: birdX('hideout') }} src={v5Asset('parrot-well-green')} alt="지구" />
-              <img className={`p6-fly p6-fly--red${testing ? ' is-moving' : ''}`} style={{ left: birdX('water') }} src={v5Asset('parrot-well-red')} alt="젤리" />
+              <img className={`p6-fly p6-fly--green${testing ? ' is-moving' : ''}`} style={{ left: birdX('hideout') }} src={v5Asset('parrot-well-green')} alt="꾸꾸" />
+              <img className={`p6-fly p6-fly--red${testing ? ' is-moving' : ''}`} style={{ left: birdX('water') }} src={v5Asset('parrot-well-red')} alt="앵자" />
             </div>
             <div className="p6-result" aria-live="polite">
               {result ? (
@@ -148,13 +148,13 @@ export default function Page06Habitat({ onNavigate }: PageProps) {
                     {[result.waterQuiet, result.hideoutQuiet, result.activityReady].map((on, index) => <span key={index} className={on ? 'is-on' : ''}>★</span>)}
                   </div>
                   <ul className="p6-checks">
-                    <li className={result.waterQuiet ? 'is-on' : ''}>{result.waterQuiet ? '젤리가 쉬면서 물을 마셨어' : '물그릇을 조용히 쉬는 곳으로 옮겨 줘'}</li>
-                    <li className={result.hideoutQuiet ? 'is-on' : ''}>{result.hideoutQuiet ? '지구가 숨는 집에서 편히 쉬었어' : '숨는 집을 조용히 쉬는 곳에 놓아 줘'}</li>
+                    <li className={result.waterQuiet ? 'is-on' : ''}>{result.waterQuiet ? '앵자가 쉬면서 물을 마셨어' : '물그릇을 조용히 쉬는 곳으로 옮겨 줘'}</li>
+                    <li className={result.hideoutQuiet ? 'is-on' : ''}>{result.hideoutQuiet ? '꾸꾸가 숨는 집에서 편히 쉬었어' : '숨는 집을 조용히 쉬는 곳에 놓아 줘'}</li>
                     <li className={result.activityReady ? 'is-on' : ''}>{result.activityReady ? placed.shade.includes('feeder') ? '조용히 먹고, 넓은 곳에서 놀 수 있어' : '먹고 노는 활동을 한 공간에서 할 수 있어' : '놀이 줄을 먹고 노는 곳에 놓아 줘'}</li>
                   </ul>
                 </>
               ) : (
-                <p className="p6-waiting">{testing ? '지구와 젤리를 보는 중…' : '시험하기를 눌러 봐'}</p>
+                <p className="p6-waiting">{testing ? '꾸꾸와 앵자를 보는 중…' : '시험하기를 눌러 봐'}</p>
               )}
             </div>
           </div>

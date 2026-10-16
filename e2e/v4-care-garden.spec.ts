@@ -54,12 +54,12 @@ test.use({ viewport: { width: 1280, height: 720 } });
 
 /** 핫스팟 순서대로, 돋보기에 실제로 보이는 진술 */
 const GROUNDED: Record<string, string[]> = {
-  지구: ['눈은 맑은데 계속 두리번거려', '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어', '숨을 곳이 없고 큰 소리가 계속 들려'],
-  젤리: ['눈이 흐리고 반쯤 감겨 있어', '물이 아침 그대로고 부리가 말라 있어', '날개가 처지고 바닥 가까이 웅크려 있어'],
+  꾸꾸: ['눈은 맑은데 계속 두리번거려', '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어', '숨을 곳이 없고 큰 소리가 계속 들려'],
+  앵자: ['눈이 흐리고 반쯤 감겨 있어', '물이 아침 그대로고 부리가 말라 있어', '날개가 처지고 바닥 가까이 웅크려 있어'],
 };
 
 /** 핫스팟 제목 순서 (page05Data CARE_ZONES) */
-const ZONES: Record<string, string[]> = { 지구: ['눈', '깃털', '주변 환경'], 젤리: ['눈', '물·먹이', '날개·자세'] };
+const ZONES: Record<string, string[]> = { 꾸꾸: ['눈', '깃털', '주변 환경'], 앵자: ['눈', '물·먹이', '날개·자세'] };
 
 /** 한 마리: 돋보기 3개(보이는 것 고르기) → 처치 카드 탭 → 나온 아이콘을 앵무에게 드롭 */
 async function careBird(page: Page, name: string, treatment: RegExp, input: 'drag' | 'tap' | 'keyboard' | 'touch-drag' = 'drag') {
@@ -114,18 +114,18 @@ async function careBird(page: Page, name: string, treatment: RegExp, input: 'dra
   await expect(page.locator('.p5-bird.is-stable')).toBeVisible();
 }
 
-test('page 5: observe and treat 지구 then 젤리, then hand off to the garden', async ({ page }) => {
+test('page 5: observe and treat 꾸꾸 then 앵자, then hand off to the garden', async ({ page }) => {
   test.setTimeout(90_000);
   await seed(page);
   await page.goto('/#/page/5');
 
-  await careBird(page, '지구', /은신처/);
+  await careBird(page, '꾸꾸', /은신처/);
   await expect(page.locator('.p5-obs.is-done .p5-closeup')).toHaveCSS('background-image', /recovery-green-shelter\.jpg/);
-  await page.getByRole('button', { name: /젤리 살피기/ }).click();
-  await careBird(page, '젤리', /물·전해질/);
+  await page.getByRole('button', { name: /앵자 살피기/ }).click();
+  await careBird(page, '앵자', /물·전해질/);
   await page.getByRole('button', { name: /돌봄 끝내기/ }).click();
 
-  await expect(page.getByText('지구와 젤리 모두 안정됐어')).toBeVisible();
+  await expect(page.getByText('꾸꾸와 앵자 모두 안정됐어')).toBeVisible();
   const save = await readSave(page);
   expect(save.stageProgress.completedPages).toContain(5);
   expect(save.artifacts.careLog).toEqual([
@@ -216,9 +216,9 @@ test.describe('tablet care and garden alternatives', () => {
     test.setTimeout(90_000);
     await seed(page);
     await page.goto('/#/page/5');
-    await careBird(page, '지구', /은신처/, 'touch-drag');
-    await page.getByRole('button', { name: /젤리 살피기/ }).click();
-    await careBird(page, '젤리', /물·전해질/, 'keyboard');
+    await careBird(page, '꾸꾸', /은신처/, 'touch-drag');
+    await page.getByRole('button', { name: /앵자 살피기/ }).click();
+    await careBird(page, '앵자', /물·전해질/, 'keyboard');
     await page.getByRole('button', { name: /돌봄 끝내기/ }).click();
     expect((await readSave(page)).stageProgress.completedPages).toContain(5);
   });

@@ -49,7 +49,7 @@ export default function Page01Home({ onNavigate }: { onNavigate: (page: PageNumb
       {loadIssue === 'corrupt' && <div className="toast toast--warning home-save-warning" role="alert">저장 기록 일부를 읽지 못해서 안전하게 새 탐험판을 열었어.</div>}
       {saveFailed && <div className="toast toast--warning home-save-warning" role="alert">기록을 저장하지 못했어요. 브라우저 저장 공간을 확인해 주세요.</div>}
       <section className="home-intro" aria-labelledby="home-title">
-        <span className="sr-only">신입 탐험가와 탐험단장이 앵무새 지구·젤리, 드론과 함께 서 있어요.</span>
+        <span className="sr-only">신입 탐험가와 탐험단장이 앵무새 꾸꾸·앵자, 드론과 함께 서 있어요.</span>
 
         <div className="home-asset-scenery" aria-hidden="true">
           <div className="home-ground" />

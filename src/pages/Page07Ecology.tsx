@@ -354,7 +354,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
   const stepDone = completed ? { title: `${META.badgeName}를 얻었어`, message: '같은 조건의 실험값으로 결론을 확인했어. 이번 숲의 결과를 시민에게 알리자.', badge: { src: META.badge, alt: META.badgeName } } : undefined;
 
   const instruction = completed ? '조사 끝!' :
-    intro ? '지구와 젤리 말고, 숲의 다른 새들은?' :
+    intro ? '꾸꾸와 앵자 말고, 숲의 다른 새들은?' :
     step === 1 ? '반짝이는 흔적을 눌러 봐' :
     step === 2 ? (fewest ? '숲 가장자리엔 새가 거의 없네' : '새가 제일 적은 곳은?') :
     trialsDone && !lastTrial ? '새를 제일 많이 돌아오게 한 건?' :
@@ -401,7 +401,7 @@ export default function Page07Ecology({ onNavigate }: { onNavigate: (page: PageN
         <div className="v4-card p7-intro">
           <img src={POINT_SCENE.C.src} onError={fallbackTo(POINT_SCENE.C.fallback)} alt="" className="p7-intro__scene" />
           <div className="p7-intro__copy">
-            <strong>지구와 젤리는 돌아왔어. 그런데…</strong>
+            <strong>꾸꾸와 앵자는 돌아왔어. 그런데…</strong>
             <p>푸른솔 숲에 살던 다른 새들은 요즘 잘 안 보인대.<br />새소리도 줄었어.</p>
             <p>생태연구가가 되어 숲 세 곳을 둘러보고,<br />새가 왜 줄었는지 알아보자.</p>
           </div>

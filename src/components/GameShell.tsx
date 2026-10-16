@@ -107,7 +107,7 @@ export function GameShell({ page, eyebrow, children, onNavigate, footer, classNa
       {footer && <footer className="game-footer">{footer}</footer>}
       {helpOpen && (
         <Modal title="게임은 이렇게 이어져" className="modal--wide" onClose={() => setHelpOpen(false)} actions={<button className="button button--primary" onClick={() => setHelpOpen(false)}>알겠어</button>}>
-          <p className="flow-goal"><strong>목표</strong> 동물원에서 날아간 앵무새 지구와 젤리를 네 직업의 힘으로 찾고, 푸른솔 숲의 새들을 지키려면 마지막에 넷을 한 팀으로 묶어야 하는 게임이야.</p>
+          <p className="flow-goal"><strong>목표</strong> 동물원에서 날아간 앵무새 꾸꾸와 앵자를 네 직업의 힘으로 찾고, 푸른솔 숲의 새들을 지키려면 마지막에 넷을 한 팀으로 묶어야 하는 게임이야.</p>
           <ol className="flow-steps">
             {GAME_FLOW.map((item) => (
               <li key={item.stage} className={meta.stage === item.stage ? 'is-current' : ''}>

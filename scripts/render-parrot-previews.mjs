@@ -30,8 +30,8 @@ try {
       /* Keep the runtime image free of baked-in small type; the game supplies accessible labels. */
       main{padding:36px 70px}header,footer,figcaption{display:none}section{height:1028px;gap:72px}figure{border:0}model-viewer{height:1028px}
     </style><script type="module" src="${base}/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script></head><body><main>
-      <header><div><div class="eyebrow">FUTURE CAREER LAB</div><h1>${title}</h1></div><div class="state">지구와 젤리 · 눈·깃털·자세</div></header>
-      <section>${[['jigu','지구',''],['jelly','젤리','red']].map(([id,label,css]) => `<figure><model-viewer id="${id}" src="${base}/assets/meshy/${id}-${state}.glb" alt="${label} ${state === 'sick' ? '돌봄 전' : '돌봄 후'}의 3D 모습" camera-orbit="20deg 82deg 105%" camera-target="auto auto auto" field-of-view="30deg" environment-image="neutral" exposure="1" shadow-intensity="0.7" shadow-softness="1" interaction-prompt="none" loading="eager"></model-viewer><figcaption><span class="dot ${css}"></span>${label}</figcaption></figure>`).join('')}</section>
+      <header><div><div class="eyebrow">FUTURE CAREER LAB</div><h1>${title}</h1></div><div class="state">꾸꾸와 앵자 · 눈·깃털·자세</div></header>
+      <section>${[['jigu','꾸꾸',''],['jelly','앵자','red']].map(([id,label,css]) => `<figure><model-viewer id="${id}" src="${base}/assets/meshy/${id}-${state}.glb" alt="${label} ${state === 'sick' ? '돌봄 전' : '돌봄 후'}의 3D 모습" camera-orbit="20deg 82deg 105%" camera-target="auto auto auto" field-of-view="30deg" environment-image="neutral" exposure="1" shadow-intensity="0.7" shadow-softness="1" interaction-prompt="none" loading="eager"></model-viewer><figcaption><span class="dot ${css}"></span>${label}</figcaption></figure>`).join('')}</section>
       <footer><span>자세히 보고 달라진 점을 찾아봐.</span><span>주변 소리와 물그릇은 관찰 카드에서 확인해.</span></footer>
     </main></body></html>`);
     await page.evaluate(async () => {

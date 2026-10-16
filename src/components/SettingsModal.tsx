@@ -46,8 +46,6 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
   const [tab, setTab] = useState<Tab>('display');
   const [displayScale, setDisplayScale] = useState(getDisplayScalePercent);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [teacherPassword, setTeacherPassword] = useState('');
-  const [teacherError, setTeacherError] = useState('');
   const { bgmVolume, sfxVolume, muted } = save.audio;
 
   // ponytail: 개별 on/off 는 볼륨 0 으로 표현한다. 저장 스키마에 필드를 더하지 않으려는 선택.
@@ -196,29 +194,10 @@ export function SettingsModal({ onClose, onNavigate }: { onClose: () => void; on
           <section className="settings-block">
             <h3>교사용 가이드</h3>
             {!teacherMode ? (
-              <form className="teacher-unlock" onSubmit={(event) => {
-                event.preventDefault();
-                if (unlockTeacherMode(teacherPassword)) {
-                  setTeacherPassword('');
-                  setTeacherError('');
-                } else {
-                  setTeacherError('비밀번호가 맞지 않습니다. 다시 확인해 주세요.');
-                }
-              }}>
-                <p className="settings-hint">교사용 비밀번호를 입력하면 성취기준과 전체 화면 바로가기가 열립니다.</p>
-                <label htmlFor="teacher-password">교사용 비밀번호</label>
-                <div>
-                  <input
-                    id="teacher-password"
-                    type="password"
-                    value={teacherPassword}
-                    autoComplete="off"
-                    onChange={(event) => { setTeacherPassword(event.target.value); setTeacherError(''); }}
-                  />
-                  <button className="button button--teal" type="submit" disabled={!teacherPassword.trim()}>전체 해금</button>
-                </div>
-                {teacherError && <p className="teacher-unlock__error" role="alert">{teacherError}</p>}
-              </form>
+              <div className="teacher-unlock">
+                <p className="settings-hint">전체 해금을 누르면 성취기준과 전체 화면 바로가기가 열립니다.</p>
+                <button className="button button--teal" type="button" onClick={unlockTeacherMode}>전체 해금</button>
+              </div>
             ) : (
               <div className="teacher-guide">
                 <div className="teacher-unlocked" role="status">

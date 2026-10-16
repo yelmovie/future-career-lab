@@ -51,7 +51,7 @@ License: https://pixabay.com/service/license-summary/
 
 | 파일 | 내용 | 제작 | 비고 |
 |---|---|---|---|
-| `public/audio/v5/broadcast-mic-test.wav` | "여기는 미래 방송국입니다. 마이크 테스트, 하나, 둘, 셋. 지구와 젤리를 찾은 소식을 전해 드립니다. 푸른솔 숲의 새들을 함께 지켜 주세요." | Higgsfield · Seed Audio 1.0(ByteDance) 프리셋 음성 Ainsley 로 생성 | 실제 사람 목소리가 아닌 합성 음성. P8 소리 맞추기에서 슬라이더 음량·왜곡 체험용 |
+| `public/audio/v5/broadcast-mic-test.wav` | "여기는 미래 방송국입니다. 마이크 테스트, 하나, 둘, 셋." | Higgsfield · Seed Audio 1.0(ByteDance) 프리셋 음성 Ainsley 로 생성 | 실제 사람 목소리가 아닌 합성 음성. P8 소리 맞추기에서 슬라이더 음량·왜곡 체험용. 2026-10-16 이름 변경에 맞춰 기존 음성의 방송국 소개·마이크 확인 구간(7.5초)만 사용 |
 
 ## v5 앵무 소리 교체·추가 (2026-09-07, Mixkit Sound Effects Free License — 표기 불필요, 상업 이용 가능)
 

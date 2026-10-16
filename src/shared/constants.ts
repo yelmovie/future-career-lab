@@ -41,7 +41,7 @@ export const PAGE_META: Record<PageNumber, { title: string; stage?: StageNumber;
   2: { title: '탐험단 브리핑', short: '사건 접수', background: 2 },
   3: { title: '드론 정찰 비행', stage: 1, short: '하늘에서 보기', background: 4 },
   4: { title: '현장 증거판', stage: 1, short: '단서 잇기', background: 3 },
-  5: { title: '구조된 지구와 젤리 살피기', stage: 2, short: '살펴보기', background: 5 },
+  5: { title: '구조된 꾸꾸와 앵자 살피기', stage: 2, short: '살펴보기', background: 5 },
   6: { title: '새 정원 다시 만들기', stage: 2, short: '다시 만들기', background: 7 },
   7: { title: '숲 생태 조사', stage: 3, short: '하나씩 바꿔 보기', background: 6 },
   8: { title: '생방송 컨트롤룸', stage: 4, short: '정확하게 알리기', background: 9 },
@@ -75,7 +75,7 @@ export interface StageMeta {
 
 export const STAGE_META: StageMeta[] = [
   { id: 1, job: 'drone', label: '드론 현장가', jobTitle: '드론 현장가', subtitle: '찍고 잇기', goal: '바람을 읽고 푸른솔 숲 위를 날아 달라진 곳 3곳을 찍어. 사진을 살펴보며 숲의 새들이 왜 줄었을지 짐작해.', reward: '드론 배지 + 현장 사진 3장', learn: '제약 속에서 계획하고, 사진을 근거로 잇기', page: 3, badge: '/assets/page-08/slot-05.webp', badgeName: '드론 현장가 배지' },
-  { id: 2, job: 'care', label: '동물돌봄 전문가', jobTitle: '동물돌봄 전문가', subtitle: '살피고 고치기', goal: '구조된 지구와 젤리는 상태가 달라. 따로 살피고, 찢어진 새 정원을 다시 만들어.', reward: '돌봄 배지 + 돌봄 기록', learn: '관찰 → 기록 → 개체마다 다른 돌봄', page: 5, badge: '/assets/page-08/slot-04.webp', badgeName: '동물돌봄 배지' },
+  { id: 2, job: 'care', label: '동물돌봄 전문가', jobTitle: '동물돌봄 전문가', subtitle: '살피고 고치기', goal: '구조된 꾸꾸와 앵자는 상태가 달라. 따로 살피고, 찢어진 새 정원을 다시 만들어.', reward: '돌봄 배지 + 돌봄 기록', learn: '관찰 → 기록 → 개체마다 다른 돌봄', page: 5, badge: '/assets/page-08/slot-04.webp', badgeName: '동물돌봄 배지' },
   { id: 3, job: 'ecology', label: '생태연구가', jobTitle: '생태연구가', subtitle: '하나씩 바꾸기', goal: '숲 가장자리에서 새가 줄어든 이유를 알아보자. 흔적을 모으고, 한 가지씩 바꿔 새에게 어떤 도움이 필요한지 비교해.', reward: '생태 배지 + 연구 그래프', learn: '한 가지씩 바꿔 비교하고 생각을 다시 살피기', page: 7, badge: '/assets/v2/badge-ecology.webp', badgeName: '생태연구가 배지' },
   { id: 4, job: 'broadcast', label: '미래방송기술자', jobTitle: '미래방송기술자', subtitle: '정확히 알리기', goal: '사진과 조사 결과를 화면·소리·자막으로 이어 생방송을 만들어. 마이크 문제가 생기면 고쳐서 방송을 이어 가.', reward: '방송 배지 + 내가 만든 방송', learn: '화면·말·소리를 연결해 확인한 소식 전하기', page: 8, badge: '/assets/v2/badge-broadcast.webp', badgeName: '방송기술자 배지' },
   { id: 5, job: 'alliance', label: '함께 살리는 숲', jobTitle: '탐험단 연합', subtitle: '함께 풀기', goal: '앞에서 모은 사진과 경험을 나누고, 돕고 싶은 장소부터 골라. 묘목을 심고, 막힌 물길을 표시하고, 조용한 작업 방법을 다른 팀에 전해 숲을 함께 돌봐.', reward: '연합 엠블럼 + 함께 바꾼 숲', learn: '여러 직업이 알아낸 정보를 나누고 서로의 일을 이어 받으면 복잡한 문제를 함께 해결할 수 있다', page: 9, badge: '/assets/page-08/slot-10.webp', badgeName: '연합 엠블럼' },

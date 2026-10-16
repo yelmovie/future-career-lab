@@ -28,7 +28,7 @@ export function getLearningRecord(save: GameSave): LearningEntry[] {
     { id: 'photos', title: '내가 찾은 현장', recorded: a.photos.length > 0,
       detail: a.photos.length ? a.photos.map((photo) => `${PHOTO_LABEL[photo.id]} 사진 (${photo.quality === 'center' ? '가운데 포착' : '가장자리 포착'})`).join(' · ') : '아직 저장된 사진이 없어.' },
     { id: 'care', title: '새를 돌본 방법', recorded: a.careLog.length > 0,
-      detail: a.careLog.length ? a.careLog.map((care) => `${care.bird === 'green' ? '지구' : '젤리'}: ${care.issue} → ${care.treatment}`).join('\n') : '아직 저장된 돌봄 기록이 없어.' },
+      detail: a.careLog.length ? a.careLog.map((care) => `${care.bird === 'green' ? '꾸꾸' : '앵자'}: ${care.issue} → ${care.treatment}`).join('\n') : '아직 저장된 돌봄 기록이 없어.' },
     { id: 'garden', title: '내가 설계한 정원', recorded: a.habitatStars > 0,
       detail: a.habitatStars ? `정원 시험 별 ${a.habitatStars}개. ${count(garden.revisions) > 0 ? `${count(garden.revisions)}번 배치를 고쳐 다시 시험했어.` : '저장된 배치로 정원 시험을 마쳤어.'}` : '아직 정원 시험 결과가 없어.' },
     { id: 'ecology', title: '생각과 실험 결과', recorded: a.graphs.length > 0,

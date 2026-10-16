@@ -14,7 +14,7 @@ import './stage1-2.css';
 const DETAIL_IDS = new Set<string>(PHOTO_DETAILS.map((detail) => detail.id));
 const HYPOTHESIS_PHOTO: Record<CauseId, PhotoId> = { logging: 'logging', noise: 'construction', water: 'stream' };
 const HINT_RING_MS = 10_000;
-const DONE_MESSAGE = '네 현장 사진을 단서로\n사육사가 지구와 젤리를 찾았대!\n새가 떠난 이유는 생태 실험에서 확인해 보자.';
+const DONE_MESSAGE = '네 현장 사진을 단서로\n사육사가 꾸꾸와 앵자를 찾았대!\n새가 떠난 이유는 생태 실험에서 확인해 보자.';
 /** 3단계 해설: 흔적 → 가설 → 드론 현장가가 한 일. 배지는 이걸 읽고 나서 받는다. */
 const EXPLAIN_LINE: Record<CauseId, string> = {
   logging: '그루터기를 보면 열매 나무가 잘렸어. 먹을 게 없어진 새들이 깊은 숲으로 갔다는 짐작이야.',
@@ -102,7 +102,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
     : step === 2
       ? { label: '이 가설로 정하기', disabled: !hypothesis, hint: '카드 하나를 고르면 켜져요', onClick: () => { audioService.playSfx('swipe'); setStep(3); } }
       : completed
-        ? { label: '지구와 젤리 살피러', onClick: () => onNavigate(5) }
+        ? { label: '꾸꾸와 앵자 살피러', onClick: () => onNavigate(5) }
         : { label: '배지 받기', onClick: claimBadge };
   const chosen = hypothesis ? HYPOTHESES.find((item) => item.id === hypothesis)! : null;
 
@@ -111,7 +111,7 @@ export default function Page03Mystery({ onNavigate }: { onNavigate: (page: PageN
       page={4}
       step={step}
       steps={3}
-      instruction={step === 1 ? '사진을 눌러 이상한 곳을 찾아' : step === 2 ? '지구와 젤리 주변, 새가 왜 줄었을까?' : '흔적을 모아 이유를 짐작했어'}
+      instruction={step === 1 ? '사진을 눌러 이상한 곳을 찾아' : step === 2 ? '꾸꾸와 앵자 주변, 새가 왜 줄었을까?' : '흔적을 모아 이유를 짐작했어'}
       mentor={pageAsset(4, 2)}
       mentorName="드론 멘토"
       bubble={step === 1 ? '사진 속에 뭔가 이상한 게 있지 않아?' : step === 2 ? (chosen ? chosen.note : '찾은 것들이 어디를 가리키고 있어?') : '하늘에서 찍고, 사진을 확대해 흔적을 찾고, 이유를 짐작했어. 이게 드론 현장가의 힘이야!'}

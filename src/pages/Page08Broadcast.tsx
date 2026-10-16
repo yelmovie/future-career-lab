@@ -104,7 +104,7 @@ const WRONG_SOURCE: Record<string, Partial<Record<SourceId, string>>> = {
 };
 /** 자막을 고르기 전 — 출처 줄을 읽게 한다. */
 const CAPTION_HINT: Record<string, string> = {
-  opening: '첫 인사로 어떤 소식을 소개할까?\n지구·젤리와 숲의 이야기를 골라 봐.',
+  opening: '첫 인사로 어떤 소식을 소개할까?\n꾸꾸·앵자와 숲의 이야기를 골라 봐.',
   scene: '사진에 직접 보이는 일을 전해 줘.\n아직 모르는 이유를 짐작해서 말하지는 말자.',
   cause: '한 가지만 바꿔서 비교했어.\n새가 몇 마리로 늘었는지 전해 줘.',
   action: '숲과 새를 위해 할 수 있는 일을 골라\n시민들에게 함께 도와 달라고 부탁하자.',

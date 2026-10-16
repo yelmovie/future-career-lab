@@ -12,7 +12,7 @@ const MENTOR = homeAsset('mentor');
 const MENTOR_NAME = '탐험단장';
 
 const BRIEF_LINES = [
-  '새 정원 그물이 태풍에 찢어져서 지구와 젤리가 푸른솔 숲으로 날아갔어.',
+  '새 정원 그물이 태풍에 찢어져서 꾸꾸와 앵자가 푸른솔 숲으로 날아갔어.',
   '사육사 혼자선 넓은 숲을 다 뒤질 수 없어.',
   '하늘에서 보고, 살피고, 조사하고, 알리는 넷이 필요해. 네가 차례로 맡아 줘.',
 ];
@@ -34,7 +34,7 @@ function readProgress(value: unknown): { line: number; met: JobId[] } {
 }
 
 const STEP_TEXT = [
-  { instruction: '말풍선을 눌러 이야기를 들어', bubble: '지구와 젤리에게 무슨 일이 생겼을까?' },
+  { instruction: '말풍선을 눌러 이야기를 들어', bubble: '꾸꾸와 앵자에게 무슨 일이 생겼을까?' },
   { instruction: '직업 캐릭터를 하나씩 눌러 봐', bubble: '누가 어떤 일을 할 수 있을까?' },
 ] as const;
 
@@ -97,13 +97,13 @@ export default function Page02Briefing({ onNavigate }: { onNavigate: (page: Page
         <div className="brief-reward">
           <p>끝내면 얻는 것</p>
           <ul>{STAGE_META.map((stage) => <li key={stage.id}><img src={stage.badge} alt="" />{stage.reward}</li>)}</ul>
-          <p>그리고 지구와 젤리가 새 정원으로 건강하게 돌아가. 수료증도 저장하거나 인쇄할 수 있어.</p>
+          <p>그리고 꾸꾸와 앵자가 새 정원으로 건강하게 돌아가. 수료증도 저장하거나 인쇄할 수 있어.</p>
         </div>
       }
     >
       {step === 1 && (
         <div className="brief-story v4-card">
-          <img className="brief-story__art" src={homeAsset('parrot-pair')} alt="초록 앵무 지구와 빨강 앵무 젤리" />
+          <img className="brief-story__art" src={homeAsset('parrot-pair')} alt="초록 앵무 꾸꾸와 빨강 앵무 앵자" />
           <button type="button" className={`brief-line${briefed ? ' is-last' : ''}`} onClick={nextLine} aria-live="polite">
             <span className="brief-line__who">{MENTOR_NAME}</span>
             <strong>{BRIEF_LINES[line]}</strong>

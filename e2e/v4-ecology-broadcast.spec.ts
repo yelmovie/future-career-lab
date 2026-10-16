@@ -120,8 +120,8 @@ test('page 7: observations, fair comparisons, unsupported conclusion blocked and
   page.on('pageerror', (error) => errors.push(error.message));
   await seed(page);
   await page.goto('/#/page/7');
-  // 연결 화면: 지구·젤리 → 숲의 다른 새들
-  await expect(page.getByRole('heading', { name: '지구와 젤리 말고, 숲의 다른 새들은?' })).toBeVisible();
+  // 연결 화면: 꾸꾸·앵자 → 숲의 다른 새들
+  await expect(page.getByRole('heading', { name: '꾸꾸와 앵자 말고, 숲의 다른 새들은?' })).toBeVisible();
   await page.getByRole('button', { name: /숲 둘러보기/ }).click();
   await expect(page.getByRole('heading', { name: '반짝이는 흔적을 눌러 봐' })).toBeVisible();
 
@@ -171,7 +171,7 @@ test('page 7: observations, fair comparisons, unsupported conclusion blocked and
   await expect(page.locator('.p7-stamps')).toContainText('숲새 합창 녹음');
   await expect(page.locator('.p7-stamps')).toContainText('작은 새 발자국');
   await expect(page.locator('.p7-stamps')).toContainText('푸른 숲새 깃털');
-  await expect(page.locator('.p7-stamps')).not.toContainText(/앵무|지구|젤리/);
+  await expect(page.locator('.p7-stamps')).not.toContainText(/앵무|꾸꾸|앵자/);
   await page.getByRole('button', { name: '잘린 열매나무 다시 살펴보기', exact: true }).click();
   await expect(page.locator('.v4-bubble')).toContainText('새들의 먹이가 줄었을까?');
   await expect(page.locator('.p7-stamps li.is-found')).toHaveCount(6);
@@ -525,7 +525,7 @@ test('page 8: all four segments finish without opening optional investigation da
 
   const captions = page.getByRole('group', { name: '자막 고르기', exact: true });
   for (const segment of [
-    { title: '첫 인사', source: '스튜디오 카메라', caption: '지구와 젤리의 구조 소식과 숲 이야기를 전합니다' },
+    { title: '첫 인사', source: '스튜디오 카메라', caption: '꾸꾸와 앵자의 구조 소식과 숲 이야기를 전합니다' },
     { title: '현장 보여주기', source: '드론 사진', caption: '숲 옆에서 공사가 진행 중입니다' },
     { title: '조사 결과', source: '스튜디오 카메라', caption: '먹이나무를 늘리자 새가 1마리에서 10마리로 늘었습니다' },
     { title: '시민 부탁', source: '현장 리포터', caption: '새가 먹을 열매나무를 지키고 심어 주세요' },

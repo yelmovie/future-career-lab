@@ -145,7 +145,7 @@ export function photoCards(photos: readonly DronePhoto[]): EvidenceCard[] {
   return ids.map((id) => ({
     id, kind: 'photo', image: photoAsset(id),
     title: `${DRONE_TARGETS.find((target) => target.id === id)?.name ?? id} 사진`,
-    note: photos.find((photo) => photo.id === id)?.quality === 'edge' ? '가장자리에 찍혔어. 확대해서 지구와 젤리가 갈 만한 단서를 찾아봐.' : '탭해서 확대하면 지구와 젤리가 갈 만한 단서가 보여.',
+    note: photos.find((photo) => photo.id === id)?.quality === 'edge' ? '가장자리에 찍혔어. 확대해서 꾸꾸와 앵자가 갈 만한 단서를 찾아봐.' : '탭해서 확대하면 꾸꾸와 앵자가 갈 만한 단서가 보여.',
   }));
 }
 

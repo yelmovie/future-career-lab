@@ -78,12 +78,12 @@ export function readGardenSession(value: unknown, legacyDraft?: unknown): Garden
  */
 export function gardenHint(placed: GardenPlaced): string {
   const count = placedCount(placed);
-  if (count === 0) return '물건마다 어울리는 자리를 찾아보자. 지구와 젤리가 편할 곳은 어디일까?';
+  if (count === 0) return '물건마다 어울리는 자리를 찾아보자. 꾸꾸와 앵자가 편할 곳은 어디일까?';
   const inShade = (item: GardenItem) => placed.shade.includes(item);
   const inPerch = (item: GardenItem) => placed.perch.includes(item);
   const has = (item: GardenItem) => GARDEN_SLOTS.some((slot) => placed[slot].includes(item));
-  if (has('water') && !inShade('water')) return '젤리는 쉬면서 물을 마시고 싶어 해. 물그릇은 조용한 곳이 좋지 않을까?';
-  if (has('hideout') && !inShade('hideout')) return '지구는 사람 소리를 피해 숨고 싶어 해. 숨는 집은 어디가 편할까?';
+  if (has('water') && !inShade('water')) return '앵자는 쉬면서 물을 마시고 싶어 해. 물그릇은 조용한 곳이 좋지 않을까?';
+  if (has('hideout') && !inShade('hideout')) return '꾸꾸는 사람 소리를 피해 숨고 싶어 해. 숨는 집은 어디가 편할까?';
   if (has('rope') && !inPerch('rope')) return '놀이 줄은 넓은 곳에서 쓰면 쉬는 새를 방해하지 않아.';
   if (count < 4) return `잘하고 있어! 남은 물건 ${4 - count}개도 어울리는 자리를 찾아 줘.`;
   return '다 놓았네! 이제 불러서 정말 편한지 확인해 보자.';

@@ -119,7 +119,7 @@ export default function ParrotModelPreview({ initialBird, stableBirds, onClose }
           <div className="parrot-preview__canvas" aria-busy={status === 'loading'}>
             {pair ? (pairImageError
               ? <div className="parrot-preview__pair-fallback">{BIRDS.map((item) => <img key={item.id} src={appearance === 'healthy' ? item.recoveredImage : item.sickImage} alt={`${item.name}의 ${appearance === 'healthy' ? '회복한 모습' : '돌봄 전 모습'}`} />)}</div>
-              : <img className="parrot-preview__poster" src={PAIR_IMAGES[appearance]} alt={`지구와 젤리의 ${appearance === 'healthy' ? '회복한 모습' : '돌봄 전 모습'}을 함께 놓고 비교하는 그림`} onError={() => setPairImageError(true)} />)
+              : <img className="parrot-preview__poster" src={PAIR_IMAGES[appearance]} alt={`꾸꾸와 앵자의 ${appearance === 'healthy' ? '회복한 모습' : '돌봄 전 모습'}을 함께 놓고 비교하는 그림`} onError={() => setPairImageError(true)} />)
               : modelUrl && status !== 'error'
               ? <model-viewer ref={viewer} src={modelUrl} poster={poster} alt={`${bird.name}의 ${appearance === 'healthy' ? '회복한' : '돌봄 전'} 모습을 표현한 입체 모형`}
                 camera-controls disable-pan camera-orbit={START_ORBIT} touch-action="pan-y" interaction-prompt="none" shadow-intensity="0.4" environment-image="neutral" a11y={A11Y} tabIndex={0} />

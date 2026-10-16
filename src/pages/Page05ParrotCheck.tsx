@@ -207,7 +207,7 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
     : step < 2
       ? { label: '다음', disabled: !stepDone, hint: `반짝이는 곳 ${zones.length - seen}개가 남았어`, onClick: () => moveTo(bird.id, 2) }
       : bird.id === 'green'
-        ? { label: '젤리 살피기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: () => moveTo('red', 1) }
+        ? { label: '앵자 살피기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: () => moveTo('red', 1) }
         : { label: '돌봄 끝내기', disabled: !stepDone, hint: '기록판과 맞는 처치를 찾아 줘', onClick: finish };
 
   const openZone = card ? zones.find((item) => item.id === card) ?? null : null;
@@ -243,14 +243,14 @@ export default function Page05ParrotCheck({ onNavigate }: PageProps) {
       page={5}
       step={step}
       steps={2}
-      instruction={completed ? '지구와 젤리가 안정됐어' : `${bird.name}: ${INSTRUCTIONS[step - 1]!}`}
+      instruction={completed ? '꾸꾸와 앵자가 안정됐어' : `${bird.name}: ${INSTRUCTIONS[step - 1]!}`}
       mentor={MENTOR}
       mentorName={MENTOR_NAME}
       bubble={completed ? '두 아이가 왜 달랐는지 기억해 둬.' : reaction ?? BUBBLES[step - 1]!}
       status={<span className="p5-hearts" role="img" aria-label={`${bird.name} 기운 ${hearts} / 5`}>{Array.from({ length: 5 }, (_, index) => <i key={index} className={index < hearts ? 'is-on' : ''} />)}<b>{bird.name}</b></span>}
       stageAction={<button type="button" className="p5-model-launch" onClick={() => setPreviewOpen(true)}>3D로 살펴보기</button>}
       help={<ul className="p5-help"><li>반짝이는 곳을 누르면 돋보기가 열려. 돋보기에 <b>정말 보이는 것</b>을 골라 기록판에 붙여.</li><li>처치 카드를 고른 다음 앵무를 눌러 줘. 아이콘을 손가락이나 마우스로 끌어 놓아도 돼. 키보드는 Tab으로 앵무를 찾아 Enter를 눌러.</li><li>처음 생각이 달라도 괜찮아. 기록을 다시 보고 돌봄 방법을 고치는 것도 중요한 일이야.</li><li>여기서는 수의사와 사육사가 함께 돌보는 상황을 연습해. 실제 아픈 새를 만나면 직접 처치하지 말고 어른에게 관찰한 것을 알려 줘.</li></ul>}
-      done={completed ? { title: '지구와 젤리 모두 안정됐어' } : undefined}
+      done={completed ? { title: '꾸꾸와 앵자 모두 안정됐어' } : undefined}
       next={next}
       className="p5-page"
       onNavigate={onNavigate}

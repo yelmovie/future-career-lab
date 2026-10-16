@@ -306,6 +306,6 @@ describe('page 8 broadcast model', () => {
     const recorded = buildCaptionCards({ photos: [{ id: 'stream', quality: 'edge' }], graphs: [{ variable: 'logging', verdict: 'main' }], careLog: [{ bird: 'red', issue: '탈수', treatment: '물' }] }, [{ variable: 'logging', from: 3, to: 9, before: 1, after: 10 }]);
     expect(recorded.find((card) => card.id === 'graph-logging')?.evidence?.join(' ')).toContain('1마리 → 10마리');
     expect(recorded.find((card) => card.id === 'photo-stream')?.evidence?.join(' ')).toContain('가장자리');
-    expect(recorded.find((card) => card.id === 'action-report')?.evidence?.join(' ')).toContain('젤리: 탈수 → 물');
+    expect(recorded.find((card) => card.id === 'action-report')?.evidence?.join(' ')).toContain('앵자: 탈수 → 물');
   });
 });

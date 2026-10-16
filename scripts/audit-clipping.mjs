@@ -49,7 +49,6 @@ const STATES = [
   { name: 'p01-settings-teacher-open', page: 1, save: midway, act: async (p) => {
     await p.getByRole('button', { name: '설정 열기' }).click();
     await p.getByText('교사용 가이드', { exact: true }).click();
-    await p.getByLabel('교사용 비밀번호').fill('yelsam');
     await p.getByRole('button', { name: '전체 해금' }).click();
     await wait(300);
   } },
@@ -98,7 +97,7 @@ const STATES = [
     await p.getByRole('button', { name: '달라요' }).click();
     await next(p).click();
     await p.getByRole('button', { name: '은신처·조용한 곳' }).click();
-    await p.getByRole('button', { name: '지구에게 고른 처치 주기' }).click();
+    await p.getByRole('button', { name: '꾸꾸에게 고른 처치 주기' }).click();
     await wait(800);
   } },
   { name: 'p05-help', page: 5, save: midway, act: async (p) => { await p.getByRole('button', { name: '어떻게 하는 거야' }).click(); } },

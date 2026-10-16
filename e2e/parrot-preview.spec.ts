@@ -91,7 +91,7 @@ test('optional preview waits for a click, preserves observation, and falls back 
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByText('입체 모형을 열지 못했어. 그림으로 계속 살펴볼 수 있어.')).toBeVisible();
   await expect(page.getByRole('group', { name: '돌봄 전후 비교' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '젤리', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '앵자', exact: true })).toHaveCount(0);
   expect(await care(page)).toEqual(before);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -118,25 +118,25 @@ test('completed care keeps 3D available: actual models, direction buttons, and b
   await expect.poll(() => page.locator('model-viewer').evaluate((element) => (element as HTMLElement & { getCameraOrbit: () => { theta: number } }).getCameraOrbit().theta)).toBeCloseTo(20 * Math.PI / 180, 2);
   await page.getByRole('button', { name: '돌봄 전', exact: true }).click();
   await expect(front).toBeEnabled({ timeout: 45000 });
-  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '젤리의 돌봄 전 모습을 표현한 입체 모형');
+  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '앵자의 돌봄 전 모습을 표현한 입체 모형');
   await page.screenshot({ path: test.info().outputPath('jelly-sick.png'), animations: 'disabled' });
-  await page.getByRole('button', { name: '지구', exact: true }).click();
+  await page.getByRole('button', { name: '꾸꾸', exact: true }).click();
   await expect(front).toBeEnabled({ timeout: 45000 });
   await expect(page.getByRole('button', { name: '회복한 모습', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '지구의 회복한 모습을 표현한 입체 모형');
+  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '꾸꾸의 회복한 모습을 표현한 입체 모형');
   await page.screenshot({ path: test.info().outputPath('jigu-healthy.png'), animations: 'disabled' });
   await page.getByRole('button', { name: '돌봄 전', exact: true }).click();
   await expect(front).toBeEnabled({ timeout: 45000 });
-  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '지구의 돌봄 전 모습을 표현한 입체 모형');
+  await expect(page.locator('model-viewer')).toHaveJSProperty('alt', '꾸꾸의 돌봄 전 모습을 표현한 입체 모형');
   await page.screenshot({ path: test.info().outputPath('jigu-sick.png'), animations: 'disabled' });
   expect(new Set(models)).toEqual(new Set(['/assets/meshy/jigu-sick.glb', '/assets/meshy/jigu-healthy.glb', '/assets/meshy/jelly-sick.glb', '/assets/meshy/jelly-healthy.glb']));
   await page.getByRole('button', { name: '회복한 모습', exact: true }).click();
   await page.getByRole('button', { name: '두 친구 함께 보기', exact: true }).click();
-  await expect(page.getByRole('img', { name: '지구와 젤리의 회복한 모습을 함께 놓고 비교하는 그림', exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: '꾸꾸와 앵자의 회복한 모습을 함께 놓고 비교하는 그림', exact: true })).toBeVisible();
   await page.locator('.parrot-preview__canvas img').evaluate((element) => (element as HTMLImageElement).decode());
   await page.screenshot({ path: test.info().outputPath('healthy-pair.png'), animations: 'disabled' });
   await page.getByRole('button', { name: '돌봄 전', exact: true }).click();
-  await expect(page.getByRole('img', { name: '지구와 젤리의 돌봄 전 모습을 함께 놓고 비교하는 그림', exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: '꾸꾸와 앵자의 돌봄 전 모습을 함께 놓고 비교하는 그림', exact: true })).toBeVisible();
   await page.locator('.parrot-preview__canvas img').evaluate((element) => (element as HTMLImageElement).decode());
   await page.screenshot({ path: test.info().outputPath('sick-pair.png'), animations: 'disabled' });
   const buttons = await page.getByRole('dialog').locator('button').evaluateAll((elements) => elements.map((element) => {
@@ -147,5 +147,5 @@ test('completed care keeps 3D available: actual models, direction buttons, and b
   expect(external).toEqual([]);
   expect(await care(page)).toEqual(before);
   await page.getByRole('button', { name: '관찰로 돌아가기', exact: true }).click();
-  await expect(page.getByText('지구와 젤리 모두 안정됐어')).toBeVisible();
+  await expect(page.getByText('꾸꾸와 앵자 모두 안정됐어')).toBeVisible();
 });

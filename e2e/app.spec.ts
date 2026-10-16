@@ -112,16 +112,24 @@ test('certificate stays locked until five real stage flags are complete', async 
   await expect(page.getByRole('heading', { name: /수료증은 다섯 스테이지/ })).toBeVisible();
 });
 
-test('teacher password unlocks every screen at once without changing progress', async ({ page }) => {
+test('teacher button unlocks every screen without a password or changing progress', async ({ page }) => {
   await page.goto('/#/page/1');
   await page.getByRole('button', { name: '설정 열기' }).click();
   await page.getByText('교사용 가이드', { exact: true }).click();
 
   await expect(page.getByText('수업 35분 운영 예시')).toHaveCount(0);
-  await page.getByLabel('교사용 비밀번호').fill('yElSaM');
+  await expect(page.locator('input[type="password"]')).toHaveCount(0);
   await page.getByRole('button', { name: '전체 해금' }).click();
 
   await expect(page.getByText('교사용 전체 해금됨')).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: '설정 열기' }).click();
+  await page.getByRole('tab', { name: '교사용 가이드', exact: true }).click();
+  await expect(page.getByText('교사용 전체 해금됨')).toBeVisible();
+  await page.getByRole('button', { name: '해금 종료', exact: true }).click();
+  await expect(page.getByRole('button', { name: '전체 해금', exact: true })).toBeVisible();
+  await expect(page.getByText('교사용 전체 해금됨')).toHaveCount(0);
+  await page.getByRole('button', { name: '전체 해금', exact: true }).click();
   await expect(page.getByText('전체 흐름 바로가기')).toHaveCount(0);
   await expect(page.getByRole('button', { name: '화면 보기' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: '정답지·판정 기준' })).toHaveCount(0);
@@ -142,7 +150,7 @@ test('teacher password unlocks every screen at once without changing progress', 
   const nextHeadings = [
     '드론 정찰 비행',
     '현장 증거판',
-    '구조된 지구와 젤리 살피기',
+    '구조된 꾸꾸와 앵자 살피기',
     '새 정원 다시 만들기',
     '숲 생태 조사',
     '생방송 컨트롤룸',
@@ -201,7 +209,7 @@ test('unlocked certificate saves as PNG and has a clean print view', async ({ pa
     '푸른솔 숲의 새들을 지켰기에 이 증서를 수여합니다.',
   ];
   await expect(page.locator('.certificate-copy > span')).toHaveText(certificateLines);
-  await expect(page.locator('.certificate-copy')).not.toContainText('지구와 젤리를 찾고');
+  await expect(page.locator('.certificate-copy')).not.toContainText('꾸꾸와 앵자를 찾고');
   await page.evaluate(() => {
     const drawText = CanvasRenderingContext2D.prototype.fillText;
     (window as unknown as { certificateDrawnText: string[] }).certificateDrawnText = [];
@@ -220,7 +228,7 @@ test('unlocked certificate saves as PNG and has a clean print view', async ({ pa
   if (downloadPath) expect((await stat(downloadPath)).size).toBeGreaterThan(10_000);
   const drawnText = await page.evaluate(() => (window as unknown as { certificateDrawnText: string[] }).certificateDrawnText);
   expect(drawnText).toEqual(expect.arrayContaining(certificateLines));
-  expect(drawnText.join(' ')).not.toContain('지구와 젤리를 찾고');
+  expect(drawnText.join(' ')).not.toContain('꾸꾸와 앵자를 찾고');
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.topbar')).toBeHidden();
   await expect(page.locator('.certificate-sheet')).toBeVisible();

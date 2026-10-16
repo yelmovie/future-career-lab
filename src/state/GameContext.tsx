@@ -4,7 +4,7 @@ import type { Artifacts, AudioSettings, GameSave, LogInput, PageNumber } from '.
 import { createDefaultSave } from './defaultSave';
 import { clearRecoverySave, loadSave, persistSave, type LoadResult } from './storage';
 import { deriveStageCompletion } from './progress';
-import { isTeacherPassword, loadTeacherPreview, persistTeacherPreview } from './teacherAccess';
+import { loadTeacherPreview, persistTeacherPreview } from './teacherAccess';
 
 interface GameContextValue {
   save: GameSave;
@@ -13,7 +13,7 @@ interface GameContextValue {
   saveFailed: boolean;
   teacherMode: boolean;
   startNew: () => void;
-  unlockTeacherMode: (password: string) => boolean;
+  unlockTeacherMode: () => void;
   lockTeacherMode: () => void;
   setPlayerName: (name: string) => void;
   setLastPage: (page: PageNumber) => void;
@@ -52,13 +52,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setHadSave(true);
   }, []);
 
-  const unlockTeacherMode = useCallback((password: string) => {
-    const accepted = isTeacherPassword(password);
-    if (accepted) {
-      setTeacherMode(true);
-      persistTeacherPreview(true);
-    }
-    return accepted;
+  const unlockTeacherMode = useCallback(() => {
+    setTeacherMode(true);
+    persistTeacherPreview(true);
   }, []);
 
   const lockTeacherMode = useCallback(() => {

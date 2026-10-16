@@ -24,7 +24,7 @@ export type V2Asset =
 export const v2Asset = (name: V2Asset) => `/assets/v2/${name}.webp`;
 
 /**
- * v3 서사(지구·젤리 탈출 사건)용 신규 그림 자리. 파일은 아직 없다 — docs/ASSET_REQUEST_v3.md 프롬프트로 만들어
+ * v3 서사(꾸꾸·앵자 탈출 사건)용 신규 그림 자리. 파일은 아직 없다 — docs/ASSET_REQUEST_v3.md 프롬프트로 만들어
  * public/assets/v3/ 에 넣으면 그대로 뜨고, 없으면 <img onError> 로 v2 그림으로 되돌아간다.
  */
 export type V3Asset = 'scene-escape' | 'scene-found' | 'scene-reunion' | 'keeper-haneul';

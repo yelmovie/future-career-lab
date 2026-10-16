@@ -48,7 +48,7 @@ export default function Stage05Cooperation({ onNavigate }: { onNavigate: (page: 
     return {
       drone: save.artifacts.photos.length ? `네가 찍은 사진 ${save.artifacts.photos.length}장이 도착했어.` : '하늘 사진으로 도움이 필요한 곳을 찾았어.',
       ecology: trials.length ? `네가 비교한 ${trials.length}번의 결과를 가져왔어.` : '새들이 살기 좋은 환경을 함께 알아볼게.',
-      care: save.artifacts.careLog.length ? '지구와 젤리를 돌본 경험을 나눌게.' : '새가 안전하게 쉴 곳을 살필게.',
+      care: save.artifacts.careLog.length ? '꾸꾸와 앵자를 돌본 경험을 나눌게.' : '새가 안전하게 쉴 곳을 살필게.',
       broadcast: save.artifacts.clip ? '네 방송을 듣고 도움을 주러 모였어!' : '팀 소식을 전하고 도움을 모을게.',
       planting: trees ? `먹이나무를 늘리자 새가 ${trees.before}마리에서 ${trees.after}마리로 늘었지.` : '조사에서 새들의 먹이가 될 나무가 필요했어.',
       quiet: quiet ? `소리를 줄이자 새가 ${quiet.before}마리에서 ${quiet.after}마리로 늘었지.` : '큰 소리를 줄이면 새들이 쉬기 편할 거야.',

@@ -1,11 +1,5 @@
 export const TEACHER_SESSION_KEY = 'future-career-lab.teacher-preview';
 
-const TEACHER_PASSWORD = 'YELSAM';
-
-export function isTeacherPassword(value: string): boolean {
-  return value.trim().toUpperCase() === TEACHER_PASSWORD;
-}
-
 export function loadTeacherPreview(): boolean {
   try {
     return sessionStorage.getItem(TEACHER_SESSION_KEY) === 'true';

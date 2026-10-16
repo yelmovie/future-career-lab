@@ -46,7 +46,7 @@ export const SOLO: Record<JobId, SoloResult> = {
     couldNot: ['넓은 현장 사진은 드론 팀과 모아', '새의 상태는 돌봄 팀과 확인해', '조사 결과는 방송 팀과 함께 알려'],
   },
   care: {
-    did: '지구와 젤리를 잘 돌봤어!',
+    did: '꾸꾸와 앵자를 잘 돌봤어!',
     couldNot: ['돌봄과 함께 숲 환경도 바꿔야 해', '현장 위치와 원인은 조사 팀과 찾아', '도움 요청은 방송 팀과 준비해'],
   },
   broadcast: {
@@ -131,7 +131,7 @@ export const MISSIONS: readonly Mission[] = [
     careHints: { food: '먹이는 이미 열매 나무가 있어. 지금 새들은 목이 말라!', hide: '숨는 집은 놀랐을 때. 지금 새들은 목이 말라!', rope: '놀이 밧줄은 심심할 때. 지금 새들은 목이 말라!' },
     says: [
       { id: 'ok', text: '개울이 자재에 막힌 걸 확인했어요. 자재를 치우러 같이 모여 주세요!', lines: ['개울이 자재에 막힌 걸', '확인했어요. 자재를 치우러', '같이 모여 주세요!'], source: '드론 사진 · 돌봄 기록', art: 'record' },
-      { id: 'rumor', text: 'SNS에서 봤는데, 새들은 물을 안 마셔도 된대요.', lines: ['SNS에서 봤는데,', '새들은 물을 안 마셔도 된대요.'], source: 'SNS 제보', art: 'rumor', why: 'SNS 제보는 누가 봤는지 몰라. 젤리가 목말랐던 돌봄 기록이 있잖아.' },
+      { id: 'rumor', text: 'SNS에서 봤는데, 새들은 물을 안 마셔도 된대요.', lines: ['SNS에서 봤는데,', '새들은 물을 안 마셔도 된대요.'], source: 'SNS 제보', art: 'rumor', why: 'SNS 제보는 누가 봤는지 몰라. 앵자가 목말랐던 돌봄 기록이 있잖아.' },
       { id: 'other', text: '베인 자리에 열매 나무를 심어 주세요!', lines: ['베인 자리에 열매 나무를', '심어 주세요!'], source: '드론 사진', art: 'photo-logging', why: '나무는 이미 심었어. 지금은 막힌 개울 얘기를 하자.' },
     ],
     result: '시민들이 자재를 치워 개울이 다시 흘러. 새들이 물을 마셔!',

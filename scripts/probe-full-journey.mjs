@@ -38,8 +38,8 @@ const planned = [
   ['briefing', '이야기와 네 직업 만나기'],
   ['drone', '경로 놓기·세 사진 촬영·이륙장 복귀'],
   ['evidence', '사진 확대·흔적 찾기·처음 가설'],
-  ['care-jigu', '지구 관찰과 돌봄'],
-  ['care-jelly', '젤리 관찰과 돌봄'],
+  ['care-jigu', '꾸꾸 관찰과 돌봄'],
+  ['care-jelly', '앵자 관찰과 돌봄'],
   ['garden', '정원 물건 배치와 시험'],
   ['ecology-traces', '숲 세 곳의 흔적과 새 수 조사'],
   ['ecology-compare', '세 행동 비교와 새로고침 복원'],
@@ -216,10 +216,10 @@ async function droneMapPoint(point) {
 }
 
 const birdObservations = {
-  지구: { zones: ['눈', '깃털', '주변 환경'], statements: [
+  꾸꾸: { zones: ['눈', '깃털', '주변 환경'], statements: [
     '눈은 맑은데 계속 두리번거려', '가슴 깃털이 빠져 있고 바닥에 뽑힌 깃털이 있어', '숨을 곳이 없고 큰 소리가 계속 들려',
   ], treatment: /은신처/ },
-  젤리: { zones: ['눈', '물·먹이', '날개·자세'], statements: [
+  앵자: { zones: ['눈', '물·먹이', '날개·자세'], statements: [
     '눈이 흐리고 반쯤 감겨 있어', '물이 아침 그대로고 부리가 말라 있어', '날개가 처지고 바닥 가까이 웅크려 있어',
   ], treatment: /물·전해질/ },
 };
@@ -429,19 +429,19 @@ try {
     await press('배지 받기');
     await completedPage(4);
     assert.equal((await readSave()).artifacts.hypothesis, 'water');
-    await press('지구와 젤리 살피러');
+    await press('꾸꾸와 앵자 살피러');
     await routeIs(5);
     return { details, initialHypothesis: '물 때문', provisionalHypothesisWillBeComparedLater: true };
   });
 
   await step('care-jigu', async () => {
-    const result = await careBird('지구');
+    const result = await careBird('꾸꾸');
     await snapshot('jigu-recovered');
-    await press('젤리 살피기');
+    await press('앵자 살피기');
     return result;
   });
   await step('care-jelly', async () => {
-    const result = await careBird('젤리');
+    const result = await careBird('앵자');
     await press('돌봄 끝내기');
     await completedPage(5);
     const careLog = (await readSave()).artifacts.careLog;
@@ -551,7 +551,7 @@ try {
     await page.getByRole('slider', { name: '오디오 레벨', exact: true }).fill('55');
     await press('방송 시작');
     const segments = [
-      { title: '첫 인사', source: '스튜디오 카메라', caption: '지구와 젤리의 구조 소식과 숲 이야기를 전합니다' },
+      { title: '첫 인사', source: '스튜디오 카메라', caption: '꾸꾸와 앵자의 구조 소식과 숲 이야기를 전합니다' },
       { title: '현장 보여주기', source: '드론 사진', caption: '숲 옆에서 공사가 진행 중입니다' },
       { title: '조사 결과', source: '스튜디오 카메라', caption: '먹이나무를 늘리자 새가 1마리에서 10마리로 늘었습니다' },
       { title: '시민 부탁', source: '현장 리포터', caption: '새가 먹을 열매나무를 지키고 심어 주세요' },

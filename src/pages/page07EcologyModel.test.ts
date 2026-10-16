@@ -118,7 +118,7 @@ describe('page 7 ecology model', () => {
     expect(FIELD_TRACES.find((trace) => trace.id === 'sound-forest-birds')).toMatchObject({ image: '/assets/v8/trace-forest-birdsong.png', sound: 'forestBirdsong' });
     expect(FIELD_TRACES.find((trace) => trace.id === 'foot-songbird')?.image).toBe('/assets/v8/trace-forest-footprints.png');
     expect(FIELD_TRACES.find((trace) => trace.id === 'feather-blue')?.image).toBe('/assets/v8/trace-forest-feather-blue.png');
-    expect(FIELD_TRACES.map((trace) => `${trace.title} ${trace.note}`).join(' ')).not.toMatch(/앵무|지구|젤리/);
+    expect(FIELD_TRACES.map((trace) => `${trace.title} ${trace.note}`).join(' ')).not.toMatch(/앵무|꾸꾸|앵자/);
   });
 
   it('picks the sub cause from trial effect size', () => {

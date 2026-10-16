@@ -2253,8 +2253,8 @@
       "id": "file.audio.v5.broadcast-mic-test.wav",
       "src": "/audio/v5/broadcast-mic-test.wav",
       "kind": "audio",
-      "bytes": 467244,
-      "sha256": "a138b836ee32a620f6f282b20409631aa0dcea8ad3add692c177b30d1e6c61eb",
+      "bytes": 240044,
+      "sha256": "b8b17501849a73993c26fea6a4f98fa030ccbd5717c2c589d9e65e9d224c72ff",
       "classroomReady": true,
       "references": [
         "src/pages/Page08Broadcast.tsx:129"

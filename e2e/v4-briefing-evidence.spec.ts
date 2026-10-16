@@ -92,7 +92,7 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   await next.click();
 
   // 가설 카드 1장
-  await expect(page.getByRole('heading', { name: '지구와 젤리 주변, 새가 왜 줄었을까?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '꾸꾸와 앵자 주변, 새가 왜 줄었을까?' })).toBeVisible();
   await expect(page.locator('.p4-found li')).toHaveText(['톱 자국 그루터기', '물길 막은 자재', '소음 작업 표지']);
   await page.getByRole('group', { name: '가설 고르기' }).getByRole('button', { name: /소음 때문/ }).click();
   // 카드를 골라도 바로 끝나지 않는다 — 해설 화면을 읽고 배지를 받는다
@@ -106,7 +106,7 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   await expect(page.locator('.v4-done')).toContainText('드론 현장가 배지 획득!');
   await expect(page.locator('.v4-done')).toContainText('현장 사진을 단서로');
   await expect(page.locator('.v4-done')).toContainText('새가 떠난 이유는 생태 실험에서 확인');
-  await expect(next).toHaveText(/지구와 젤리 살피러/);
+  await expect(next).toHaveText(/꾸꾸와 앵자 살피러/);
 
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
   expect(saved.artifacts.hypothesis).toBe('noise');
@@ -115,5 +115,5 @@ test('evidence board: find three details, pick a hypothesis, done', async ({ pag
   expect(saved.badges).toContain('드론 현장가 배지');
 
   await next.click();
-  await expect(page.getByRole('heading', { level: 1, name: /지구와 젤리/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /꾸꾸와 앵자/ })).toBeVisible();
 });

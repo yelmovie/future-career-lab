@@ -65,7 +65,7 @@ function graphText(trial: Trial): string {
 }
 
 export const OPENING_CARDS: readonly CaptionCard[] = [
-  { id: 'opening-rescue', text: '지구와 젤리의 구조 소식과 숲 이야기를 전합니다', sourced: true, kind: 'opening', origin: '탐험 소식', announce: '안녕하세요. 지구와 젤리의 구조 소식과 숲 이야기를 전해 드리겠습니다.' },
+  { id: 'opening-rescue', text: '꾸꾸와 앵자의 구조 소식과 숲 이야기를 전합니다', sourced: true, kind: 'opening', origin: '탐험 소식', announce: '안녕하세요. 꾸꾸와 앵자의 구조 소식과 숲 이야기를 전해 드리겠습니다.' },
   { id: 'opening-news', text: '숲의 새가 줄어든 까닭을 함께 알아보겠습니다', sourced: true, kind: 'opening', origin: '탐험 소식', announce: '안녕하세요. 오늘은 숲의 새가 줄어든 까닭과 새를 돕는 방법을 알아보겠습니다.' },
   { id: 'opening-help', text: '숲의 새들을 돕기 위한 탐험 소식을 전합니다', sourced: true, kind: 'opening', origin: '탐험 소식', announce: '안녕하세요. 숲의 새들을 돕기 위해 우리가 살펴본 소식을 전해 드리겠습니다.' },
 ];
@@ -102,7 +102,7 @@ export function buildCaptionCards(artifacts: Pick<Artifacts, 'graphs' | 'photos'
   const sourced: CaptionCard[] = [
     ...OPENING_CARDS.map((card): CaptionCard => ({ ...card,
       evidenceLabel: artifacts.photos.length || artifacts.graphs.length || artifacts.careLog?.length ? '내 탐험 기록' : '연습 자료',
-      evidence: ['지구와 젤리의 구조 소식과 숲을 살펴본 이야기를 소개하는 첫 인사야. 아직 원인을 단정하거나 시민에게 부탁하는 순서는 아니야.'] })),
+      evidence: ['꾸꾸와 앵자의 구조 소식과 숲을 살펴본 이야기를 소개하는 첫 인사야. 아직 원인을 단정하거나 시민에게 부탁하는 순서는 아니야.'] })),
     ...GRAPH_VARIABLES.map((variable): CaptionCard => {
       const recorded = trials.find((item) => item.variable === variable);
       const trial = recorded ?? applyAction(variable);
@@ -117,7 +117,7 @@ export function buildCaptionCards(artifacts: Pick<Artifacts, 'graphs' | 'photos'
     ...ACTION_CARDS.map((card): CaptionCard => ({ ...card,
       evidenceLabel: card.id === 'action-report' ? artifacts.careLog?.length ? '내 탐험 기록' : '연습 자료' : trials.some((trial) => trial.variable === (card.id === 'action-plant' ? 'logging' : 'noise')) ? '내 탐험 기록' : '연습 자료',
       evidence: card.id === 'action-report'
-        ? artifacts.careLog?.length ? artifacts.careLog.map((record) => `${record.bird === 'green' ? '지구' : '젤리'}: ${record.issue} → ${record.treatment}`) : ['구조된 새는 상태에 맞춰 전문가가 돌봐야 해. 아직 내 돌봄 기록이 없어서 연습 자료를 보고 있어.']
+        ? artifacts.careLog?.length ? artifacts.careLog.map((record) => `${record.bird === 'green' ? '꾸꾸' : '앵자'}: ${record.issue} → ${record.treatment}`) : ['구조된 새는 상태에 맞춰 전문가가 돌봐야 해. 아직 내 돌봄 기록이 없어서 연습 자료를 보고 있어.']
         : card.id === 'action-plant'
           ? ['다른 것은 그대로 두고 먹이나무만 늘렸더니 새 수가 늘었어.', '이 결과를 보고 사람들에게 새가 먹을 열매나무를 지키고 심어 달라고 부탁할 수 있어.']
           : ['다른 것은 그대로 두고 시끄러운 소리만 줄였더니 새 수가 늘었어.', '이 결과를 보고 사람들에게 시끄러운 소리를 줄여 달라고 부탁할 수 있어.'] })),
